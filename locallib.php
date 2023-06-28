@@ -243,6 +243,9 @@ public static function fetch_itemsnotvisibletouser($userid, $strcourses) {
 
   $itemsnotvisibletouser[] = 0;
 
+  $str_itemsnotvisibletouser = "";
+
+  if ($strcourses!="") {
   foreach ($courses as $courseid) {
 
     $modinfo = get_fast_modinfo($courseid);
@@ -269,7 +272,8 @@ public static function fetch_itemsnotvisibletouser($userid, $strcourses) {
 
       }
   }
-  $str_itemsnotvisibletouser = implode(",",$itemsnotvisibletouser);
+    $str_itemsnotvisibletouser = implode(",",$itemsnotvisibletouser);
+}
 
   return $str_itemsnotvisibletouser;
 
@@ -327,7 +331,7 @@ public static function return_gradestatus($modulename, $iteminstance, $courseid,
         $status = 'notopen';
       }
       if ($status=="") {
-        $arr_assignsubmission = $DB->get_record('assign_submission', array('assignment'=>$iteminstance, 'userid'=>$USER->id));
+        $arr_assignsubmission = $DB->get_record('assign_submission', array('assignment'=>$iteminstance, 'userid'=>$userid));
 
         if (!empty($arr_assignsubmission)) {
           $status = $arr_assignsubmission->status;
@@ -356,7 +360,7 @@ public static function return_gradestatus($modulename, $iteminstance, $courseid,
   }
 
   if ($modulename=="forum") {
-        $forumsubmissions = $DB->count_records('forum_discussion_subs', array('forum'=>$iteminstance, 'userid'=>$USER->id));
+        $forumsubmissions = $DB->count_records('forum_discussion_subs', array('forum'=>$iteminstance, 'userid'=>$userid));
 
         $cmid = newassessments_statistics::get_cmid('forum', $courseid, $iteminstance);
 
@@ -372,7 +376,7 @@ public static function return_gradestatus($modulename, $iteminstance, $courseid,
 
           $cmid = newassessments_statistics::get_cmid('quiz', $courseid, $iteminstance);
 
-          $quizattempts = $DB->count_records('quiz_attempts', array('quiz'=>$iteminstance, 'userid'=>$USER->id, 'state'=>'finished'));
+          $quizattempts = $DB->count_records('quiz_attempts', array('quiz'=>$iteminstance, 'userid'=>$userid, 'state'=>'finished'));
           if ($quizattempts>0) {
               $status = 'submitted';
           } else {
@@ -387,7 +391,7 @@ public static function return_gradestatus($modulename, $iteminstance, $courseid,
 
           $cmid = newassessments_statistics::get_cmid('workshop', $courseid, $iteminstance);
 
-          $workshopsubmissions = $DB->count_records('workshop_submissions', array('workshopid'=>$iteminstance, 'authorid'=>$USER->id));
+          $workshopsubmissions = $DB->count_records('workshop_submissions', array('workshopid'=>$iteminstance, 'authorid'=>$userid));
           if ($workshopsubmissions>0) {
               $status = 'submitted';
           } else {
@@ -528,15 +532,15 @@ return $finalweight;
 }
 
 
-function get_assessmenttypeorder($coursetype,$tdr) {
+function get_assessmenttypeorder($coursetype,$tdr,$userid) {
 
-global $USER, $DB, $CFG;
+global $DB, $CFG;
 
-$courses = newassessments_statistics::return_enrolledcourses($USER->id, $coursetype);
+$courses = newassessments_statistics::return_enrolledcourses($userid, $coursetype);
 $str_courses = implode(",", $courses);
 
 
-$str_itemsnotvisibletouser = newassessments_statistics::fetch_itemsnotvisibletouser($USER->id, $str_courses);
+$str_itemsnotvisibletouser = newassessments_statistics::fetch_itemsnotvisibletouser($userid, $str_courses);
 
 $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_courses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
 
@@ -594,16 +598,16 @@ return $str_order;
 }
 
 
-function get_duedateorder($tdr) {
+function get_duedateorder($tdr,$userid) {
 
-global $USER, $DB, $CFG;
+global $DB, $CFG;
 
-$currentcourses = newassessments_statistics::return_enrolledcourses($USER->id, "current");
+$currentcourses = newassessments_statistics::return_enrolledcourses($userid, "current");
 $str_currentcourses = implode(",", $currentcourses);
 
 $currentxl = array();
 
-$str_itemsnotvisibletouser = newassessments_statistics::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
+$str_itemsnotvisibletouser = newassessments_statistics::fetch_itemsnotvisibletouser($userid, $str_currentcourses);
 
 $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_currentcourses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
 
@@ -632,7 +636,7 @@ foreach ($arr_cc as $key_cc) {
     if ($modulename=="assign") {
       $duedate = $arr_duedate->duedate;
 
-      $arr_userflags = $DB->get_record('assign_user_flags', array('userid'=>$USER->id, 'assignment'=>$iteminstance));
+      $arr_userflags = $DB->get_record('assign_user_flags', array('userid'=>$userid, 'assignment'=>$iteminstance));
 
       if ($arr_userflags) {
       $extensionduedate = $arr_userflags->extensionduedate;

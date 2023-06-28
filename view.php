@@ -149,7 +149,7 @@ $PAGE->requires->js_amd_inline("
 
                                     $duedateorder = "";
                                     if ($ts=="duedate") {
-                                        $duedateorder = get_duedateorder($tdr);
+                                        $duedateorder = get_duedateorder($tdr,$USER->id);
 
                                         if ($duedateorder!="") {
                                           $addsort = " ORDER BY FIELD(gi.id, $duedateorder)";
@@ -158,7 +158,7 @@ $PAGE->requires->js_amd_inline("
 
                                     $assessmenttypeorder = "";
                                     if ($ts=="assessmenttype") {
-                                    $assessmenttypeorder = get_assessmenttypeorder("current",$tdr);
+                                    $assessmenttypeorder = get_assessmenttypeorder("current",$tdr,$USER->id);
                                         if ($assessmenttypeorder!="") {
                                           $addsort = " ORDER BY FIELD(gi.id, $assessmenttypeorder)";
                                         }
@@ -255,7 +255,7 @@ $PAGE->requires->js_amd_inline("
 
                                         $assessmenttypeorder = "";
                                         if ($ts=="assessmenttype") {
-                                        $assessmenttypeorder = get_assessmenttypeorder("past",$tdr);
+                                        $assessmenttypeorder = get_assessmenttypeorder("past",$tdr,$USER->id);
                                             if ($assessmenttypeorder!="") {
                                               $addsort = " ORDER BY FIELD(gi.id, $assessmenttypeorder)";
                                             }
