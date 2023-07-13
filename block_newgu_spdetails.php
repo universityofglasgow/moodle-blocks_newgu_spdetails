@@ -56,32 +56,54 @@ class block_newgu_spdetails extends block_base {
             return $this->content;
         }
 
+        $context = context_system::instance();
+
         $this->content = new \stdClass();
 
         $viewurl = new moodle_url('/blocks/newgu_spdetails/view.php');
+        if (!is_siteadmin()) {
+          $cntstaff = block_newgu_spdetails_external::checkrole($USER->id, 0);
+          if ($cntstaff>0) {
+            $staffurl = new moodle_url('/blocks/newgu_spdetails/sduserdetails.php');
+            $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
+                    'link' => $viewurl,
+                    'stafflink' => $staffurl
+                    ]);
+          } else {
+            $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
+                    'link' => $viewurl
+                    ]);
+          }
+        }
 
-        $context = context_system::instance();
 
-        $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
-                'link' => $viewurl,
-                ]);
 
-        $this->page->requires->js_amd_inline("
-                                        require(['jquery'], function(\$) {
 
-                                        $.ajax({
-                                        url: '../blocks/newgu_spdetails/ajax.php',
-                                        type: 'POST',
-                                        data: {request: 'loadspdetails'},
-                                        success: function (data) {
-                                            if (data !== '') {
-                                                $('#spdetails').html(data);
-                                            }
-                                        }
-                                        });
 
-                                        });
-                                        ");
+
+$this->page->requires->js_amd_inline("require(['core/first', 'jquery', 'jqueryui', 'core/ajax'], function(core, $, bootstrap, ajax) {
+
+// -----------------------------
+$(document).ready(function() {
+  // get current value then call ajax to get new data
+
+  ajax.call([{
+    methodname: 'block_newgu_spdetails_get_statistics',
+    args: {
+    },
+  }])[0].done(function(response) {
+console.log(response[0].stathtml);
+    $('#spdetails').html(response[0].stathtml);
+    return;
+  }).fail(function(err) {
+    console.log(err);
+    //notification.exception(new Error('Failed to load data'));
+    return;
+  });
+
+  });
+  });
+");
 
         return $this->content;
 

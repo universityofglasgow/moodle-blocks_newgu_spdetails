@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Visits Report capabilities defined.
- *
+ * New GU SP Details
  * @package    block_newgu_spdetails
- * @copyright
+ * @copyright  2023 NEW GU
+ * @author
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -34,5 +34,5 @@ $capabilities = array(
 
         'clonepermissionsfrom' => 'moodle/my:manageblocks'
     ),
-    
+
 );

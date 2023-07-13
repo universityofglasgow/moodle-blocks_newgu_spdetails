@@ -45,10 +45,10 @@ $str_coursestype = "";
 
 $myfirstlastname = $USER->firstname . " " . $USER->lastname;
 
-$currentcourses = newassessments_statistics::return_enrolledcourses($USER->id, "current");
+$currentcourses = block_newgu_spdetails_external::return_enrolledcourses($USER->id, "current");
 $str_currentcourses = implode(",", $currentcourses);
 
-$pastcourses = newassessments_statistics::return_enrolledcourses($USER->id, "past");
+$pastcourses = block_newgu_spdetails_external::return_enrolledcourses($USER->id, "past");
 $str_pastcourses = implode(",", $pastcourses);
 
 $itemmodules = "'assign','forum','quiz','workshop'";
@@ -66,7 +66,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
 
     $str_coursestype = "Current Courses";
 
-    $str_itemsnotvisibletouser = newassessments_statistics::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
+    $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
 
 //    $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_currentcourses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
 
@@ -115,7 +115,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
           $gradecategoryname = $arr_gradecategory->fullname;
         }
 
-        $assessmenttype = newassessments_statistics::return_assessmenttype($gradecategoryname, $aggregationcoef);
+        $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
 
         // FETCH INCLUDED IN GCAT
@@ -179,7 +179,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         }
 
         // FETCH STATUS
-        $gradestatus = newassessments_statistics::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
+        $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
 
         $status = $gradestatus["status"];
         $link = $gradestatus["link"];
@@ -286,7 +286,7 @@ if ($coursestype=="past") {
 
     $str_coursestype = "Past Courses";
 
-    $str_itemsnotvisibletouser = newassessments_statistics::fetch_itemsnotvisibletouser($USER->id, $str_pastcourses);
+    $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_pastcourses);
 
 //    $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_pastcourses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
 
@@ -338,7 +338,7 @@ if ($coursestype=="past") {
           $gradecategoryname = $arr_gradecategory->fullname;
         }
 
-        $assessmenttype = newassessments_statistics::return_assessmenttype($gradecategoryname, $aggregationcoef);
+        $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
 
         // FETCH INCLUDED IN GCAT
@@ -420,7 +420,7 @@ if ($coursestype=="past") {
 
         $status="";
 
-        $cmid = newassessments_statistics::get_cmid($modulename, $courseid, $iteminstance);
+        $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
 
         $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
 

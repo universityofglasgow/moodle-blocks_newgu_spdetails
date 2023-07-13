@@ -108,7 +108,7 @@ class currentassessment_table extends table_sql
       $iteminstance = $values->iteminstance;
       $courseid = $values->courseid;
 
-      $cmid = newassessments_statistics::get_cmid($modulename, $courseid, $iteminstance);
+      $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
 
       $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
 
@@ -168,7 +168,7 @@ class currentassessment_table extends table_sql
 
       $aggregationcoef = $values->aggregationcoef;
 
-      $assessmenttype = newassessments_statistics::return_assessmenttype($gradecategoryname, $aggregationcoef);
+      $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
       return $assessmenttype;
 
@@ -263,7 +263,7 @@ class currentassessment_table extends table_sql
       $itemid = $values->id;
 
 
-      $gradestatus = newassessments_statistics::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
+      $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
 
       $status = $gradestatus["status"];
       $link = $gradestatus["link"];
@@ -453,7 +453,7 @@ class pastassessment_table extends table_sql
       $iteminstance = $values->iteminstance;
       $courseid = $values->courseid;
 
-      $cmid = newassessments_statistics::get_cmid($modulename, $courseid, $iteminstance);
+      $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
 
       $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
 
@@ -484,7 +484,7 @@ class pastassessment_table extends table_sql
 
       $aggregationcoef = $values->aggregationcoef;
 
-      $assessmenttype = newassessments_statistics::return_assessmenttype($gradecategoryname, $aggregationcoef);
+      $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
 
       return $assessmenttype ;
@@ -629,7 +629,7 @@ class pastassessment_table extends table_sql
 
       $status="";
 
-      $cmid = newassessments_statistics::get_cmid($modulename, $courseid, $iteminstance);
+      $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
 
       $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
 

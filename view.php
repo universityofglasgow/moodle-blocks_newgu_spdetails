@@ -58,10 +58,10 @@ $returnurl = optional_param('returnurl', '', PARAM_URL);
 
 echo $OUTPUT->header();
 
-$currentcourses = newassessments_statistics::return_enrolledcourses($USER->id, "current");
+$currentcourses = block_newgu_spdetails_external::return_enrolledcourses($USER->id, "current");
 $str_currentcourses = implode(",", $currentcourses);
 
-$pastcourses = newassessments_statistics::return_enrolledcourses($USER->id, "past");
+$pastcourses = block_newgu_spdetails_external::return_enrolledcourses($USER->id, "past");
 $str_pastcourses = implode(",", $pastcourses);
 
 // FETCH LTI IDs TO BE INCLUDED
@@ -76,6 +76,7 @@ $html .= html_writer::end_tag('div');
 
 echo $html;
 
+/*
 $PAGE->requires->js_amd_inline("
                                     require(['jquery'], function(\$) {
 
@@ -92,6 +93,31 @@ $PAGE->requires->js_amd_inline("
 
                                     });
                                     ");
+*/
+
+$PAGE->requires->js_amd_inline("require(['core/first', 'jquery', 'jqueryui', 'core/ajax'], function(core, $, bootstrap, ajax) {
+
+// -----------------------------
+$(document).ready(function() {
+  // get current value then call ajax to get new data
+
+  ajax.call([{
+    methodname: 'block_newgu_spdetails_get_statistics',
+    args: {
+    },
+  }])[0].done(function(response) {
+console.log(response[0].stathtml);
+    $('#spdetails').html(response[0].stathtml);
+    return;
+  }).fail(function(err) {
+    console.log(err);
+    //notification.exception(new Error('Failed to load data'));
+    return;
+  });
+
+  });
+  });
+");
 
                                     $tab = optional_param('t', 1, PARAM_INT);
 
@@ -183,7 +209,7 @@ $PAGE->requires->js_amd_inline("
 
                                         $table = new currentassessment_table('tab1');
 
-                                        $str_itemsnotvisibletouser = newassessments_statistics::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
+                                        $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
 
                                         $table->set_sql('gi.*, c.fullname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid>1 && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
 
@@ -283,7 +309,7 @@ $PAGE->requires->js_amd_inline("
 
                                         $search = optional_param('search', '', PARAM_ALPHA);
 
-                                        $str_itemsnotvisibletouser = newassessments_statistics::fetch_itemsnotvisibletouser($USER->id, $str_pastcourses);
+                                        $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_pastcourses);
 
 
 
