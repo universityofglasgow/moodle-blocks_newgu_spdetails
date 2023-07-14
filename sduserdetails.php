@@ -80,7 +80,6 @@ foreach ($staffenrolledcourses as $key_staffenrolledcourses) {
   $staffcourseoptions[$key_staffenrolledcourses["courseid"]] = $key_staffenrolledcourses["coursename"];
 }
 
-
 $html = '';
 
 $html .= html_writer::start_tag('form', array('action' => '', 'method' => 'post', 'id' => 'sd_userdetails'));
@@ -122,13 +121,13 @@ $html .= html_writer::start_tag('div', array('class' => 'row m-4'));
 
 $html .= html_writer::tag('label', 'Student: ', array('class' => 'col-md-2'));
 
-if ($selectgroup!="") {
+if ($selectgroup!="0") {
     $sql_groupstudents = 'SELECT DISTINCT gm.userid as userid,u.firstname,u.lastname FROM {groups_members} gm, {user} u WHERE gm.groupid='. $selectgroup .' AND gm.userid=u.id ORDER BY u.firstname, u.lastname';
     $student_ids = $DB->get_records_sql($sql_groupstudents);
 
 } else {
-//        $sql_enrolledstudents = block_newgu_spdetails_external::nogroupusers($courseid);
-//        $student_ids = $DB->get_records_sql($sql_enrolledstudents);
+       $sql_enrolledstudents = block_newgu_spdetails_external::nogroupusers($courseid);
+       $student_ids = $DB->get_records_sql($sql_enrolledstudents);
 }
 
 if (!empty($student_ids)) {
@@ -242,7 +241,7 @@ if ($str_itemsnotvisibletouser!="") {
   $table->no_sorting('yourgrade');
   $table->no_sorting('feedback');
 
-  $table->define_baseurl("$CFG->wwwroot/blocks/newgu_spdetails/view.php?t=1&courseid=" . $courseid);
+  $table->define_baseurl("$CFG->wwwroot/blocks/newgu_spdetails/sduserdetails.php?t=1&courseid=" . $courseid);
 
   $table->out(20, true);
 }
