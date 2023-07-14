@@ -806,6 +806,10 @@ $html .= html_writer::end_tag('div');
       $get_groups_sql = "SELECT * FROM {groups} WHERE courseid=" . $courseid;
       $groups = $DB->get_records_sql($get_groups_sql);
 
+      $str_groupids = "0";
+      $str_enrolledstudents = "0";
+
+      if (!empty($groups)) {
       $groupoptions = array();
       $arr_groupids = array();
       foreach ($groups as $group) {
@@ -819,15 +823,17 @@ $html .= html_writer::end_tag('div');
           $arr_groupids[] = $group->id;
       }
       $str_groupids = implode(",",$arr_groupids);
-
+      }
       $student_ids = $DB->get_records_sql('SELECT userid FROM {groups_members} WHERE groupid IN (' . $str_groupids . ')');
 
+      if (!empty($student_ids)) {
       $array_enrolledstudents = array();
       foreach ($student_ids as $student_id) {
           $array_enrolledstudents[] = $student_id->userid;
       }
 
       $str_enrolledstudents = implode(",", $array_enrolledstudents);
+      }
 
       $sql_enrolledstudents = 'SELECT DISTINCT u.id as userid, u.firstname, u.lastname
       FROM {course} c
