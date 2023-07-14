@@ -55,8 +55,8 @@ class sduserdetails_table extends table_sql
 
         $headers = array(
             get_string('assessment'),
-            '<a href="view.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=assessmenttype&tdr=' . $tdrnew . '&courseid=' . $courseid . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
-            '<a href="view.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=duedate&tdr=' . $tdrnew . '&courseid=' . $courseid . '">' . get_string('duedate','block_newgu_spdetails') . $tdirdd_icon . '</a>',
+            '<a href="sduserdetails.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=assessmenttype&tdr=' . $tdrnew . '&courseid=' . $courseid . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
+            '<a href="sduserdetails.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=duedate&tdr=' . $tdrnew . '&courseid=' . $courseid . '">' . get_string('duedate','block_newgu_spdetails') . $tdirdd_icon . '</a>',
             get_string('status'),
             get_string('yourgrade', 'block_newgu_spdetails'),
             get_string('feedback')
