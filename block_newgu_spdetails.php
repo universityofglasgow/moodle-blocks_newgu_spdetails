@@ -61,7 +61,7 @@ class block_newgu_spdetails extends block_base {
         $this->content = new \stdClass();
 
         $viewurl = new moodle_url('/blocks/newgu_spdetails/view.php');
-        if (!is_siteadmin()) {
+
           $cntstaff = block_newgu_spdetails_external::checkrole($USER->id, 0);
           if ($cntstaff>0) {
             $staffurl = new moodle_url('/blocks/newgu_spdetails/sduserdetails.php');
@@ -74,7 +74,7 @@ class block_newgu_spdetails extends block_base {
                     'link' => $viewurl
                     ]);
           }
-        }
+
 
 
 

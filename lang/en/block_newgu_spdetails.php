@@ -23,6 +23,8 @@
  */
 
 $string['pluginname'] = 'Your Assessment Details (New)';
+$string['newgu_spdetails:addinstance'] = 'Add a new Your Assessment Details (New) block';
+$string['newgu_spdetails:myaddinstance'] = 'Add a new Your Assessment Details (New) to Dashboard';
 $string['assessment'] = 'Assessment';
 $string['assessments'] = 'Assessments';
 
