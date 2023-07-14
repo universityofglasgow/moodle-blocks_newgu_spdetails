@@ -27,6 +27,8 @@ class sduserdetails_table extends table_sql
         $ts = optional_param('ts', '', PARAM_ALPHA);
         $courseid = optional_param('courseid', '', PARAM_INT);
 
+
+        $selectcourse = optional_param('selectcourse', '', PARAM_INT);
         $selectgroup = optional_param('selectgroup', '', PARAM_TEXT);
         $selectstudent = optional_param('selectstudent', '', PARAM_TEXT);
 
@@ -55,8 +57,8 @@ class sduserdetails_table extends table_sql
 
         $headers = array(
             get_string('assessment'),
-            '<a href="sduserdetails.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=assessmenttype&tdr=' . $tdrnew . '&courseid=' . $courseid . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
-            '<a href="sduserdetails.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=duedate&tdr=' . $tdrnew . '&courseid=' . $courseid . '">' . get_string('duedate','block_newgu_spdetails') . $tdirdd_icon . '</a>',
+            '<a href="sduserdetails.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=assessmenttype&tdr=' . $tdrnew . '&selectcourse=' . $selectcourse . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
+            '<a href="sduserdetails.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=duedate&tdr=' . $tdrnew . '&selectcourse=' . $selectcourse . '">' . get_string('duedate','block_newgu_spdetails') . $tdirdd_icon . '</a>',
             get_string('status'),
             get_string('yourgrade', 'block_newgu_spdetails'),
             get_string('feedback')
