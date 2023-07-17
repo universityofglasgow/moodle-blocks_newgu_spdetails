@@ -241,8 +241,7 @@ if ($str_itemsnotvisibletouser!="") {
   $table->no_sorting('yourgrade');
   $table->no_sorting('feedback');
 
-  $table->define_baseurl("$CFG->wwwroot/blocks/newgu_spdetails/sduserdetails.php?t=1&courseid=" . $courseid);
-
+  $table->define_baseurl("$CFG->wwwroot/blocks/newgu_spdetails/sduserdetails.php?t=1" . "&selectgroup=" . $selectgroup . "&selectstudent=" . $selectstudent . "&selectcourse=". $courseid);
   $table->out(20, true);
 }
 
