@@ -78,11 +78,9 @@ if ($str_currentcourses!="" && $coursestype=="current") {
     $spdetailspdf = "<table width=100%>";
     $spdetailspdf .= '<tr style="font-weight: bold;">';
 
-    $spdetailspdf .= '<th width="15%"' . $thhd . '>' . get_string('course') . '</th>';
-    $spdetailspdf .= '<th width="15%"' . $thhd . '>' . get_string('assessment') . '</th>';
-    $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('activity') . ' type' . "</th>";
+    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('course') . '</th>';
+    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
     $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('source', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('duedate','block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('status') . "</th>";
@@ -238,9 +236,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
 
         $spdetailspdf .= "<td $tdstl>" . $coursename . "</td>";
         $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $activitytype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $inclgcat . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $str_duedate . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $statustodisplay . "</td>";
@@ -255,11 +251,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessment);
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$activitytype);
-        $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessmenttype);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$inclgcat);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$finalweight);
         $col++;
@@ -297,11 +289,9 @@ if ($coursestype=="past") {
     $spdetailspdf = "<table width=100%>";
     $spdetailspdf .= '<tr style="font-weight: bold;">';
 
-    $spdetailspdf .= '<th width="15%"' . $thhd . '>' . get_string('course') . '</th>';
-    $spdetailspdf .= '<th width="15%"' . $thhd . '>' . get_string('assessment') . '</th>';
-    $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('activity') . ' type' . "</th>";
+    $spdetailspdf .= '<th width="21%"' . $thhd . '>' . get_string('course') . '</th>';
+    $spdetailspdf .= '<th width="21%"' . $thhd . '>' . get_string('assessment') . '</th>';
     $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('source', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('startdate','block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('enddate','block_newgu_spdetails') . "</th>";
@@ -455,9 +445,7 @@ if ($coursestype=="past") {
 
         $spdetailspdf .= "<td $tdstl>" . $coursename . "</td>";
         $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $activitytype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $inclgcat . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $startdate . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $enddate . "</td>";
@@ -473,11 +461,7 @@ if ($coursestype=="past") {
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessment);
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$activitytype);
-        $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessmenttype);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$inclgcat);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$finalweight);
         $col++;
@@ -552,7 +536,7 @@ EOD;
 
     $doc->writeHTML($c, true, false, false, false, '');
 
-    $doc->Output('spdetails-' . $myfirstlastname . '_' . date("d-m-Y") . '.pdf', 'D');
+    $doc->Output($str_coursestype . " Report - " . $myfirstlastname . '_' . date("d-m-Y") . '.pdf', 'D');
 
     exit();
 
@@ -561,7 +545,7 @@ EOD;
 
 if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
 
-  $filename = clean_filename($str_coursestype . " Report -" . $myfirstlastname . "_" . date("d-M-Y") . '.xls');
+  $filename = clean_filename($str_coursestype . " Report - " . $myfirstlastname . "_" . date("d-M-Y") . '.xls');
 
   /// Creating a workbook
   $workbook = new MoodleExcelWorkbook("-");
@@ -595,10 +579,8 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
   $myxls->merge_cells(0, 0, 3, 0);
   $myxls->write_string(2, 4, $myfirstlastname, $formatuname);
 
-  $myxls->set_column(0, 1, 35);
-  $myxls->set_column(2, 2, 10);
-  $myxls->set_column(3, 3, 15);
-  $myxls->set_column(4, 4, 10);
+  $myxls->set_column(0, 1, 40);
+  $myxls->set_column(3, 3, 20);
   $myxls->set_column(5, 5, 10);
 
   $myxls->write_string(4, 0, $str_coursestype . ' Report - ' . date("d/m/Y"));
@@ -611,11 +593,7 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessment"));
     $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("activity") . " type");
-    $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessmenttype", "block_newgu_spdetails"));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("source", "block_newgu_spdetails"));
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('weight', 'block_newgu_spdetails'));
     $col++;
@@ -626,11 +604,10 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('feedback'));
     $col++;
 
-
-      $myxls->set_column(6, 6, 10);
-      $myxls->set_column(7, 7, 20);
-      $myxls->set_column(8, 9, 25);
-      $myxls->set_column(9, 9, 15);
+    $myxls->set_column(6, 6, 10);
+    $myxls->set_column(7, 7, 20);
+    $myxls->set_column(8, 9, 25);
+    $myxls->set_column(9, 9, 15);
 
   }
 
@@ -642,11 +619,7 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessment"));
     $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("activity") . " type");
-    $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessmenttype", "block_newgu_spdetails"));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("source", "block_newgu_spdetails"));
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('weight', 'block_newgu_spdetails'));
     $col++;

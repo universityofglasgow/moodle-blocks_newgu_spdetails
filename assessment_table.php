@@ -21,8 +21,8 @@ class currentassessment_table extends table_sql
         parent::__construct($unequeid);
         // Define the list of columns to show.
 
-
-        $columns = array('coursename', 'assessment', 'itemmodule', 'assessmenttype', 'includedingcat', 'weight', 'duedate', 'status', 'yourgrade', 'feedback');
+        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'duedate', 'status', 'yourgrade', 'feedback');
+//        $columns = array('coursename', 'assessment', 'itemmodule', 'assessmenttype', 'includedingcat', 'weight', 'duedate', 'status', 'yourgrade', 'feedback');
         $this->define_columns($columns);
 
         $tdr = optional_param('tdr', '', PARAM_INT);
@@ -65,9 +65,9 @@ class currentassessment_table extends table_sql
             '<a href="view.php?t=1&ts=coursename&tdr=' . $tdrnew . '">' . get_string('course') . $tdircn_icon . '</a>',
 /*            get_string('coursecode', 'block_newgu_spdetails'), */
             get_string('assessment'),
-            get_string('activity') . ' type',
+/*            get_string('activity') . ' type', */
             '<a href="view.php?t=1&ts=assessmenttype&tdr=' . $tdrnew . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
-            get_string('source', 'block_newgu_spdetails'),
+/*            get_string('source', 'block_newgu_spdetails'), */
             get_string('weight', 'block_newgu_spdetails'),
             '<a href="view.php?t=1&ts=duedate&tdr=' . $tdrnew . '">' . get_string('duedate','block_newgu_spdetails') . $tdirdd_icon . '</a>',
             get_string('status'),
@@ -117,6 +117,7 @@ class currentassessment_table extends table_sql
       }
     }
 
+/*
     function col_includedingcat($values){
       global $DB, $CFG;
       $cmid = $values->id;
@@ -145,11 +146,12 @@ class currentassessment_table extends table_sql
           return "Gradebook";
       }
     }
-
+*/
+/*
     function col_itemmodule($values){
         return $values->itemmodule;
     }
-
+*/
     function col_assessmenttype($values){
 
       global $DB;
@@ -368,7 +370,9 @@ class pastassessment_table extends table_sql
         // Define the list of columns to show.
 
 
-        $columns = array('coursename', 'assessment', 'itemmodule', 'assessmenttype', 'includedingcat', 'weight', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
+        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
+//        $columns = array('coursename', 'assessment', 'itemmodule', 'assessmenttype', 'includedingcat', 'weight', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
+
         $this->define_columns($columns);
 
         // Define the titles of columns to show in header.
@@ -462,11 +466,11 @@ class pastassessment_table extends table_sql
       }
 
     }
-
+/*
     function col_itemmodule($values){
         return $values->itemmodule;
     }
-
+*/
     function col_assessmenttype($values){
 
       global $DB;
@@ -490,7 +494,7 @@ class pastassessment_table extends table_sql
       return $assessmenttype ;
 
     }
-
+/*
     function col_includedingcat($values){
       global $DB, $CFG;
       $cmid = $values->id;
@@ -521,7 +525,7 @@ class pastassessment_table extends table_sql
       }
 
     }
-
+*/
     function col_weight($values){
 
       global $DB;

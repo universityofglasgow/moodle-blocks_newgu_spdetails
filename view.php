@@ -76,25 +76,6 @@ $html .= html_writer::end_tag('div');
 
 echo $html;
 
-/*
-$PAGE->requires->js_amd_inline("
-                                    require(['jquery'], function(\$) {
-
-                                    $.ajax({
-                                    url: 'ajax.php',
-                                    type: 'POST',
-                                    data: {request: 'loadspdetails'},
-                                    success: function (data) {
-                                        if (data !== '') {
-                                            $('#spdetails').html(data);
-                                        }
-                                    }
-                                    });
-
-                                    });
-                                    ");
-*/
-
 $PAGE->requires->js_amd_inline("require(['core/first', 'jquery', 'jqueryui', 'core/ajax'], function(core, $, bootstrap, ajax) {
 
 // -----------------------------
@@ -215,9 +196,7 @@ console.log(response[0].stathtml);
 
                                         $table->no_sorting('coursename');
                                         $table->no_sorting('assessment');
-                                        $table->no_sorting('itemmodule');
                                         $table->no_sorting('assessmenttype');
-                                        $table->no_sorting('includedingcat');
                                         $table->no_sorting('weight');
                                         $table->no_sorting('duedate');
                                         $table->no_sorting('status');
@@ -321,9 +300,7 @@ console.log(response[0].stathtml);
 
                                         $table->no_sorting('coursename');
                                         $table->no_sorting('assessment');
-                                        $table->no_sorting('itemmodule');
                                         $table->no_sorting('assessmenttype');
-                                        $table->no_sorting('includedingcat');
                                         $table->no_sorting('weight');
                                         $table->no_sorting('startdate');
                                         $table->no_sorting('enddate');
