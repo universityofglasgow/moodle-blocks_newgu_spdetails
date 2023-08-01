@@ -78,14 +78,15 @@ if ($str_currentcourses!="" && $coursestype=="current") {
     $spdetailspdf = "<table width=100%>";
     $spdetailspdf .= '<tr style="font-weight: bold;">';
 
-    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('course') . '</th>';
-    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
+    $spdetailspdf .= '<th width="20%"' . $thhd . '>' . get_string('course') . '</th>';
+    $spdetailspdf .= '<th width="20%"' . $thhd . '>' . get_string('assessment') . '</th>';
     $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('duedate','block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('status') . "</th>";
-    $spdetailspdf .= '<th width="11%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="15%" ' . $thhd . '>' . get_string('feedback') . "</th>";
+    $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('gradetype', 'block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('duedate','block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="9%" ' . $thhd . '>' . get_string('status') . "</th>";
+    $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="14%" ' . $thhd . '>' . get_string('feedback') . "</th>";
 
     $spdetailspdf .= "</tr>";
 
@@ -135,12 +136,13 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         // FETCH WEIGHT
         $finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
 
+        $gradetype = 'Provisional';       // CURRENTLY STATIC
 
         // DUE DATE
         $duedate = 0;
         $extspan = "";
         $extensionduedate = 0;
-        $str_duedate = "—";
+        $str_duedate = get_string('noduedate', 'block_newgu_spdetails');;
 
         // READ individual TABLE OF ACTIVITY (MODULE)
         if ($modulename!="") {
@@ -155,7 +157,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
             if ($arr_userflags) {
             $extensionduedate = $arr_userflags->extensionduedate;
             if ($extensionduedate>0) {
-              $extspan = '<a href="javascript:void(0)" title="' . get_string('extended', 'block_newgu_spdetails') . '" class="extended">*</a>';
+              $extspan = get_string('extended', 'block_newgu_spdetails') . '" class="extended">*';
             }
             }
 
@@ -190,25 +192,25 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         $statustodisplay = "";
 
         if($status == 'tosubmit'){
-          $statustodisplay = '<a href="' . $link . '"><span class="status-item status-submit">'.get_string('submit').'</span></a> ';
+          $statustodisplay = get_string('submit');
         }
         if($status == 'notsubmitted'){
-          $statustodisplay = '<span class="status-item">'.get_string('notsubmitted', 'block_newgu_spdetails').'</span> ';
+          $statustodisplay = get_string('notsubmitted', 'block_newgu_spdetails');
         }
         if($status == 'submitted'){
-          $statustodisplay = '<span class="status-item status-submitted">'. ucwords(trim(get_string('submitted', 'block_newgu_spdetails'))) . '</span> ';
+          $statustodisplay = ucwords(trim(get_string('submitted', 'block_newgu_spdetails')));
           if ($finalgrade!=Null) {
-            $statustodisplay = '<span class="status-item status-item status-graded">'.get_string('graded', 'block_newgu_spdetails').'</span>';
+            $statustodisplay = get_string('graded', 'block_newgu_spdetails');
           }
         }
         if($status == "notopen"){
-          $statustodisplay = '<span class="status-item">' . get_string('submissionnotopen', 'block_newgu_spdetails') . '</span> ';
+          $statustodisplay = get_string('submissionnotopen', 'block_newgu_spdetails');
         }
         if($status == "TO_BE_ASKED"){
-          $statustodisplay = '<span class="status-item status-graded">' . get_string('individualcomponents', 'block_newgu_spdetails') . '</span> ';
+          $statustodisplay = get_string('individualcomponents', 'block_newgu_spdetails');
         }
         if($status == "overdue"){
-          $statustodisplay = '<span class="status-item status-overdue">' . get_string('overdue', 'block_newgu_spdetails') . '</span> ';
+          $statustodisplay = get_string('overdue', 'block_newgu_spdetails');
         }
 
         // FETCH YOUR Grade
@@ -224,7 +226,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         $gradetodisplay = $feedback["gradetodisplay"];
 
         if ($link!="") {
-          $str_gradetodisplay = '<a href="' . $link . '">' . get_string('readfeedback', 'block_newgu_spdetails') . '</a>';
+          $str_gradetodisplay =  get_string('readfeedback', 'block_newgu_spdetails');
         } else {
           if ($modulename!="quiz") {
             $str_gradetodisplay = $gradetodisplay;
@@ -238,6 +240,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
+        $spdetailspdf .= "<td $tdstc>" . $gradetype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $str_duedate . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $statustodisplay . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $gradetodisplay . "</td>";
@@ -255,7 +258,11 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$finalweight);
         $col++;
+        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$gradetype);
+        $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$str_duedate);
+        $col++;
+        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$statustodisplay);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>strip_tags($gradetodisplay));
         $col++;
@@ -293,9 +300,10 @@ if ($coursestype=="past") {
     $spdetailspdf .= '<th width="21%"' . $thhd . '>' . get_string('assessment') . '</th>';
     $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('gradetype', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('startdate','block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('enddate','block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('viewsubmission','block_newgu_spdetails') . "</th>";
+//    $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('viewsubmission','block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="13%" ' . $thhd . '>' . get_string('feedback') . "</th>";
 
@@ -350,6 +358,8 @@ if ($coursestype=="past") {
         // FETCH WEIGHT
         $finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
 
+        // GRADETYPE -- CURRENTLY STATIC
+        $gradetype = 'Provisional';
 
         // START DATE
         $submissionstartdate = 0;
@@ -415,7 +425,7 @@ if ($coursestype=="past") {
         $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
 
         if (!empty($link)) {
-            $viewsubmission = '<a href="' . $link . '">' . get_string('viewsubmission', 'block_newgu_spdetails') . '</a>';
+            $viewsubmission = get_string('viewsubmission', 'block_newgu_spdetails');
             $viewsubmission_xls = '';
         }
 
@@ -433,7 +443,7 @@ if ($coursestype=="past") {
         $gradetodisplay = $feedback["gradetodisplay"];
 
         if ($link!="") {
-          $str_gradetodisplay = '<a href="' . $link . '">' . get_string('readfeedback', 'block_newgu_spdetails') . '</a>';
+          $str_gradetodisplay = get_string('readfeedback', 'block_newgu_spdetails');
         } else {
           if ($modulename!="quiz") {
             $str_gradetodisplay = $gradetodisplay;
@@ -447,9 +457,10 @@ if ($coursestype=="past") {
         $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
+        $spdetailspdf .= "<td $tdstc>" . $gradetype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $startdate . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $enddate . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $viewsubmission . "</td>";
+//        $spdetailspdf .= "<td $tdstc>" . $viewsubmission . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $gradetodisplay . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $str_gradetodisplay . "</td>";
 
@@ -464,6 +475,8 @@ if ($coursestype=="past") {
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessmenttype);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$finalweight);
+        $col++;
+        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$gradetype);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$startdate);
         $col++;
@@ -580,8 +593,8 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
   $myxls->write_string(2, 4, $myfirstlastname, $formatuname);
 
   $myxls->set_column(0, 1, 40);
-  $myxls->set_column(3, 3, 20);
-  $myxls->set_column(5, 5, 10);
+  $myxls->set_column(2, 2, 15);
+  $myxls->set_column(3, 4, 10);
 
   $myxls->write_string(4, 0, $str_coursestype . ' Report - ' . date("d/m/Y"));
 
@@ -597,17 +610,20 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('weight', 'block_newgu_spdetails'));
     $col++;
+    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('gradetype', 'block_newgu_spdetails'));
+    $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('duedate','block_newgu_spdetails'));
+    $col++;
+    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('status'));
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('yourgrade', 'block_newgu_spdetails'));
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('feedback'));
     $col++;
 
-    $myxls->set_column(6, 6, 10);
-    $myxls->set_column(7, 7, 20);
-    $myxls->set_column(8, 9, 25);
-    $myxls->set_column(9, 9, 15);
+    $myxls->set_column(5, 5, 15);
+    $myxls->set_column(6, 6, 20);
+    $myxls->set_column(7, 8, 25);
 
   }
 
@@ -623,6 +639,8 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('weight', 'block_newgu_spdetails'));
     $col++;
+    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('gradetype', 'block_newgu_spdetails'));
+    $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('startdate','block_newgu_spdetails'));
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('enddate','block_newgu_spdetails'));
@@ -632,10 +650,8 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('feedback'));
     $col++;
 
-    $myxls->set_column(6, 6, 12);
-    $myxls->set_column(7, 7, 12);
-    $myxls->set_column(8, 9, 20);
-    $myxls->set_column(9, 9, 20);
+    $myxls->set_column(5, 6, 15);
+    $myxls->set_column(7, 8, 25);
   }
 
   $rowheight = 22;

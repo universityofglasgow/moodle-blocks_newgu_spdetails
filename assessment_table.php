@@ -21,7 +21,7 @@ class currentassessment_table extends table_sql
         parent::__construct($unequeid);
         // Define the list of columns to show.
 
-        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'duedate', 'status', 'yourgrade', 'feedback');
+        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'gradetype','duedate', 'status', 'yourgrade', 'feedback');
 //        $columns = array('coursename', 'assessment', 'itemmodule', 'assessmenttype', 'includedingcat', 'weight', 'duedate', 'status', 'yourgrade', 'feedback');
         $this->define_columns($columns);
 
@@ -69,6 +69,7 @@ class currentassessment_table extends table_sql
             '<a href="view.php?t=1&ts=assessmenttype&tdr=' . $tdrnew . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
 /*            get_string('source', 'block_newgu_spdetails'), */
             get_string('weight', 'block_newgu_spdetails'),
+            get_string('gradetype', 'block_newgu_spdetails'),
             '<a href="view.php?t=1&ts=duedate&tdr=' . $tdrnew . '">' . get_string('duedate','block_newgu_spdetails') . $tdirdd_icon . '</a>',
             get_string('status'),
             get_string('yourgrade', 'block_newgu_spdetails'),
@@ -77,20 +78,7 @@ class currentassessment_table extends table_sql
         $this->define_headers($headers);
 
     }
-/*
-    function col_course($values){
-        global $DB,$CFG;
-        $courseid = $values->courseid;
-        $link = $CFG->wwwroot . "/course/view.php?id=" . $courseid;
 
-        $arr_course = $DB->get_record('course',array('id'=>$courseid));
-        if (!empty($arr_course)) {
-            $coursename = $arr_course->fullname;
-        }
-
-        return "<a href='".$link."'>" . $coursename . "</a>";
-    }
-*/
     function col_coursename($values){
       global $CFG;
       $courseid = $values->courseid;
@@ -241,13 +229,16 @@ class currentassessment_table extends table_sql
       if ($duedate!=0) {
         return date("d/m/Y", $duedate) . $extspan;
       } else {
-        return "—";
+        return get_string('noduedate', 'block_newgu_spdetails');
       }
 
 
     }
 
-
+    function col_gradetype($values) {
+        $gradetype = 'Provisional';
+        return $gradetype;
+    }
 
     function col_status($values){
 
@@ -370,7 +361,7 @@ class pastassessment_table extends table_sql
         // Define the list of columns to show.
 
 
-        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
+        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'gradetype', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
 //        $columns = array('coursename', 'assessment', 'itemmodule', 'assessmenttype', 'includedingcat', 'weight', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
 
         $this->define_columns($columns);
@@ -426,10 +417,11 @@ class pastassessment_table extends table_sql
             '<a href="view.php?t=2&ts=coursename&tdr=' . $tdrnew . '">' . get_string('course') . $tdircn_icon . '</a>',
 /*            get_string('coursecode', 'block_newgu_spdetails'), */
             get_string('assessment'),
-            get_string('activity') . ' type',
+/*            get_string('activity') . ' type', */
             '<a href="view.php?t=2&ts=assessmenttype&tdr=' . $tdrnew . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
-            get_string('source', 'block_newgu_spdetails'),
+/*            get_string('source', 'block_newgu_spdetails'), */
             get_string('weight', 'block_newgu_spdetails'),
+            get_string('gradetype', 'block_newgu_spdetails'),
             '<a href="view.php?t=2&ts=startdate&tdr=' . $tdrnew . '">' . get_string('startdate','block_newgu_spdetails') . $tdirsd_icon . '</a>',
             '<a href="view.php?t=2&ts=enddate&tdr=' . $tdrnew . '">' . get_string('enddate','block_newgu_spdetails') . $tdired_icon . '</a>',
             get_string('viewsubmission','block_newgu_spdetails'),
@@ -541,6 +533,11 @@ class pastassessment_table extends table_sql
       $finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
       return $finalweight;
 
+    }
+
+    function col_gradetype($values) {
+        $gradetype = 'Provisional';
+        return $gradetype;
     }
 
 

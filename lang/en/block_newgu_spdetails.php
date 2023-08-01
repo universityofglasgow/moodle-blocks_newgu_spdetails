@@ -85,3 +85,8 @@ $string['currently_enrolled'] = 'Currently enrolled in';
 $string['pastcourses'] = 'Past Courses';
 $string['staffdashboard'] = 'Staff Dashboard';
 $string['unauthorised'] = 'Unauthorised access';
+
+$string['noduedate'] = 'No Due Date';
+$string['gradetype'] = 'Grade';
+
+$string['noassessmentfound'] = 'No assessment found.';
