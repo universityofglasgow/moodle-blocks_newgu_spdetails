@@ -78,15 +78,14 @@ if ($str_currentcourses!="" && $coursestype=="current") {
     $spdetailspdf = "<table width=100%>";
     $spdetailspdf .= '<tr style="font-weight: bold;">';
 
-    $spdetailspdf .= '<th width="20%"' . $thhd . '>' . get_string('course') . '</th>';
-    $spdetailspdf .= '<th width="20%"' . $thhd . '>' . get_string('assessment') . '</th>';
+    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('course') . '</th>';
+    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
     $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('gradetype', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('duedate','block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="9%" ' . $thhd . '>' . get_string('status') . "</th>";
-    $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="14%" ' . $thhd . '>' . get_string('feedback') . "</th>";
+    $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('duedate','block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('status') . "</th>";
+    $spdetailspdf .= '<th width="11%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="15%" ' . $thhd . '>' . get_string('feedback') . "</th>";
 
     $spdetailspdf .= "</tr>";
 
@@ -135,8 +134,6 @@ if ($str_currentcourses!="" && $coursestype=="current") {
 
         // FETCH WEIGHT
         $finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
-
-        $gradetype = 'Provisional';       // CURRENTLY STATIC
 
         // DUE DATE
         $duedate = 0;
@@ -240,7 +237,6 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $gradetype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $str_duedate . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $statustodisplay . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $gradetodisplay . "</td>";
@@ -257,8 +253,6 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessmenttype);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$finalweight);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$gradetype);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$str_duedate);
         $col++;
@@ -296,16 +290,15 @@ if ($coursestype=="past") {
     $spdetailspdf = "<table width=100%>";
     $spdetailspdf .= '<tr style="font-weight: bold;">';
 
-    $spdetailspdf .= '<th width="21%"' . $thhd . '>' . get_string('course') . '</th>';
-    $spdetailspdf .= '<th width="21%"' . $thhd . '>' . get_string('assessment') . '</th>';
+    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('course') . '</th>';
+    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
     $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('gradetype', 'block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('startdate','block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('enddate','block_newgu_spdetails') . "</th>";
 //    $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('viewsubmission','block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="13%" ' . $thhd . '>' . get_string('feedback') . "</th>";
+    $spdetailspdf .= '<th width="11%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="14%" ' . $thhd . '>' . get_string('feedback') . "</th>";
 
     $spdetailspdf .= "</tr>";
 
@@ -329,7 +322,7 @@ if ($coursestype=="past") {
         $aggregationcoef = $key_cc->aggregationcoef;
         $aggregationcoef2 = $key_cc->aggregationcoef2;
         $gradetype = $key_cc->gradetype;
-
+ 
         // FETCH ASSESSMENT TYPE
         $arr_gradecategory = $DB->get_record('grade_categories',array('courseid'=>$courseid, 'id'=>$categoryid));
         if (!empty($arr_gradecategory)) {
@@ -357,9 +350,6 @@ if ($coursestype=="past") {
 
         // FETCH WEIGHT
         $finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
-
-        // GRADETYPE -- CURRENTLY STATIC
-        $gradetype = 'Provisional';
 
         // START DATE
         $submissionstartdate = 0;
@@ -457,7 +447,6 @@ if ($coursestype=="past") {
         $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $gradetype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $startdate . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $enddate . "</td>";
 //        $spdetailspdf .= "<td $tdstc>" . $viewsubmission . "</td>";
@@ -475,8 +464,6 @@ if ($coursestype=="past") {
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessmenttype);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$finalweight);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$gradetype);
         $col++;
         $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$startdate);
         $col++;
@@ -610,8 +597,6 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('weight', 'block_newgu_spdetails'));
     $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('gradetype', 'block_newgu_spdetails'));
-    $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('duedate','block_newgu_spdetails'));
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('status'));
@@ -638,8 +623,6 @@ if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessmenttype", "block_newgu_spdetails"));
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('weight', 'block_newgu_spdetails'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('gradetype', 'block_newgu_spdetails'));
     $col++;
     $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('startdate','block_newgu_spdetails'));
     $col++;

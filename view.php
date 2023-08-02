@@ -303,7 +303,6 @@ console.log(response[0].stathtml);
                                         $table->no_sorting('assessment');
                                         $table->no_sorting('assessmenttype');
                                         $table->no_sorting('weight');
-                                        $table->no_sorting('gradetype');
                                         $table->no_sorting('startdate');
                                         $table->no_sorting('enddate');
                                         $table->no_sorting('viewsubmission');

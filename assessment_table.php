@@ -21,7 +21,7 @@ class currentassessment_table extends table_sql
         parent::__construct($unequeid);
         // Define the list of columns to show.
 
-        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'gradetype','duedate', 'status', 'yourgrade', 'feedback');
+        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'duedate', 'status', 'yourgrade', 'feedback');
 //        $columns = array('coursename', 'assessment', 'itemmodule', 'assessmenttype', 'includedingcat', 'weight', 'duedate', 'status', 'yourgrade', 'feedback');
         $this->define_columns($columns);
 
@@ -69,7 +69,6 @@ class currentassessment_table extends table_sql
             '<a href="view.php?t=1&ts=assessmenttype&tdr=' . $tdrnew . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
 /*            get_string('source', 'block_newgu_spdetails'), */
             get_string('weight', 'block_newgu_spdetails'),
-            get_string('gradetype', 'block_newgu_spdetails'),
             '<a href="view.php?t=1&ts=duedate&tdr=' . $tdrnew . '">' . get_string('duedate','block_newgu_spdetails') . $tdirdd_icon . '</a>',
             get_string('status'),
             get_string('yourgrade', 'block_newgu_spdetails'),
@@ -233,11 +232,6 @@ class currentassessment_table extends table_sql
       }
 
 
-    }
-
-    function col_gradetype($values) {
-        $gradetype = 'Provisional';
-        return $gradetype;
     }
 
     function col_status($values){

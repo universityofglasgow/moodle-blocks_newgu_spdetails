@@ -331,7 +331,7 @@ class sduserdetailspast_table extends table_sql
         // Define the list of columns to show.
 
 
-        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'gradetype', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
+        $columns = array('coursename', 'assessment', 'assessmenttype', 'weight', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
 //        $columns = array('coursename', 'assessment', 'itemmodule', 'assessmenttype', 'includedingcat', 'weight', 'startdate', 'enddate', 'viewsubmission', 'yourgrade', 'feedback');
 
         $this->define_columns($columns);
@@ -391,7 +391,6 @@ class sduserdetailspast_table extends table_sql
             '<a href="view.php?t=2&ts=assessmenttype&tdr=' . $tdrnew . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
 /*            get_string('source', 'block_newgu_spdetails'), */
             get_string('weight', 'block_newgu_spdetails'),
-            get_string('gradetype', 'block_newgu_spdetails'),
             '<a href="view.php?t=2&ts=startdate&tdr=' . $tdrnew . '">' . get_string('startdate','block_newgu_spdetails') . $tdirsd_icon . '</a>',
             '<a href="view.php?t=2&ts=enddate&tdr=' . $tdrnew . '">' . get_string('enddate','block_newgu_spdetails') . $tdired_icon . '</a>',
             get_string('viewsubmission','block_newgu_spdetails'),
@@ -428,11 +427,7 @@ class sduserdetailspast_table extends table_sql
       }
 
     }
-/*
-    function col_itemmodule($values){
-        return $values->itemmodule;
-    }
-*/
+
     function col_assessmenttype($values){
 
       global $DB;
@@ -503,11 +498,6 @@ class sduserdetailspast_table extends table_sql
       $finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
       return $finalweight;
 
-    }
-
-    function col_gradetype($values) {
-        $gradetype = 'Provisional';
-        return $gradetype;
     }
 
 

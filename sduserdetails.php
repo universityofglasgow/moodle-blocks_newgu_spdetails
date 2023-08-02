@@ -264,23 +264,25 @@ if ($tab == 2) {
 
   $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($selectstudent, $str_pastcourses);
 
-if ($str_pastcourses!="") {
+if ($str_pastcourses=="") {
+    $str_pastcourses = 0;
+}
+
 if ($str_itemsnotvisibletouser!="") {
 //  $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
-  // $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
-  $table->set_sql('gi.*, c.fullname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid>1 && gi.itemtype='mod' && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
+  $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
+  // $table->set_sql('gi.*, c.fullname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid>1 && gi.itemtype='mod' && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
 
 } else {
 //    $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
-    // $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
-    $table->set_sql('gi.*, c.fullname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid>1 && gi.itemtype='mod' && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.courseid=c.id $addsort");
+     $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
+  //  $table->set_sql('gi.*, c.fullname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid>1 && gi.itemtype='mod' && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.courseid=c.id $addsort");
 }
 
 $table->no_sorting('coursename');
 $table->no_sorting('assessment');
 $table->no_sorting('assessmenttype');
 $table->no_sorting('weight');
-$table->no_sorting('gradetype');
 $table->no_sorting('startdate');
 $table->no_sorting('enddate');
 $table->no_sorting('viewsubmission');
@@ -289,9 +291,7 @@ $table->no_sorting('feedback');
 
 $table->define_baseurl("$CFG->wwwroot/blocks/newgu_spdetails/sduserdetails.php?t=2" . "&selectgroup=" . $selectgroup . "&selectstudent=" . $selectstudent . "&selectcourse=". $courseid);
 $table->out(20, true);
-} else {
-  echo get_string('noassessmentfound', 'block_newgu_spdetails');
-}
+
 
 }
 
