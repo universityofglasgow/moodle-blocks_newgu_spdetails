@@ -369,6 +369,7 @@ class block_newgu_spdetails_external extends external_api {
          public static function return_22grademaxpoint($grade, $idnumber) {
              $values = array('H', 'G2', 'G1', 'F3', 'F2', 'F1', 'E3', 'E2', 'E1', 'D3', 'D2', 'D1',
                              'C3', 'C2', 'C1', 'B3', 'B2', 'B1', 'A5', 'A4', 'A3', 'A2', 'A1');
+             if ($grade<=22) {
              $value = $values[$grade];
              if ($idnumber == 2) {
                  $stringarray = str_split($value);
@@ -377,6 +378,9 @@ class block_newgu_spdetails_external extends external_api {
                  }
              }
              return $value;
+             } else {
+               return "";
+             }
          }
 
 
@@ -391,7 +395,7 @@ class block_newgu_spdetails_external extends external_api {
              $type = strtolower($gradecategoryname);
              $hasweight = !empty((float)$aggregationcoef);
 
-             if (strpos($type, 'summative') !== false || $hasweight) {
+             if (strpos($type, 'summative') !== false && $hasweight) {
                  $assessmenttype = get_string('summative', 'block_newgu_spdetails');
              } else if (strpos($type, 'formative') !== false) {
                  $assessmenttype = get_string('formative', 'block_newgu_spdetails');
