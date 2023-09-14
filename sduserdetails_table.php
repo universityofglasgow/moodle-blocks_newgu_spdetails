@@ -20,6 +20,7 @@ class sduserdetailscurrent_table extends table_sql
         // Define the list of columns to show.
 
 
+//        $columns = array('assessment', 'assessmenttype', 'itemmodule', 'duedate', 'includedingcat', 'status', 'yourgrade', 'feedback');
         $columns = array('assessment', 'assessmenttype', 'itemmodule', 'duedate', 'includedingcat', 'status', 'yourgrade', 'feedback');
         $this->define_columns($columns);
 

@@ -193,7 +193,7 @@ if ($selectstudent!="") {
 
   $addsort = "";
   if ($ts=="coursename") {
-      $addsort = " ORDER BY c.fullname";
+      $addsort = " ORDER BY c.shortname";
 
       if ($tdr==4) {
           if ($addsort!="") {
@@ -240,17 +240,16 @@ if ($selectstudent!="") {
   $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($selectstudent, $str_currentcourses);
 
 if ($str_itemsnotvisibletouser!="") {
-//  $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
-  $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=" . $selectcourse . " && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
+  $table->set_sql('gi.*, c.shortname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=" . $selectcourse . " && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
 } else {
-//    $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
-  $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=" . $selectcourse . " && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
+  $table->set_sql('gi.*, c.shortname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=" . $selectcourse . " && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
 }
 
   $table->no_sorting('assessment');
   $table->no_sorting('assessmenttype');
   $table->no_sorting('duedate');
   $table->no_sorting('status');
+  $table->no_sorting('includedingcat');
   $table->no_sorting('yourgrade');
   $table->no_sorting('feedback');
 
@@ -270,11 +269,11 @@ if ($str_pastcourses=="") {
 
 if ($str_itemsnotvisibletouser!="") {
 //  $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
-  $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid=" . $selectcourse . " && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
+  $table->set_sql('gi.*, c.shortname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid=" . $selectcourse . " && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
 
 } else {
 //    $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
-     $table->set_sql('gi.*, c.fullname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid=" . $selectcourse . " && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
+     $table->set_sql('gi.*, c.shortname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid=" . $selectcourse . " && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.courseid=c.id $addsort");
 }
 
 $table->no_sorting('coursename');

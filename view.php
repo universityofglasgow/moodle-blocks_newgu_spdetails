@@ -139,7 +139,7 @@ console.log(response[0].stathtml);
 
                                     $addsort = "";
                                     if ($ts=="coursename") {
-                                        $addsort = " ORDER BY c.fullname";
+                                        $addsort = " ORDER BY c.shortname";
 
                                         if ($tdr==4) {
                                             if ($addsort!="") {
@@ -192,7 +192,7 @@ console.log(response[0].stathtml);
 
                                         $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
 
-                                        $table->set_sql('gi.*, c.fullname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid>1 && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
+                                        $table->set_sql('gi.*, c.shortname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid>1 && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
 
                                         $table->no_sorting('coursename');
                                         $table->no_sorting('assessment');
@@ -229,7 +229,7 @@ console.log(response[0].stathtml);
 
                                         $addsort = "";
                                         if ($ts=="coursename") {
-                                            $addsort = " ORDER BY c.fullname";
+                                            $addsort = " ORDER BY c.shortname";
 
                                             if ($tdr==4) {
                                                 if ($addsort!="") {
@@ -295,7 +295,7 @@ console.log(response[0].stathtml);
 
 //                                        $table->set_sql('gi.*, c.fullname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid>1 && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
 
-                                        $table->set_sql('gi.*, c.fullname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid>1 && gi.itemtype='mod' && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
+                                        $table->set_sql('gi.*, c.shortname as coursename', "{grade_items} gi, {course} c", "gi.courseid in (".$str_pastcourses.") && gi.courseid>1 && gi.itemtype='mod' && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
 
 //$str_ltinottoinclude
 
