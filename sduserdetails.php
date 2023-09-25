@@ -239,6 +239,10 @@ if ($selectstudent!="") {
 
   $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($selectstudent, $str_currentcourses);
 
+if ($str_currentcourses=="") {
+  $str_currentcourses = "0";
+}
+
 if ($str_itemsnotvisibletouser!="") {
   $table->set_sql('gi.*, c.shortname as coursename,' . $selectstudent . ' as userid', "{grade_items} gi, {course} c", "gi.courseid in (".$str_currentcourses.") && gi.courseid=" . $selectcourse . " && gi.courseid=".$courseid." && ((gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') OR gi.itemmodule!='lti') && gi.itemtype='mod' && gi.id not in (".$str_itemsnotvisibletouser.") && gi.courseid=c.id $addsort");
 } else {
