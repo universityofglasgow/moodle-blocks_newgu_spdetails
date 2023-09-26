@@ -21,7 +21,7 @@ class sduserdetailscurrent_table extends table_sql
 
 
 //        $columns = array('assessment', 'assessmenttype', 'itemmodule', 'duedate', 'includedingcat', 'status', 'yourgrade', 'feedback');
-        $columns = array('assessment', 'assessmenttype', 'itemmodule', 'duedate', 'includedingcat', 'status', 'yourgrade', 'feedback');
+        $columns = array('assessment', 'assessmenttype', 'weight', 'itemmodule', 'duedate', 'includedingcat', 'status', 'yourgrade', 'feedback');
         $this->define_columns($columns);
 
         $tdr = optional_param('tdr', '', PARAM_INT);
@@ -59,6 +59,7 @@ class sduserdetailscurrent_table extends table_sql
         $headers = array(
             get_string('assessment'),
             '<a href="sduserdetails.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=assessmenttype&tdr=' . $tdrnew . '&selectcourse=' . $selectcourse . '">' . get_string('assessmenttype','block_newgu_spdetails') . $tdirat_icon . '</a>',
+            get_string('weight', 'block_newgu_spdetails'),
             get_string('activity') . ' type',
             '<a href="sduserdetails.php?t=1&selectgroup='.$selectgroup.'&selectstudent=' . $selectstudent . '&ts=duedate&tdr=' . $tdrnew . '&selectcourse=' . $selectcourse . '">' . get_string('duedate','block_newgu_spdetails') . $tdirdd_icon . '</a>',
             get_string('source', 'block_newgu_spdetails'),
@@ -101,7 +102,7 @@ class sduserdetailscurrent_table extends table_sql
       $cfdvalue = 0;
 
       $arr_customfield = $DB->get_record('customfield_field', array('shortname'=>'show_on_studentdashboard'));
-      $cffid = $arr_customfield->id;
+      $cffid = ((isset($arr_customfield->id) ? $arr_customfield->id : 0));
 
      $arr_customfielddata = $DB->get_record('customfield_data', array('fieldid'=>$cffid, 'instanceid'=>$courseid));
 

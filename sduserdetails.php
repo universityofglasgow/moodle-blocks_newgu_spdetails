@@ -251,6 +251,7 @@ if ($str_itemsnotvisibletouser!="") {
 
   $table->no_sorting('assessment');
   $table->no_sorting('assessmenttype');
+  $table->no_sorting('weight');
   $table->no_sorting('duedate');
   $table->no_sorting('status');
   $table->no_sorting('includedingcat');
