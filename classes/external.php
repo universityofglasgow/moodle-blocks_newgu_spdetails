@@ -26,6 +26,16 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+define('ASSESSMENTS_PER_PAGE', 12);
+define('TAB_CURRENT', 'current');
+define('TAB_PAST', 'past');
+define('SORTBY_COURSE', 'coursetitle');
+define('SORTBY_DATE', 'duedate');
+define('SORTBY_STARTDATE', 'startdate');
+define('SORTBY_ENDDATE', 'enddate');
+define('SORTORDER_ASC', 'asc');
+define('SORTORDER_DESC', 'desc');
+
 require_once($CFG->libdir . '/externallib.php');
 
 class block_newgu_spdetails_external extends external_api
@@ -161,8 +171,6 @@ class block_newgu_spdetails_external extends external_api
         );
     }
 
-
-
     /**
      * Get Statistics Count for Dashboard
      */
@@ -180,11 +188,59 @@ class block_newgu_spdetails_external extends external_api
     }
 
     /**
+     * @param $activetab
+     * @param $page
+     * @param $sortby
+     * @param $sortorder
+     * @param $subcategory
+     * @return void
+     */
+    public static function retrieve_assessments($activetab, $page, $sortby, $sortorder, $subcategory = null) {
+
+        $limit = ASSESSMENTS_PER_PAGE;
+        $offset = $page * $limit;
+        $params = ['activetab' => $activetab, 'page' => $page,
+            'sortby' => $sortby, 'sortorder' => $sortorder];
+        $url = new moodle_url('/index.php', $params);
+
+        $currentsortby = [
+            SORTBY_COURSE => get_string('option_course', 'block_newgu_spdetails'),
+            SORTBY_DATE => get_string('option_date', 'block_newgu_spdetails')
+        ];
+        $pastsortby = [
+            SORTBY_COURSE => get_string('option_course', 'block_newgu_spdetails'),
+            SORTBY_STARTDATE => get_string('option_startdate', 'block_newgu_spdetails'),
+            SORTBY_ENDDATE => get_string('option_enddate', 'block_newgu_spdetails')
+        ];
+
+        $issubcategory = !is_null($subcategory);
+        $totalassessments = 0;
+        $data = null;
+
+        $items = self::retrieve_gradable_activities($activetab, $userid, $sortby, $sortorder, $subcategory);
+
+        return $data;
+    }
+
+    /**
+     * @param $activetab
+     * @param $userid
+     * @param $sortby
+     * @param $sortorder
+     * @param $subcategory
+     * @return void
+     */
+    public static function retrieve_gradable_activities($activetab, $userid, $sortby, $sortorder, $subcategory) {
+
+    }
+
+    /**
      * Checks if user has capability of a student
      *
      * @param int $courseid
      * @param int $userid
      * @return boolean has_capability
+     * @throws coding_exception
      */
     public static function return_isstudent($courseid, $userid)
     {
@@ -307,7 +363,6 @@ class block_newgu_spdetails_external extends external_api
 
         return $cntstaff;
     }
-
 
     public static function get_cmid($cmodule, $courseid, $instance)
     {
