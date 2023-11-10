@@ -15,27 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * New GU SP Details
+ * Defined cache used internally by the plugin.
+ *
  * @package    block_newgu_spdetails
- * @author     Shubhendra Diophode <shubhendra.doiphode@gmail.com>
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @copyright  2023 University of Glasgow
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 
-if ($ADMIN->fulltree) {
-    global $DB;
-
-    $sql_ltitypes = "SELECT lt.id, lt.name, lt.course, c.fullname FROM {lti_types} lt, {course} c WHERE lt.course=c.id";
-    $arr_ltitypes = $DB->get_records_sql($sql_ltitypes);
-
-    $settings->add(new admin_setting_heading('includeltilabel',
-        get_string('includeltilabel', 'block_newgu_spdetails'), ''));
-
-    foreach ($arr_ltitypes as $key_ltitypes) {
-    $settings->add(new admin_setting_configcheckbox('block_newgu_spdetails_include_' . $key_ltitypes->id,
-        $key_ltitypes->name,'', 0));
-    }
-}
+$definitions = [
+    'studentdashboarddata' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 7200, // 120 minutes expiry time.
+    ]
+];

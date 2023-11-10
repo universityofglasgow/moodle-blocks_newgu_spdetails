@@ -1,0 +1,94 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Web Service to return the assessments for a given student
+ *
+ * More indepth description.
+ *
+ * @package    block/newgu_spdetails
+ * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
+ * @copyright  2023 University of Glasgow
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace block_newgu_spdetails\external;
+
+use external_api;
+use external_function_parameters;
+use external_single_structure;
+use external_value;
+
+class get_assessments extends external_api {
+
+    /**
+     * Retrieves assessments parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function retrieve_assessments_parameters() {
+        return new external_function_parameters(
+            array(
+                'activetab' => new external_value(PARAM_ALPHA, 'The active tab', VALUE_DEFAULT),
+                'page' => new external_value(PARAM_INT, 'The page number', VALUE_DEFAULT),
+                'sortby' => new external_value(PARAM_ALPHA, 'Sort columns by', VALUE_DEFAULT),
+                'sortorder' => new external_value(PARAM_ALPHA, 'Sort by order', VALUE_DEFAULT),
+                'subcategory' => new external_value(PARAM_INT, 'Subcategory id', VALUE_DEFAULT),
+            )
+        );
+    }
+
+    /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function execute_parameters() {
+        return new external_function_parameters([
+            'activetab' => new external_value(PARAM_ALPHA, 'The active tab', VALUE_DEFAULT),
+            'page' => new external_value(PARAM_INT, 'The page number', VALUE_DEFAULT),
+            'sortby' => new external_value(PARAM_ALPHA, 'Sort columns by', VALUE_DEFAULT),
+            'sortorder' => new external_value(PARAM_ALPHA, 'Sort by order', VALUE_DEFAULT),
+            'subcategory' => new external_value(PARAM_INT, 'Subcategory id', VALUE_DEFAULT),
+        ]);
+    }
+
+    /**
+     * Return the assessments
+     * @return array of assessments, grouped by course.
+     */
+    public static function execute() {
+        $params = self::validate_parameters(self::retrieve_assessments_parameters(),
+            [
+                'activetab' => $activetab, 'page' => $page,
+                'sortby' => $sortby, 'sortorder' => $sortorder,
+                'subcategory' => $subcategory
+            ]);
+        return [
+            'result' => api::retrieve_assessments($params['activetab'], $params['page'],
+                $params['sortby'], $params['sortorder'],
+                $params['subcategory'])
+        ];
+    }
+
+    /**
+     * @return external_multiple_structure
+     */
+    public static function execute_returns() {
+        return new external_single_structure([
+            'result' => new external_value(PARAM_RAW, 'The processing result')
+        ]);
+    }
+}

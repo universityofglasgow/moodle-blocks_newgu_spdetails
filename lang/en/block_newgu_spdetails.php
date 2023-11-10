@@ -22,15 +22,16 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Your Assessment Details (New)';
+$string['pluginname'] = 'MyGrades';
+$string['title'] = 'Assessments';
+$string['cachedef_studentdashboarddata'] = 'The cache for studentdashboarddata.';
 $string['newgu_spdetails:addinstance'] = 'Add a new Your Assessment Details (New) block';
 $string['newgu_spdetails:myaddinstance'] = 'Add a new Your Assessment Details (New) to Dashboard';
 $string['assessment'] = 'Assessment';
 $string['assessments'] = 'Assessments';
-
 $string['clicktoview'] = 'Click here to view your assessment details';
-
 $string['headingataglance'] = 'Your assessments at a glance';
+$string['blocktitle'] = 'MyGrades - Your assessments at a glance';
 
 $string['tobesubmitted'] = 'To be submitted / attended';
 $string['submitted'] = ' submitted';
@@ -90,3 +91,7 @@ $string['noduedate'] = 'No Due Date';
 $string['gradetype'] = 'Grade';
 
 $string['noassessmentfound'] = 'No assessment found.';
+
+
+$string['tab_current'] = 'Currently enrolled in';
+$string['tab_past'] = 'Past courses';

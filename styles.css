@@ -189,7 +189,7 @@
 }
 
 .subcategory-details-label {
-    color: #005C8A;
+    color: #005c8a;
     font-weight: bold;
 }
 
@@ -214,13 +214,13 @@
     margin-right: 10px;
 }
 
-.return-assessments-text{
+.return-assessments-text {
     color: #058;
     font-weight: 600;
     font-size: 1.125rem;
 }
 
-.hidden-container{
+.hidden-container {
     display: none;
 }
 
@@ -244,13 +244,13 @@
 
 
 .generaltable .commands {
-    display:none!important;
+    display: none;
 }
 
 .forborder h2 {
-    margin-left:15px!important;
+    margin-left: 15px;
 }
 
 #region-main {
-    margin-top: 0px!important;
+    margin-top: 0;
 }

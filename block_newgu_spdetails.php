@@ -17,22 +17,27 @@
 /**
  * Block visits reports base.
  *
- * @package   block_newgu_spdetails
- * @copyright
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    block_newgu_spdetails
+ * @author     Shubhendra Diophode <shubhendra.doiphode@gmail.com>
+ * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
+ * @copyright  2023 University of Glasgow
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die('No Direct Access');
 
-class block_newgu_spdetails extends block_base {
+class block_newgu_spdetails extends block_base
+{
 
     /**
      * Initialize block instance.
      *
+     * @return void
      * @throws coding_exception
      */
-    public function init() {
-        $this->title = get_string('pluginname', 'block_newgu_spdetails');
+    public function init(): void
+    {
+        $this->title = get_string('blocktitle', 'block_newgu_spdetails');
     }
 
     /**
@@ -40,7 +45,8 @@ class block_newgu_spdetails extends block_base {
      *
      * @return bool
      */
-    public function has_config() {
+    public function has_config(): bool
+    {
         return true;
     }
 
@@ -48,74 +54,45 @@ class block_newgu_spdetails extends block_base {
      * List of links to access the reports displayed on the blocks.
      *
      * @return object $content
+     * @throws dml_exception
      */
-    public function get_content() {
-        global $PAGE, $USER, $OUTPUT;
+    public function get_content(): object
+    {
+        global $USER, $OUTPUT;
 
         if ($this->content !== null) {
             return $this->content;
         }
 
-        $context = context_system::instance();
-
         $this->content = new \stdClass();
 
-        $viewurl = new moodle_url('/blocks/newgu_spdetails/view.php');
+        $viewurl = new moodle_url('/blocks/newgu_spdetails/index.php');
 
-          $cntstaff = block_newgu_spdetails_external::checkrole($USER->id, 0);
-          if ($cntstaff>0) {
+        $cntstaff = block_newgu_spdetails_external::checkrole($USER->id, 0);
+        if ($cntstaff > 0) {
             $staffurl = new moodle_url('/blocks/newgu_spdetails/sduserdetails.php');
             $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
-                    'link' => $viewurl,
-                    'stafflink' => $staffurl
-                    ]);
-          } else {
+                'link' => $viewurl,
+                'stafflink' => $staffurl
+            ]);
+        } else {
             $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
-                    'link' => $viewurl
-                    ]);
-          }
+                'link' => $viewurl
+            ]);
+        }
 
-
-
-
-
-
-
-$this->page->requires->js_amd_inline("require(['core/first', 'jquery', 'jqueryui', 'core/ajax'], function(core, $, bootstrap, ajax) {
-
-// -----------------------------
-$(document).ready(function() {
-  // get current value then call ajax to get new data
-
-  ajax.call([{
-    methodname: 'block_newgu_spdetails_get_statistics',
-    args: {
-    },
-  }])[0].done(function(response) {
-console.log(response[0].stathtml);
-    $('#spdetails').html(response[0].stathtml);
-    return;
-  }).fail(function(err) {
-    console.log(err);
-    //notification.exception(new Error('Failed to load data'));
-    return;
-  });
-
-  });
-  });
-");
+        $this->page->requires->js_call_amd('block_newgu_spdetails/assessmentsummary', 'init');
 
         return $this->content;
-
-
-                                    }
+    }
 
     /**
      * Dashes are suitable on all page types.
      *
      * @return array
      */
-    public function applicable_formats() {
-        return array('my' => true);
+    public function applicable_formats(): array
+    {
+        return ['my' => true];
     }
 }

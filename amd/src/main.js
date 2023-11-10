@@ -1,4 +1,3 @@
-<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,21 +14,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * New GU SP Details
- * @package    block_newgu_spdetails
- * @copyright  2023 NEW GU
- * @author
+ * Javascript to initialise the Student Dashboard.
+ *
+ * @module     block_newgu_spdetails/main
+ * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
+ * @copyright  2023 University of Glasgow
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+import * as AssessmentSummary from 'block_newgu_spdetails/assessmentsummary';
+import * as AssessmentTabs from 'block_newgu_spdetails/assessmenttabs';
 
-$capabilities = [
-
-    'block/newgu_spdetails:myaddinstance' => [
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [],
-        'clonepermissionsfrom' => 'moodle/my:manageblocks'
-    ]
-];
+/**
+ * Initialise the Student Dashboard.
+ */
+export const init = () => {
+    // Initialise the assessment summary section.
+    AssessmentSummary.init();
+    // Initialise the assessment tabs section.
+    AssessmentTabs.init();
+};
