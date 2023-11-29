@@ -219,4 +219,12 @@ class get_assessments_test extends advanced_testcase {
     public function test_return_gradestatus() {
 
     }
+
+    public function test_return_weight() {
+
+    }
+
+    public function test_return_coursetype() {
+
+    }
 }

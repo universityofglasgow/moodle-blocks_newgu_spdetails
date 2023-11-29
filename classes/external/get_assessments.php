@@ -17,8 +17,6 @@
 /**
  * Web Service to return the assessments for a given student
  *
- * More indepth description.
- *
  * @package    block/newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @copyright  2023 University of Glasgow
@@ -35,27 +33,10 @@ use external_value;
 class get_assessments extends external_api {
 
     /**
-     * Retrieves assessments parameters.
-     *
-     * @return external_function_parameters
-     */
-    public static function retrieve_assessments_parameters() {
-        return new external_function_parameters(
-            array(
-                'activetab' => new external_value(PARAM_ALPHA, 'The active tab', VALUE_DEFAULT),
-                'page' => new external_value(PARAM_INT, 'The page number', VALUE_DEFAULT),
-                'sortby' => new external_value(PARAM_ALPHA, 'Sort columns by', VALUE_DEFAULT),
-                'sortorder' => new external_value(PARAM_ALPHA, 'Sort by order', VALUE_DEFAULT),
-                'subcategory' => new external_value(PARAM_INT, 'Subcategory id', VALUE_DEFAULT),
-            )
-        );
-    }
-
-    /**
      * Returns description of method parameters
      * @return external_function_parameters
      */
-    public static function execute_parameters() {
+    public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
             'activetab' => new external_value(PARAM_ALPHA, 'The active tab', VALUE_DEFAULT),
             'page' => new external_value(PARAM_INT, 'The page number', VALUE_DEFAULT),
@@ -68,27 +49,33 @@ class get_assessments extends external_api {
     /**
      * Return the assessments
      * @return array of assessments, grouped by course.
+     * @throws \invalid_parameter_exception
      */
-    public static function execute() {
-        $params = self::validate_parameters(self::retrieve_assessments_parameters(),
+    public static function execute($activetab, $page, $sortby, $sortorder, $subcategory): array {
+        $params = self::validate_parameters(self::execute_parameters(),
             [
-                'activetab' => $activetab, 'page' => $page,
-                'sortby' => $sortby, 'sortorder' => $sortorder,
+                'activetab' => $activetab,
+                'page' => $page,
+                'sortby' => $sortby,
+                'sortorder' => $sortorder,
                 'subcategory' => $subcategory
             ]);
         return [
-            'result' => \block_newgu_spdetails_external::retrieve_assessments($params['activetab'], $params['page'],
-                $params['sortby'], $params['sortorder'],
-                $params['subcategory'])
+            'result' => json_encode(\block_newgu_spdetails_external::retrieve_assessments(
+                $params['activetab'],
+                $params['page'],
+                $params['sortby'],
+                $params['sortorder'],
+                $params['subcategory']))
         ];
     }
 
     /**
-     * @return external_multiple_structure
+     * @return external_single_structure
      */
-    public static function execute_returns() {
+    public static function execute_returns(): external_single_structure {
         return new external_single_structure([
-            'result' => new external_value(PARAM_RAW, 'The processing result')
+            'result' => new external_value(PARAM_TEXT, 'The course structure in JSON format')
         ]);
     }
 }

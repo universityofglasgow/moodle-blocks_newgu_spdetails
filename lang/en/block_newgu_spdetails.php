@@ -95,3 +95,15 @@ $string['noassessmentfound'] = 'No assessment found.';
 
 $string['tab_current'] = 'Currently enrolled in';
 $string['tab_past'] = 'Past courses';
+$string['header_assessment'] = 'Assessment';
+$string['header_course'] = 'Course';
+$string['header_category'] = 'Category/Component';
+$string['header_type'] = 'Assessment Type';
+$string['header_weight'] = 'Weight';
+$string['header_duedate'] = 'Due Date';
+$string['header_status'] = 'Status';
+$string['header_grade'] = 'Your Grade';
+$string['header_feedback'] = 'Feedback';
+$string['header_submission'] = 'Submission';
+$string['header_coursestartdate'] = 'Course Start Date';
+$string['header_courseenddate'] = 'Course End Date';

@@ -68,7 +68,8 @@ class block_newgu_spdetails extends block_base
 
         $viewurl = new moodle_url('/blocks/newgu_spdetails/index.php');
 
-        $cntstaff = block_newgu_spdetails_external::checkrole($USER->id, 0);
+        //$cntstaff = block_newgu_spdetails_external::checkrole($USER->id, 0);
+        $cntstaff = 0;
         if ($cntstaff > 0) {
             $staffurl = new moodle_url('/blocks/newgu_spdetails/sduserdetails.php');
             $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [

@@ -23,7 +23,7 @@
  */
 
 import * as AssessmentSummary from 'block_newgu_spdetails/assessmentsummary';
-import * as AssessmentTabs from 'block_newgu_spdetails/assessmenttabs';
+import * as CourseTabs from 'block_newgu_spdetails/coursetabs';
 
 /**
  * Initialise the Student Dashboard.
@@ -32,5 +32,5 @@ export const init = () => {
     // Initialise the assessment summary section.
     AssessmentSummary.init();
     // Initialise the assessment tabs section.
-    AssessmentTabs.init();
+    CourseTabs.init();
 };

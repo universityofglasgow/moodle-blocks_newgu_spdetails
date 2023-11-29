@@ -26,17 +26,19 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-define('ASSESSMENTS_PER_PAGE', 12);
-define('TAB_CURRENT', 'current');
-define('TAB_PAST', 'past');
-define('SORTBY_COURSE', 'coursetitle');
-define('SORTBY_DATE', 'duedate');
-define('SORTBY_STARTDATE', 'startdate');
-define('SORTBY_ENDDATE', 'enddate');
-define('SORTORDER_ASC', 'asc');
-define('SORTORDER_DESC', 'desc');
+define('NUM_ASSESSMENTS_PER_PAGE', 12);
+define('CURRENT_TAB', 'current');
+define('PAST_TAB', 'past');
+define('SORT_BY_COURSE', 'coursetitle');
+define('SORT_BY_DATE', 'duedate');
+define('SORT_BY_STARTDATE', 'startdate');
+define('SORT_BY_ENDDATE', 'enddate');
+define('SORT_ORDER_ASC', 'asc');
+define('SORT_ORDER_DESC', 'desc');
 
 require_once($CFG->libdir . '/externallib.php');
+require_once($CFG->dirroot . '/grade/lib.php');
+require_once($CFG->libdir . '/gradelib.php');
 
 class block_newgu_spdetails_external extends external_api
 {
@@ -196,28 +198,41 @@ class block_newgu_spdetails_external extends external_api
      * @return void
      */
     public static function retrieve_assessments($activetab, $page, $sortby, $sortorder, $subcategory = null) {
+        global $USER, $OUTPUT, $PAGE;
+        $PAGE->set_context(context_system::instance());
 
-        $limit = ASSESSMENTS_PER_PAGE;
+        $userid = $USER->id;
+        $limit = NUM_ASSESSMENTS_PER_PAGE;
         $offset = $page * $limit;
         $params = ['activetab' => $activetab, 'page' => $page,
             'sortby' => $sortby, 'sortorder' => $sortorder];
         $url = new moodle_url('/index.php', $params);
 
         $currentsortby = [
-            SORTBY_COURSE => get_string('option_course', 'block_newgu_spdetails'),
-            SORTBY_DATE => get_string('option_date', 'block_newgu_spdetails')
+            SORT_BY_COURSE => get_string('option_course', 'block_newgu_spdetails'),
+            SORT_BY_DATE => get_string('option_date', 'block_newgu_spdetails')
         ];
         $pastsortby = [
-            SORTBY_COURSE => get_string('option_course', 'block_newgu_spdetails'),
-            SORTBY_STARTDATE => get_string('option_startdate', 'block_newgu_spdetails'),
-            SORTBY_ENDDATE => get_string('option_enddate', 'block_newgu_spdetails')
+            SORT_BY_COURSE => get_string('option_course', 'block_newgu_spdetails'),
+            SORT_BY_STARTDATE => get_string('option_startdate', 'block_newgu_spdetails'),
+            SORT_BY_ENDDATE => get_string('option_enddate', 'block_newgu_spdetails')
         ];
 
         $issubcategory = !is_null($subcategory);
         $totalassessments = 0;
-        $data = null;
+        $data = [];
 
         $items = self::retrieve_gradable_activities($activetab, $userid, $sortby, $sortorder, $subcategory);
+
+        if ($items) {
+            $totalassessments = count($items);
+            $paginatedassessments = array_splice($items, $offset, $limit);
+            
+            foreach ($paginatedassessments as $assessment) {
+                $data[] = $assessment;
+            }
+            
+        }
 
         return $data;
     }
@@ -229,9 +244,175 @@ class block_newgu_spdetails_external extends external_api
      * @param $sortorder
      * @param $subcategory
      * @return void
+     * @throws dml_exception
      */
     public static function retrieve_gradable_activities($activetab, $userid, $sortby, $sortorder, $subcategory) {
+        global $DB, $USER;
 
+        if (!$subcategory) {
+            switch ($activetab) {
+                case 'current':
+                    $courses = \local_gugrades\api::dashboard_get_courses($userid);
+                    $coursedata = [];
+                    $data = [];
+
+                    // Return Structure:
+                    // $data = [
+                    //     'coursename' => 'GCAT 2023 TW - Existing GCAT',
+                    //     'subcategories' => [
+                    //         [
+                    //           'id' => 27,
+                    //           'name' => 'Summative  - Various 22 Point Scale Aggregations - course weighting 75%'
+                    //           'assessmenttype' => 'Summative',
+                    //           'weight' => 75
+                    //         ],
+                    //         [
+                    //           'id' => 29,
+                    //           'name' => 'Summative - Converting Points to 22 point Scale - 25% Course Weighting', 
+                    //           'assessmenttype' => 'Summative',
+                    //           'weight' => 25,
+                    //         ],   
+                    //         [
+                    //           'id' => 30,
+                    //           'name' => 'Formative activities',
+                    //           'assessmenttype' => 'Formative',
+                    //           'weight' => 0,
+                    //         ]
+                    //     ]
+                    // ]
+                    // Course data should be returned in only 1 of 3 formats:
+                    // 1) GUGradesEnabled (new style)
+                    // 2) GCAT enabled (old style)
+                    // 3) Regular Gradebook
+                    // Anything falling outside of these formats isn't likely to display correctly.
+                    foreach($courses as $course) {
+                        if (($course->gcatenabled) || (!$course->gcatenabled && !$course->gugradesenabled)) {
+                            // Fetch the Summative and Formative categories...
+                            $parent = grade_category::fetch(['courseid' => $course->id, 'hidden' => 0, 'parent' => NULL]);
+                            $subcategories = grade_category::fetch_all(['courseid' => $course->id, 'parent' => $parent->id, 'hidden' => 0]);
+                            $coursedata['coursename'] = $course->shortname;
+                            $subcatdata = [];
+                            foreach($subcategories as $subcategory) {
+                                $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
+                                $assessmenttype = self::return_assessmenttype($subcategory->fullname, $item->aggregationcoef);
+                                $weight = self::return_weight($assessmenttype, $parent->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcategory->fullname);
+                                $subcatdata[] = [
+                                    'id' => $subcategory->id,
+                                    'name' => $subcategory->fullname,
+                                    'assessmenttype' => $assessmenttype,
+                                    'weight' => $weight
+                                ];
+                            }
+                            $coursedata['subcategories'] = $subcatdata;
+                            $data[] = $coursedata;
+                        } elseif ($course->gugradesenabled) {
+                            
+                        }
+                    }
+
+                    $items = $data;
+
+                break;
+
+                case 'past':
+                break;
+            }
+        } else {
+            switch ($activetab) {
+                case 'current':
+
+                // Return Structure:
+                // $data = [
+                //     'coursename' => 'GCAT 2023 TW - Existing GCAT',
+                //     'assessmentitems' => [
+                //         [
+                //           "id" => 27,
+                //           "name" => "Average of assignments - Sub components - Simple Weighted Mean"
+                //           "assessmenttype" => "Average",
+                //           "weight" => ""
+                //         ],
+                //     'subcategories' => [
+                //         [
+                //           "id" => 27,
+                //           "name" => "Average of assignments - Sub components - Simple Weighted Mean"
+                //           "assessmenttype" => "Average",
+                //           "weight" => ""
+                //         ],
+                // ]
+                $coursedata = [];
+                $subcat = grade_category::fetch(['id' => $subcategory]);
+                $courseid = $subcat->courseid;
+                $course = get_course($courseid);
+                $coursedata['coursename'] = $course->shortname;
+            
+                // Go and retrieve all the items/further sub components for this category.
+                $assessmentdata = [];
+                $assessmentitems = grade_item::fetch_all(['categoryid' => $subcategory]);
+                if ($assessmentitems && count($assessmentitems) > 0) {
+                    foreach($assessmentitems as $assessmentitem) {
+                        $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $USER->id);
+                        $feedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $USER->id, $assessmentitem->grademax, $assessmentitem->gradetype);
+                        $assessmentdata[] = [
+                            'id' => $assessmentitem->id,
+                            'itemname' => $assessmentitem->itemname,
+                            'duedate' => $gradestatus['duedate'],
+                            'status' => $gradestatus['status'],
+                            'grade' => $gradestatus['finalgrade'],
+                            'feedback' => $feedback['gradetodisplay']
+                        ];
+                    }
+                }
+                $coursedata['assessmentitems'] = $assessmentdata;
+
+                $subcategories = grade_category::fetch_all(['parent' => $subcategory, 'hidden' => 0]);
+                //$subcategoryparent = is_null($subcat->parent) ? new stdClass : grade_category::fetch(['id' => $subcat->parent]);
+                
+                if ($subcategories && count($subcategories) > 0) {
+                    foreach($subcategories as $subcategory) {
+                        $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
+                        $assessmenttype = self::return_assessmenttype($subcategory->fullname, $item->aggregationcoef);
+                        $weight = self::return_weight($assessmenttype, $parent->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcategory->fullname);
+                        $subcatdata[] = [
+                            'id' => $subcategory->id,
+                            'name' => $subcategory->fullname,
+                            'assessmenttype' => $assessmenttype,
+                            'weight' => $weight
+                        ];
+                    }
+                }
+
+                $coursedata['subcategories'] = $subcatdata;
+                $data[] = $coursedata;
+                
+                $items = $data;
+                break;
+
+                case 'past':
+                break;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Retrieves Parent category ids
+     *
+     * @param string $courseids
+     * @return array $ids
+     * @throws dml_exception
+     */
+    public static function retrieve_parent_category($courseids) {
+        global $DB;
+
+        $courses = implode(', ', $courseids);
+        $sql = "SELECT id FROM {grade_categories} WHERE parent IS NULL AND courseid IN ($courses)";
+        $uncategorised = $DB->get_records_sql($sql);
+        $ids = [];
+        foreach ($uncategorised as $key => $value) {
+            array_push($ids, $key);
+        }
+        return $ids;
     }
 
     /**
@@ -809,7 +990,6 @@ class block_newgu_spdetails_external extends external_api
         );
     }
 
-
     public static function nogroupusers($courseid)
     {
         global $DB;
@@ -855,5 +1035,67 @@ class block_newgu_spdetails_external extends external_api
 
 
         return $sql_enrolledstudents;
+    }
+
+
+    public static function get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $userid, $grademax, $gradetype) {
+        global $CFG, $DB, $USER;
+        
+        $link = "";
+        $gradetodisplay = "";
+        
+        $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
+        
+        $status = $gradestatus["status"];
+        $link = $gradestatus["link"];
+        $allowsubmissionsfromdate = $gradestatus["allowsubmissionsfromdate"];
+        $duedate = $gradestatus["duedate"];
+        $cutoffdate = $gradestatus["cutoffdate"];
+        $gradingduedate = $gradestatus["gradingduedate"];
+        
+        $rawgrade = $gradestatus["rawgrade"];
+        $finalgrade = $gradestatus["finalgrade"];
+        
+        $provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
+        $converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
+        
+        $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
+        
+        if ($finalgrade!=Null) {
+            if ($gradetype==1) {
+                $gradetodisplay = '<span class="graded">' . number_format((float)$finalgrade) . " / " . number_format((float)$grademax) . '</span>' . ' (Provisional)';
+            }
+            if ($gradetype==2) {
+                $gradetodisplay = '<span class="graded">' . $converted_22grademaxpoint . '</span>' . ' (Provisional)';
+            }
+            $link = $CFG->wwwroot . '/mod/'.$modulename.'/view.php?id=' . $cmid . '#page-footer';
+        
+        }
+        
+        if ($finalgrade==Null  && $duedate<time()) {
+            if ($status=="notopen" || $status=="notsubmitted") {
+                $gradetodisplay = 'To be confirmed';
+                $link = "";
+            }
+            if ($status=="overdue") {
+                $gradetodisplay = 'Overdue';
+                $link = "";
+            }
+            if ($status=="notsubmitted") {
+                $gradetodisplay = 'Not submitted';
+                if ($gradingduedate>time()) {
+                    $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
+                }
+            }
+        
+        }
+        
+        if ($status=="tosubmit") {
+            $gradetodisplay = 'To be confirmed';
+            $link = "";
+        }
+        
+        return array("gradetodisplay"=>$gradetodisplay, "link"=>$link, "provisional_22grademaxpoint"=>$provisional_22grademaxpoint, "converted_22grademaxpoint"=>$converted_22grademaxpoint, "finalgrade"=>floor($finalgrade), "rawgrade"=>floor($rawgrade));
+        
     }
 }

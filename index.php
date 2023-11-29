@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains the class for the UofG Assessments Details block.
+ * This script renders the Student Dashboard view effectively.
  *
  * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -42,7 +42,7 @@ $templatecontext = (array)[
     'showdetails' => true,
 ];
 
-$content = $OUTPUT->render_from_template('block_newgu_spdetails/assessmenttabs', $templatecontext);
+$content = $OUTPUT->render_from_template('block_newgu_spdetails/coursetabs', $templatecontext);
 
 $PAGE->requires->js_call_amd('block_newgu_spdetails/main', 'init');
 
