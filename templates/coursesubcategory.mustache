@@ -62,61 +62,56 @@
                 <path d="M17.2912 1.99499V4.99499H4.12124L7.00124 2.11499C7.39124 1.72499 7.39124 1.09499 7.00124 0.704992C6.81441 0.517739 6.56076 0.412506 6.29624 0.412506C6.03172 0.412506 5.77807 0.517739 5.59124 0.704992L1.00124 5.29499C0.61124 5.68499 0.61124 6.31499 1.00124 6.70499L5.59124 11.295C5.98124 11.685 6.61124 11.685 7.00124 11.295C7.39124 10.905 7.39124 10.275 7.00124 9.88499L4.12124 6.99499H18.2912C18.8412 6.99499 19.2912 6.54499 19.2912 5.99499V1.99499C19.2912 1.44499 18.8412 0.994992 18.2912 0.994992C17.7412 0.994992 17.2912 1.44499 17.2912 1.99499Z" fill="#005C8A"/>
             </svg>
         </div>
-        <div class="return-assessments-text">{{#str}} returnallassessment, block_gu_spdetails{{/str}}</div>
+        {{#coursedata}}
+        <div data-parent="" class="return-assessments-text">{{#str}} previous, block_newgu_spdetails{{/str}}</div>
+        {{/coursedata}}
     </div>
     <div class="subcategory-details-container">
         <div>
-            <span class="subcategory-details-label">{{label_course}}</span>
-            <span id="subcategory-details-course" class="subcategory-details-value"></span>
+            <span class="subcategory-details-label">{{#str}} label_course, block_newgu_spdetails {{/str}}</span>
+            <span id="subcategory-details-course" class="subcategory-details-value">{{#coursedata}}{{fullname}}{{/coursedata}}</span>
         </div>
         <div>
-            <span class="subcategory-details-label">{{label_assessment}}</span>
-            <span id="subcategory-details-name" class="subcategory-details-value"></span>
+            <span class="subcategory-details-label">{{#str}} label_componentname, block_newgu_spdetails {{/str}}</span>
+            <span id="subcategory-details-name" class="subcategory-details-value">{{#coursedata}}{{subcatfullname}}{{/coursedata}}</span>
         </div>
         <div>
-            <span class="subcategory-details-label">{{label_weight}}</span>
-            <span id="subcategory-details-weight" class="subcategory-details-value"></span>
-        </div>
-        <div>
-            <span class="subcategory-details-label">{{label_grade}}</span>
-            <span id="subcategory-details-grade" class="subcategory-details-grade-value"></span>
+            <span class="subcategory-details-label">{{#str}} label_weight, block_newgu_spdetails {{/str}}</span>
+            <span id="subcategory-details-weight" class="subcategory-details-value">{{#coursedata}}{{weight}}{{/coursedata}}</span>
         </div>
     </div>
 </div>
 <div id="current_subassessments" class="assessments-details-sort-container">
-    <table class='table table-responsive subassessments-details-table'>
+    <table class="table table-responsive assessments-details-table">
         <thead>
             <tr>
-                <th>{{#str}} header_course, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_categoryorcomponent'>{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_assessmenttype'>{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_weight'>{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_duedate'>{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_status'>{{#str}} header_status, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_grade'>{{#str}} header_grade, block_newgu_spdetails {{/str}}</th>
-                <th>{{#str}} header_feedback, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_categoryorcomponent" class="td40 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_assessmenttype" class="td10 th-sortable">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_weight" class="td10 th-sortable">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_duedate" class="td10 th-sortable">{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_status" class="td10 th-sortable">{{#str}} header_status, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_grade" class="td10 th-sortable">{{#str}} header_grade, block_newgu_spdetails {{/str}}</th>
+                <th class="td10">{{#str}} header_feedback, block_newgu_spdetails {{/str}}</th>
             </tr>
         </thead>
         <tbody>
         {{#coursedata}}
             {{#subcategories}}
-            <tr data-id="{{id}}" class="subcategory-row">
-                <td>{{coursename}}</td>
-                <td>{{name}}</td>
-                <td>{{assessmenttype}}</td>
-                <td>{{weight}}</td>
+            <tr data-parent="{{parent}}" data-id="{{id}}">
+                <td class="td50 subcategory-row">{{name}}</td>
+                <td class="td15 subcategory-row">{{assessmenttype}}</td>
+                <td class="td5 subcategory-row">{{weight}}</td>
             </tr>
             {{/subcategories}}
             {{#assessmentitems}}
-            <tr data-assessmentid="{{id}}" class="subcategory-row">
-                <td>{{coursename}}</td>
-                <td>{{itemname}}</td>
-                <td>{{assessmenttype}}</td>
-                <td>{{weight}}</td>
-                <td>{{duedate}}</td>
-                <td>{{status}}</td>
-                <td>{{grade}}</td>
-                <td>{{feedback}}</td>
+            <tr data-assessmentid="{{id}}">
+                <td class="td50"><a href="{{assessmenturl}}">{{itemname}}</a></td>
+                <td class="td15">{{assessmenttype}}</td>
+                <td class="td5">{{weight}}</td>
+                <td class="td15">{{duedate}}</td>
+                <td class="td10">{{status}}</td>
+                <td class="td10">{{grade}}</td>
+                <td class="td10">{{feedback}}</td>
             </tr>
             {{/assessmentitems}}
         {{/coursedata}}

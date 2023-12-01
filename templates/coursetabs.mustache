@@ -47,15 +47,17 @@
     </div>
     <div class="border rounded p-2">
         <h3>{{# str }}heading, block_gu_spdetails{{/ str }}</h3>
-        <div id="courses-container" class="assessments-details-container mt-2">
-            <ul class="nav nav-tabs" id="courses-Tab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link h5 active" id="current_tab" data-toggle="tab" type="button" role="tab" aria-controls="current" aria-selected="true" tabindex="0">{{tab_current}}</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link h5" id="past_tab" data-toggle="tab" type="button" role="tab" aria-controls="past" aria-selected="false" tabindex="0">{{tab_past}}</button>
-                </li>
-            </ul>
+        <div id="courseTab-container" class="assessments-details-container mt-2">
+            <div id="courseNav-container">
+                <ul class="nav nav-tabs" id="courses-Tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link h5 active" id="current_tab" data-toggle="tab" type="button" role="tab" aria-controls="current" aria-selected="true" tabindex="0">{{tab_current}}</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link h5" id="past_tab" data-toggle="tab" type="button" role="tab" aria-controls="past" aria-selected="false" tabindex="0">{{tab_past}}</button>
+                    </li>
+                </ul>
+            </div>
 
             <div id="course_contents_container" class="tab-content"></div>
         </div>

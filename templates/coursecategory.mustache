@@ -52,23 +52,23 @@
     }
 }}
 <div id="course_data" class="assessments-details-sort-container">
-    <table class='table table-responsive'>
+    <table class="table table-responsive assessments-details-table">
         <thead>
             <tr>
-                <th id='sortby_course'>{{#str}} header_course, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_categoryorcomponent'>{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_assessmenttype'>{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
-                <th id='sortby_weight'>{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_course" class="td20 th-sortable">{{#str}} header_course, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_categoryorcomponent" class="td55 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_assessmenttype" class="td20 th-sortable">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_weight" class="td05 th-sortable">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
             </tr>
         </thead>
         <tbody>
         {{#coursedata}}
             {{#subcategories}}
-            <tr data-id="{{id}}" class="subcategory-row">
-                <td>{{coursename}}</td>
-                <td>{{name}}</td>
-                <td>{{assessmenttype}}</td>
-                <td>{{weight}}</td>
+            <tr data-parent="0" data-id="{{id}}">
+                <td class="td20"><a href="{{courseurl}}">{{coursename}}</a></td>
+                <td class="td55 subcategory-row">{{name}}</td>
+                <td class="td20 subcategory-row">{{assessmenttype}}</td>
+                <td class="td05 subcategory-row">{{weight}}</td>
             </tr>
             {{/subcategories}}
         {{/coursedata}}

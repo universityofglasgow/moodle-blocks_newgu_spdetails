@@ -107,3 +107,7 @@ $string['header_feedback'] = 'Feedback';
 $string['header_submission'] = 'Submission';
 $string['header_coursestartdate'] = 'Course Start Date';
 $string['header_courseenddate'] = 'Course End Date';
+$string['previous'] = 'Previous';
+$string['label_course'] = 'Course: ';
+$string['label_componentname'] = 'Component: ';
+$string['label_weight'] = 'Weight towards course: ';

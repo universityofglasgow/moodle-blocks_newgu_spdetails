@@ -55,7 +55,7 @@ const initCourseTabs = () => {
     });
 };
 
-const loadAssessments = function(activetab, page, sortby, sortorder, isPageClicked, subcategory = null) {
+const loadAssessments = function(activetab, page, sortby, sortorder, isPageClicked, subcategory = null, parent = null) {
     let containerBlock = document.querySelector('#course_contents_container');
 
     let whichTemplate = subcategory === null ? 'coursecategory' : 'coursesubcategory';
@@ -84,8 +84,10 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
         Templates.renderForPromise('block_newgu_spdetails/' + whichTemplate, {coursedata:coursedata})
         .then(({html, js}) => {
             Templates.appendNodeContents(containerBlock, html, js);
+            containerBlock.scrollIntoView({ behavior: "smooth"});
             let subCategories = document.querySelectorAll('.subcategory-row');
             subCategoryEventHandler(subCategories);
+            subCategoryReturnHandler(parent);
         }).catch((error) => displayException(error));
     });
 };
@@ -99,24 +101,37 @@ const subCategoryEventHandler = (rows) => {
 };
 
 const showSubcategoryDetails = (object) => {
-    let id = object.getAttribute('data-id');
-    //let subname = object.getAttribute('data-name');
-    //let course = object.getAttribute('data-course');
-    //let grade = object.getAttribute('data-grade');
-    //let weight = object.getAttribute('data-weight');
-    Log.debug('showSubcategoryDetails called with id:' + id);
-
+    let id = object.parentElement.getAttribute('data-id');
+    let parent = object.parentElement.getAttribute('data-parent');
     if (id !== null) {
-        loadAssessments('current', 0, 'duedate', 'ASC', false, id);
-        //document.querySelector('#subcategory-details-course').innerHTML = course;
-        //document.querySelector('#subcategory-details-weight').innerHTML = weight;
-        //document.querySelector('#subcategory-details-grade').innerHTML = grade;
-        //document.querySelector('#subcategory-details-name').innerHTML = subname;
-        //document.querySelector('#subcategory-return-assessment').addEventListener('click', () => {
-        //    document.querySelector('#courses-container').classList.remove('hidden-container');
-        //    document.querySelector('#subcategory-container').classList.add('hidden-container');
-        //    document.querySelector('#subcategory_details_contents').innerHTML = "";
-        //});
+        document.querySelector('#courseNav-container').classList.add('hidden-container');
+        loadAssessments('current', 0, 'duedate', 'ASC', false, id, parent);
+    }
+};
+
+const subCategoryReturnHandler = (id) => {
+    // We want this to work in 2 ways.
+    // When descending levels, we want to know which level to return to, hence setting the data-parent.
+    // When ascending, we don't want to get stuck at a sub level, hence, not worrying if we pass null
+    // - this gets picked up as 'not a sub category' and will therefore display everything from the top
+    // level, i.e. all courses.
+    Log.debug('subCategoryReturnHandler called with id:' + id);
+    if (id !== null) {
+        document.querySelector('#subcategory-return-assessment').setAttribute('data-parent', id);
+    }
+
+    // The 'return to...' element won't exist on the page at the top most level.
+    if (document.querySelector('#subcategory-return-assessment')) {
+        document.querySelector('#subcategory-return-assessment').addEventListener('click', () => {
+            // We now want to reload the previous level, using the previous id...
+            // In order to display all courses, we pass null back to loadAssessments.
+            Log.debug('calling loadAssessments with id:' + id);
+            if (id == 0 || id === null) {
+                id = null;
+                document.querySelector('#courseNav-container').classList.remove('hidden-container');
+            }
+            loadAssessments('current', 0, 'coursetitle', 'ASC', false, id);
+        });
     }
 };
 
