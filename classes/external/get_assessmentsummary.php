@@ -101,19 +101,19 @@ class get_assessmentsummary extends external_api {
                         $status = $gradestatus["status"];
                         $finalgrade = $gradestatus["finalgrade"];
 
-                        if ($status == 'tosubmit') {
+                        if ($status == get_string("status_tosubmit", "block_newgu_spdetails")) {
                             $total_tosubmit++;
                         }
-                        if ($status == 'notsubmitted') {
+                        if ($status == get_string("status_notsubmitted", "block_newgu_spdetails")) {
                             $total_tosubmit++;
                         }
-                        if ($status == 'submitted') {
+                        if ($status == get_string("status_submitted", "block_newgu_spdetails")) {
                             $total_submissions++;
                             if ($finalgrade != Null) {
                                 $marked++;
                             }
                         }
-                        if ($status == "overdue") {
+                        if ($status == get_string("status_overdue", "block_newgu_spdetails")) {
                             $total_overdue++;
                         }
                     }

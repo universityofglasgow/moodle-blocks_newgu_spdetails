@@ -248,10 +248,13 @@ class block_newgu_spdetails_external extends external_api
      */
     public static function retrieve_gradable_activities($activetab, $userid, $sortby, $sortorder, $subcategory) {
         global $DB, $USER;
+        $items = [];
+        $subcatdata = [];
 
         if (!$subcategory) {
             switch ($activetab) {
                 case 'current':
+                    // @todo - ask Howard to update the API to accept sort by, sort order args...
                     $courses = \local_gugrades\api::dashboard_get_courses($userid);
                     $coursedata = [];
                     $data = [];
@@ -301,12 +304,12 @@ class block_newgu_spdetails_external extends external_api
                             foreach($subcategories as $subcategory) {
                                 $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
                                 $assessmenttype = self::return_assessmenttype($subcategory->fullname, $item->aggregationcoef);
-                                $weight = self::return_weight($assessmenttype, $parent->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcategory->fullname);
+                                $subcatweight = self::return_weight($assessmenttype, $parent->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcategory->fullname);
                                 $subcatdata[] = [
                                     'id' => $subcategory->id,
                                     'name' => $subcategory->fullname,
                                     'assessmenttype' => $assessmenttype,
-                                    'weight' => $weight
+                                    'subcatweight' => $subcatweight
                                 ];
                             }
                             $coursedata['subcategories'] = $subcatdata;
@@ -363,6 +366,8 @@ class block_newgu_spdetails_external extends external_api
                 $assessmentitems = grade_item::fetch_all(['categoryid' => $subcategory]);
                 if ($assessmentitems && count($assessmentitems) > 0) {
                     foreach($assessmentitems as $assessmentitem) {
+                        $assessmenttype = self::return_assessmenttype($assessmentitem->itemname, $assessmentitem->aggregationcoef);
+                        $assessmentweight = self::return_weight($assessmenttype, $subcat->aggregation, $assessmentitem->aggregationcoef, $assessmentitem->aggregationcoef2, $assessmentitem->itemname);
                         $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $USER->id);
                         $feedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $USER->id, $assessmentitem->grademax, $assessmentitem->gradetype);
                         $duedate = DateTime::createFromFormat('U', $gradestatus['duedate']);
@@ -370,8 +375,12 @@ class block_newgu_spdetails_external extends external_api
                             'id' => $assessmentitem->id,
                             'assessmenturl' => $gradestatus['link'],
                             'itemname' => $assessmentitem->itemname,
+                            'assessmenttype' => $assessmenttype,
+                            'assessmentweight' => $assessmentweight,
                             'duedate' => $duedate->format('jS F Y'),
                             'status' => $gradestatus['status'],
+                            'status_class' => $gradestatus['status_class'],
+                            'status_text' => $gradestatus['status_text'],
                             'grade' => $gradestatus['finalgrade'],
                             'feedback' => $feedback['gradetodisplay']
                         ];
@@ -386,12 +395,12 @@ class block_newgu_spdetails_external extends external_api
                     foreach($subcategories as $subcategory) {
                         $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
                         $assessmenttype = self::return_assessmenttype($subcategory->fullname, $item->aggregationcoef);
-                        $weight = self::return_weight($assessmenttype, $parent->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcategory->fullname);
+                        $subcatweight = self::return_weight($assessmenttype, $subcategory->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcategory->fullname);
                         $subcatdata[] = [
                             'id' => $subcategory->id,
                             'name' => $subcategory->fullname,
                             'assessmenttype' => $assessmenttype,
-                            'weight' => $weight
+                            'subcatweight' => $subcatweight
                         ];
                     }
                 }
@@ -640,11 +649,12 @@ class block_newgu_spdetails_external extends external_api
     {
         $summative = get_string('summative', 'block_newgu_spdetails');
 
-        // If $aggregation == '10', meaning 'Weighted mean of grades' is used.
-        $weight = ($aggregation == '10') ?
-            (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100) :
-            (($assessmenttype === $summative || $subcategoryparentfullname === $summative) ?
-                $aggregationcoef2 * 100 : 0);
+        // 'Weighted mean of grades' - or $aggregation - has an option value of 10 in the settings page.
+        //$weight = ($aggregation == '10') ?
+        //    (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100) :
+        //    (($assessmenttype === $summative || $subcategoryparentfullname === $summative) ?
+        //        $aggregationcoef2 * 100 : 0);
+        $weight = (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100);
 
         $finalweight = ($weight > 0) ? round($weight, 2) . '%' : get_string('emptyvalue', 'block_newgu_spdetails');
 
@@ -697,7 +707,6 @@ class block_newgu_spdetails_external extends external_api
         return $str_itemsnotvisibletouser;
     }
 
-
     /**
      * @param $modulename
      * @param $iteminstance
@@ -712,6 +721,8 @@ class block_newgu_spdetails_external extends external_api
         global $DB, $CFG;
 
         $status = "";
+        $statusclass = "";
+        $statustext = "";
         $link = "";
         $duedate = 0;
         $allowsubmissionsfromdate = 0;
@@ -721,12 +732,16 @@ class block_newgu_spdetails_external extends external_api
         $convertedgrade = 0;
         $provisional_22grademaxpoint = 0;
         $converted_22grademaxpoint = 0;
-
         $rawgrade = 0;
         $finalgrade = 0;
 
-        $sql_grade = "SELECT rawgrade,finalgrade FROM {grade_grades} where itemid=" . $itemid . " AND userid=" . $userid;
-        $arr_grade = $DB->get_record_sql($sql_grade);
+        $arr_grade = $DB->get_record_sql(
+            "SELECT rawgrade,finalgrade FROM {grade_grades} WHERE itemid = :itemid AND userid = :userid",
+            [
+                'itemid' => $itemid,
+                'userid' => $userid
+            ]
+        );
 
         if (!empty($arr_grade)) {
             $rawgrade = $arr_grade->rawgrade;
@@ -742,94 +757,126 @@ class block_newgu_spdetails_external extends external_api
             }
         }
 
-        if ($modulename == "assign") {
-            $arr_assign = $DB->get_record('assign', array('id' => $iteminstance));
+        switch ($modulename) {
+            case "assign":
+                $arr_assign = $DB->get_record("assign", ["id" => $iteminstance]);
 
-            $cmid = block_newgu_spdetails_external::get_cmid('assign', $courseid, $iteminstance);
+                $cmid = block_newgu_spdetails_external::get_cmid("assign", $courseid, $iteminstance);
 
-            if (!empty($arr_assign)) {
-                $allowsubmissionsfromdate = $arr_assign->allowsubmissionsfromdate;
-                $duedate = $arr_assign->duedate;
-                $cutoffdate = $arr_assign->cutoffdate;
-                $gradingduedate = $arr_assign->gradingduedate;
-            }
-            if ($allowsubmissionsfromdate > time()) {
-                $status = 'notopen';
-            }
-            if ($status == "") {
-                $arr_assignsubmission = $DB->get_record('assign_submission', array('assignment' => $iteminstance, 'userid' => $userid));
+                if (!empty($arr_assign)) {
+                    $allowsubmissionsfromdate = $arr_assign->allowsubmissionsfromdate;
+                    $duedate = $arr_assign->duedate;
+                    $cutoffdate = $arr_assign->cutoffdate;
+                    $gradingduedate = $arr_assign->gradingduedate;
+                }
+                if ($allowsubmissionsfromdate > time()) {
+                    $status = get_string("status_submissionnotopen", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submissionnotopen", "block_newgu_spdetails");
+                }
+                if ($status == "") {
+                    $arr_assignsubmission = $DB->get_record("assign_submission", ["assignment" => $iteminstance, "userid" => $userid]);
 
-                if (!empty($arr_assignsubmission)) {
-                    $status = $arr_assignsubmission->status;
+                    if (!empty($arr_assignsubmission)) {
+                        $status = $arr_assignsubmission->status;
 
-                    if ($status == "new") {
-                        $status = "notsubmitted";
-                        if (time() > $duedate + (86400 * 30) && $duedate != 0) {
-                            $status = 'overdue';
+                        if ($status == "new") {
+                            $status = get_string("status_notsubmitted", "block_newgu_spdetails");
+                            $statustext = get_string("status_text_notsubmitted", "block_newgu_spdetails");
+                            $statusclass = get_string("status_class_notsubmitted", "block_newgu_spdetails");
+                            if (time() > $duedate + (86400 * 30) && $duedate != 0) {
+                                $status = get_string("status_overdue", "block_newgu_spdetails");
+                                $statusclass = get_string("status_class_overdue", "block_newgu_spdetails");
+                                $statustext = get_string("status_text_overdue", "block_newgu_spdetails");
+                            }
                         }
-                    }
 
+                        if ($status == get_string("status_submitted", "block_newgu_spdetails")) {
+                            $status = get_string("status_submitted", "block_newgu_spdetails");
+                            $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
+                            $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
+                        }
+
+                    } else {
+                        $status = get_string("status_tosubmit", "block_newgu_spdetails");
+                        $statustext = get_string("status_text_tosubmit", "block_newgu_spdetails");
+
+                        if (time() > $duedate && $duedate != 0) {
+                            $status = get_string("status_notsubmitted", "block_newgu_spdetails");
+                            $statustext = get_string("status_text_notsubmitted", "block_newgu_spdetails");
+                        }
+
+                        if (time() > $duedate + (86400 * 30) && $duedate != 0) {
+                            $status = get_string("status_overdue", "block_newgu_spdetails");;
+                            $statusclass = get_string("status_class_overdue", "block_newgu_spdetails");
+                            $statustext = get_string("status_text_overdue", "block_newgu_spdetails");
+                        }
+
+                        $link = $CFG->wwwroot . "/mod/assign/view.php?id=" . $cmid;
+                    }
+                }
+                break;
+
+            case "forum":
+                $forumsubmissions = $DB->count_records("forum_discussion_subs", ["forum" => $iteminstance, "userid" => $userid]);
+
+                $cmid = block_newgu_spdetails_external::get_cmid('forum', $courseid, $iteminstance);
+
+                if ($forumsubmissions > 0) {
+                    $status = get_string("status_submitted", "block_newgu_spdetails");;
+                    $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
                 } else {
-                    $status = 'tosubmit';
-
-                    if (time() > $duedate && $duedate != 0) {
-                        $status = 'notsubmitted';
-                    }
-
-                    if (time() > $duedate + (86400 * 30) && $duedate != 0) {
-                        $status = 'overdue';
-                    }
-
-                    $link = $CFG->wwwroot . '/mod/assign/view.php?id=' . $cmid;
+                    $status = get_string("status_tosubmit", "block_newgu_spdetails");;
+                    $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submit", "block_newgu_spdetails");
+                    $link = $CFG->wwwroot . "/mod/forum/view.php?id=" . $cmid;
                 }
-            }
-        }
+                break;
 
-        if ($modulename == "forum") {
-            $forumsubmissions = $DB->count_records('forum_discussion_subs', array('forum' => $iteminstance, 'userid' => $userid));
+            case "quiz":
+                $cmid = block_newgu_spdetails_external::get_cmid("quiz", $courseid, $iteminstance);
 
-            $cmid = block_newgu_spdetails_external::get_cmid('forum', $courseid, $iteminstance);
-
-            if ($forumsubmissions > 0) {
-                $status = 'submitted';
-            } else {
-                $status = 'tosubmit';
-                $link = $CFG->wwwroot . '/mod/forum/view.php?id=' . $cmid;
-            }
-        }
-
-        if ($modulename == "quiz") {
-
-            $cmid = block_newgu_spdetails_external::get_cmid('quiz', $courseid, $iteminstance);
-
-            $quizattempts = $DB->count_records('quiz_attempts', array('quiz' => $iteminstance, 'userid' => $userid, 'state' => 'finished'));
-            if ($quizattempts > 0) {
-                $status = 'submitted';
-            } else {
-                $status = 'tosubmit';
-                $link = $CFG->wwwroot . '/mod/quiz/view.php?id=' . $cmid;
-            }
-        }
-
-        if ($modulename == "workshop") {
-
-            $arr_workshop = $DB->get_record('workshop', array('id' => $iteminstance));
-
-            $cmid = block_newgu_spdetails_external::get_cmid('workshop', $courseid, $iteminstance);
-
-            $workshopsubmissions = $DB->count_records('workshop_submissions', array('workshopid' => $iteminstance, 'authorid' => $userid));
-            if ($workshopsubmissions > 0) {
-                $status = 'submitted';
-            } else {
-                $status = 'tosubmit';
-                if ($arr_workshop->submissionstart == 0) {
-                    $status = 'notopen';
+                $quizattempts = $DB->count_records("quiz_attempts", ["quiz" => $iteminstance, "userid" => $userid, "state" => "finished"]);
+                if ($quizattempts > 0) {
+                    $status = get_string("status_submitted", "block_newgu_spdetails");
+                    $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
+                } else {
+                    $status = get_string("status_tosubmit", "block_newgu_spdetails");
+                    $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submit", "block_newgu_spdetails");
+                    $link = $CFG->wwwroot . "/mod/quiz/view.php?id=" . $cmid;
                 }
-                $link = $CFG->wwwroot . '/mod/workshop/view.php?id=' . $cmid;
-            }
+                break;
+
+            case "workshop":
+                $arr_workshop = $DB->get_record("workshop", array("id" => $iteminstance));
+
+                $cmid = block_newgu_spdetails_external::get_cmid("workshop", $courseid, $iteminstance);
+
+                $workshopsubmissions = $DB->count_records("workshop_submissions", ["workshopid" => $iteminstance, "authorid" => $userid]);
+                if ($workshopsubmissions > 0) {
+                    $status = get_string("status_submitted", "block_newgu_spdetails");
+                    $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
+                } else {
+                    $status = get_string("status_tosubmit", "block_newgu_spdetails");
+                    $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submit", "block_newgu_spdetails");
+                    if ($arr_workshop->submissionstart == 0) {
+                        $status = get_string("status_submissionnotopen", "block_newgu_spdetails");
+                        $statusclass = "";
+                        $statustext = get_string("status_text_submissionnotopen", "block_newgu_spdetails");
+                    }
+                    $link = $CFG->wwwroot . "/mod/workshop/view.php?id=" . $cmid;
+                }
+                break;
+
+            default :
+            break;
         }
 
-        $arr_grades = $DB->get_record('grade_grades', array('itemid' => $itemid, 'userid' => $userid));
+        $arr_grades = $DB->get_record("grade_grades", ["itemid" => $itemid, "userid" => $userid]);
 
         if (!empty($arr_grades)) {
             $finalgrade = $arr_grades->finalgrade;
@@ -842,7 +889,10 @@ class block_newgu_spdetails_external extends external_api
             $converted_22grademaxpoint = block_newgu_spdetails_external::return_22grademaxpoint((floor($finalgrade)) - 1, 1);
         }
 
-        $gradestatus = array("status" => $status,
+        $gradestatus = [
+            "status" => $status,
+            "status_class" => $statusclass,
+            "status_text" => $statustext,
             "link" => $link,
             "allowsubmissionsfromdate" => $allowsubmissionsfromdate,
             "duedate" => $duedate,
@@ -854,7 +904,7 @@ class block_newgu_spdetails_external extends external_api
             "convertedgrade" => $convertedgrade,
             "provisional_22grademaxpoint" => $provisional_22grademaxpoint,
             "converted_22grademaxpoint" => $converted_22grademaxpoint,
-        );
+        ];
 
         return $gradestatus;
     }

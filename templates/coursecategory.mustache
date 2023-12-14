@@ -55,10 +55,10 @@
     <table class="table table-responsive assessments-details-table">
         <thead>
             <tr>
-                <th id="sortby_course" class="td20 th-sortable">{{#str}} header_course, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_categoryorcomponent" class="td55 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_assessmenttype" class="td20 th-sortable">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_weight" class="td05 th-sortable">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_course" data-sortby="coursetitle" class="td20 th-sortable">{{#str}} header_course, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_categoryorcomponent" data-sortby="categoryorcomponent" class="td55 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_assessmenttype" data-sortby="assessmenttype" class="td20 th-sortable">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_weight" data-sortby="weight" class="td05 th-sortable">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
             </tr>
         </thead>
         <tbody>
@@ -66,9 +66,9 @@
             {{#subcategories}}
             <tr data-parent="0" data-id="{{id}}">
                 <td class="td20"><a href="{{courseurl}}">{{coursename}}</a></td>
-                <td class="td55 subcategory-row">{{name}}</td>
-                <td class="td20 subcategory-row">{{assessmenttype}}</td>
-                <td class="td05 subcategory-row">{{weight}}</td>
+                <td class="td55 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder-open"></i><strong>{{name}}</strong></a></td>
+                <td class="td20"><strong>{{assessmenttype}}</strong></td>
+                <td class="td05"><strong>{{subcatweight}}</strong></td>
             </tr>
             {{/subcategories}}
         {{/coursedata}}

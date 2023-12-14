@@ -85,12 +85,12 @@
     <table class="table table-responsive assessments-details-table">
         <thead>
             <tr>
-                <th id="sortby_categoryorcomponent" class="td40 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_assessmenttype" class="td10 th-sortable">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_weight" class="td10 th-sortable">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_duedate" class="td10 th-sortable">{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_status" class="td10 th-sortable">{{#str}} header_status, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_grade" class="td10 th-sortable">{{#str}} header_grade, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_categoryorcomponent" data-sortby="categoryorcomponent" class="td50 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_assessmenttype" data-sortby="assessmenttype" class="td10 th-sortable">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_weight" data-sortby="weight" class="td5 th-sortable">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_duedate" data-sortby="duedate" class="td10 th-sortable">{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_status" data-sortby="status" class="td15 th-sortable">{{#str}} header_status, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_grade" data-sortby="grade" class="td10 th-sortable">{{#str}} header_grade, block_newgu_spdetails {{/str}}</th>
                 <th class="td10">{{#str}} header_feedback, block_newgu_spdetails {{/str}}</th>
             </tr>
         </thead>
@@ -98,18 +98,28 @@
         {{#coursedata}}
             {{#subcategories}}
             <tr data-parent="{{parent}}" data-id="{{id}}">
-                <td class="td50 subcategory-row">{{name}}</td>
-                <td class="td15 subcategory-row">{{assessmenttype}}</td>
-                <td class="td5 subcategory-row">{{weight}}</td>
+                <td class="td50 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder-open"></i><strong>{{name}}</strong></a></td>
+                <td class="td15 subcategory-row"><strong>{{assessmenttype}}</strong></td>
+                <td class="td5 subcategory-row"><strong>{{subcatweight}}</strong></td>
             </tr>
             {{/subcategories}}
             {{#assessmentitems}}
             <tr data-assessmentid="{{id}}">
                 <td class="td50"><a href="{{assessmenturl}}">{{itemname}}</a></td>
-                <td class="td15">{{assessmenttype}}</td>
-                <td class="td5">{{weight}}</td>
+                <td class="td10">{{assessmenttype}}</td>
+                <td class="td5">{{assessmentweight}}</td>
                 <td class="td15">{{duedate}}</td>
-                <td class="td10">{{status}}</td>
+                <td class="td15">
+                {{#status}}
+                    {{#assessmenturl}}
+                        <a href="{{assessmenturl}}">
+                    {{/assessmenturl}}
+                        <span class="status-item{{#status_class}} {{status_class}}{{/status_class}}">{{status_text}}</span>
+                    {{#assessmenturl}}
+                        </a>
+                    {{/assessmenturl}}
+                {{/status}}
+                </td>
                 <td class="td10">{{grade}}</td>
                 <td class="td10">{{feedback}}</td>
             </tr>

@@ -25,6 +25,6 @@
 defined('MOODLE_INTERNAL') || die;
 
 $plugin->component = 'block_newgu_spdetails';
-$plugin->version = 2022110812;
+$plugin->version = 2022110813;
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = '1.0';

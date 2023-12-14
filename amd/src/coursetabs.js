@@ -34,7 +34,7 @@ const initCourseTabs = () => {
     let activetab = 'current';
     let page = 0;
     let sortby = 'coursetitle';
-    let sortorder = 'ASC';
+    let sortorder = 'asc';
     let isPageClicked = false;
 
     // Load the assessments for the "current" tab to begin with...
@@ -80,15 +80,47 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
     promise[0].done(function(response) {
         document.querySelector('.loader').remove();
         let coursedata = JSON.parse(response.result);
-        Log.debug('courses:' + response.result);
+        Log.debug('coursedata:' + response.result);
         Templates.renderForPromise('block_newgu_spdetails/' + whichTemplate, {coursedata:coursedata})
         .then(({html, js}) => {
             Templates.appendNodeContents(containerBlock, html, js);
-            containerBlock.scrollIntoView({ behavior: "smooth"});
+            if (isPageClicked == true) {
+                containerBlock.scrollIntoView({ behavior: "smooth"});
+            }
             let subCategories = document.querySelectorAll('.subcategory-row');
+            let sortColumns = document.querySelectorAll('.th-sortable');
             subCategoryEventHandler(subCategories);
             subCategoryReturnHandler(parent);
+            sortingEventHandler(sortColumns);
+            sortingStatus(sortby, sortorder);
         }).catch((error) => displayException(error));
+    }).fail(function(response) {
+        if(response) {
+            var errorContainer = document.createElement('div');
+            errorContainer.classList.add('alert', 'alert-danger');
+
+            if(response.hasOwnProperty('message')) {
+                var errorMsg = document.createElement('p');
+
+                errorMsg.innerHTML = response.message;
+                errorContainer.appendChild(errorMsg);
+                errorMsg.classList.add('errormessage');
+            }
+
+            if(response.hasOwnProperty('moreinfourl')) {
+                var errorLinkContainer = document.createElement('p');
+                var errorLink = document.createElement('a');
+
+                errorLink.setAttribute('href', response.moreinfourl);
+                errorLink.setAttribute('target', '_blank');
+                errorLink.innerHTML = 'More information about this error';
+                errorContainer.appendChild(errorLinkContainer);
+                errorLinkContainer.appendChild(errorLink);
+                errorLinkContainer.classList.add('errorcode');
+            }
+
+            containerBlock.prepend(errorContainer);
+        }
     });
 };
 
@@ -105,7 +137,7 @@ const showSubcategoryDetails = (object) => {
     let parent = object.parentElement.getAttribute('data-parent');
     if (id !== null) {
         document.querySelector('#courseNav-container').classList.add('hidden-container');
-        loadAssessments('current', 0, 'duedate', 'ASC', false, id, parent);
+        loadAssessments('current', 0, 'duedate', 'asc', true, id, parent);
     }
 };
 
@@ -130,8 +162,116 @@ const subCategoryReturnHandler = (id) => {
                 id = null;
                 document.querySelector('#courseNav-container').classList.remove('hidden-container');
             }
-            loadAssessments('current', 0, 'coursetitle', 'ASC', false, id);
+            loadAssessments('current', 0, 'coursetitle', 'asc', true, id);
         });
+    }
+};
+
+const sortingEventHandler = (rows) => {
+    if (rows.length > 0) {
+        rows.forEach((element) => {
+            element.addEventListener('click', () => sortingHeaders(element));
+        });
+    }
+};
+
+const sortingHeaders = (object) => {
+    let sortby = object.getAttribute('data-sortby');
+    let sortorder = object.getAttribute('data-value');
+    if (sortorder === null) {
+        sortorder = 'asc';
+    }
+
+    if (sortorder !== null) {
+        // reverse the sort order in order for it to function correctly
+        if (sortorder == 'asc') {
+            sortorder = 'desc';
+        } else {
+            sortorder = 'asc';
+        }
+    }
+
+    loadAssessments('current', 0, sortby, sortorder, true);
+};
+
+const sortingStatus = function(sortby, sortorder) {
+    Log.debug('sortingStatus called with sortby:' + sortby + ' sortorder:' + sortorder);
+    let sortByCourse = document.querySelector('#sortby_course');
+    let sortByCategoryorComponent = document.querySelector('#sortby_categoryorcomponent');
+    let sortByAssessmentType = document.querySelector('#sortby_assessmenttype');
+    let sortByWeight = document.querySelector('#sortby_weight');
+    let sortByDueDate = document.querySelector('#sortby_duedate');
+    //let sortByStatus = document.querySelector('#sortby_status');
+    //let sortByGrade = document.querySelector('#sortby_grade');
+
+    switch(sortby) {
+        case 'coursetitle':
+            if(sortByCourse) {
+                if (sortorder == 'asc') {
+                    sortByCourse.classList.add('th-sort-asc');
+                    sortByCourse.classList.remove('th-sort-desc');
+                    sortByCourse.setAttribute('data-value', 'asc');
+                } else {
+                    sortByCourse.classList.add('th-sort-desc');
+                    sortByCourse.classList.remove('th-sort-asc');
+                    sortByCourse.setAttribute('data-value', 'desc');
+                }
+            }
+            break;
+        case 'categoryorcomponent':
+            if(sortByCategoryorComponent) {
+                if (sortorder == 'asc') {
+                    sortByCategoryorComponent.classList.add('th-sort-asc');
+                    sortByCategoryorComponent.classList.remove('th-sort-desc');
+                    sortByCategoryorComponent.setAttribute('data-value', 'asc');
+                } else {
+                    sortByCategoryorComponent.classList.add('th-sort-desc');
+                    sortByCategoryorComponent.classList.remove('th-sort-asc');
+                    sortByCategoryorComponent.setAttribute('data-value', 'desc');
+                }
+            }
+            break;
+        case 'assessmenttype':
+            if(sortByAssessmentType) {
+                if (sortorder == 'asc') {
+                    sortByAssessmentType.classList.add('th-sort-asc');
+                    sortByAssessmentType.classList.remove('th-sort-desc');
+                    sortByAssessmentType.setAttribute('data-value', 'asc');
+                } else {
+                    sortByAssessmentType.classList.add('th-sort-desc');
+                    sortByAssessmentType.classList.remove('th-sort-asc');
+                    sortByAssessmentType.setAttribute('data-value', 'desc');
+                }
+            }
+        break;
+        case 'weight':
+            if(sortByWeight) {
+                if (sortorder == 'asc') {
+                    sortByWeight.classList.add('th-sort-asc');
+                    sortByWeight.classList.remove('th-sort-desc');
+                    sortByWeight.setAttribute('data-value', 'asc');
+                } else {
+                    sortByWeight.classList.add('th-sort-desc');
+                    sortByWeight.classList.remove('th-sort-asc');
+                    sortByWeight.setAttribute('data-value', 'desc');
+                }
+            }
+        break;
+        case 'duedate':
+            if(sortByDueDate) {
+                if(sortorder == 'asc') {
+                    sortByDueDate.classList.add('th-sort-asc');
+                    sortByDueDate.classList.remove('th-sort-desc');
+                    sortByDueDate.setAttribute('data-value', 'asc');
+                }else{
+                    sortByDueDate.classList.add('th-sort-desc');
+                    sortByDueDate.classList.remove('th-sort-asc');
+                    sortByDueDate.setAttribute('data-value', 'desc');
+                }
+            }
+            break;
+        default:
+            break;
     }
 };
 
