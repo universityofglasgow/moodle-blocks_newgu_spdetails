@@ -33,7 +33,7 @@ const initCourseTabs = () => {
 
     let activetab = 'current';
     let page = 0;
-    let sortby = 'coursetitle';
+    let sortby = 'shortname';
     let sortorder = 'asc';
     let isPageClicked = false;
 
@@ -55,7 +55,7 @@ const initCourseTabs = () => {
     });
 };
 
-const loadAssessments = function(activetab, page, sortby, sortorder, isPageClicked, subcategory = null, parent = null) {
+const loadAssessments = function(activetab,page,sortby,sortorder,isPageClicked,subcategory = null,parent = null,coursetype = null) {
     let containerBlock = document.querySelector('#course_contents_container');
 
     let whichTemplate = subcategory === null ? 'coursecategory' : 'coursesubcategory';
@@ -65,7 +65,7 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
     }
 
     containerBlock.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
-    "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
+    "<div class='spinner-border m-5' role='status'><span class='hidden'>Loading...</span></div></div>");
 
     let promise = Ajax.call([{
         methodname: 'block_newgu_spdetails_get_assessments',
@@ -75,13 +75,14 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             sortby: sortby,
             sortorder: sortorder,
             subcategory: subcategory,
+            coursetype: coursetype
         }
     }]);
     promise[0].done(function(response) {
         document.querySelector('.loader').remove();
         let coursedata = JSON.parse(response.result);
-        Log.debug('coursedata:' + response.result);
-        Templates.renderForPromise('block_newgu_spdetails/' + whichTemplate, {coursedata:coursedata})
+        Log.debug('coursedata struct:' + response.result + ' len:' + response.result.length);
+        Templates.renderForPromise('block_newgu_spdetails/' + whichTemplate, {data:coursedata})
         .then(({html, js}) => {
             Templates.appendNodeContents(containerBlock, html, js);
             if (isPageClicked == true) {
@@ -91,7 +92,7 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             let sortColumns = document.querySelectorAll('.th-sortable');
             subCategoryEventHandler(subCategories);
             subCategoryReturnHandler(parent);
-            sortingEventHandler(sortColumns);
+            sortingEventHandler(sortColumns, activetab, page, subcategory, parent, coursetype);
             sortingStatus(sortby, sortorder);
         }).catch((error) => displayException(error));
     }).fail(function(response) {
@@ -135,9 +136,18 @@ const subCategoryEventHandler = (rows) => {
 const showSubcategoryDetails = (object) => {
     let id = object.parentElement.getAttribute('data-id');
     let parent = object.parentElement.getAttribute('data-parent');
+    let coursetype = object.parentElement.getAttribute('data-coursetype');
     if (id !== null) {
         document.querySelector('#courseNav-container').classList.add('hidden-container');
-        loadAssessments('current', 0, 'duedate', 'asc', true, id, parent);
+        let currentTab = document.querySelector('#current_tab');
+        let activetab = '';
+        if(currentTab.classList.contains('active')) {
+            activetab = 'current';
+        }else{
+            activetab = 'past';
+        }
+        // Ordering by DueDate by default....
+        loadAssessments(activetab, 0, 'duedate', 'asc', true, id, parent, coursetype);
     }
 };
 
@@ -162,20 +172,28 @@ const subCategoryReturnHandler = (id) => {
                 id = null;
                 document.querySelector('#courseNav-container').classList.remove('hidden-container');
             }
-            loadAssessments('current', 0, 'coursetitle', 'asc', true, id);
+            let coursetype = document.querySelector('#subcategory-return-assessment').getAttribute('data-coursetype');
+            let currentTab = document.querySelector('#current_tab');
+            let activetab = '';
+            if(currentTab.classList.contains('active')) {
+                activetab = 'current';
+            }else{
+                activetab = 'past';
+            }
+            loadAssessments(activetab, 0, 'shortname', 'asc', true, id, null, coursetype);
         });
     }
 };
 
-const sortingEventHandler = (rows) => {
+const sortingEventHandler = (rows, activetab, page, subcategory, parent, coursetype) => {
     if (rows.length > 0) {
         rows.forEach((element) => {
-            element.addEventListener('click', () => sortingHeaders(element));
+            element.addEventListener('click', () => sortingHeaders(element, activetab, page, subcategory, parent, coursetype));
         });
     }
 };
 
-const sortingHeaders = (object) => {
+const sortingHeaders = (object, activetab, page, subcategory, parent, coursetype) => {
     let sortby = object.getAttribute('data-sortby');
     let sortorder = object.getAttribute('data-value');
     if (sortorder === null) {
@@ -191,43 +209,43 @@ const sortingHeaders = (object) => {
         }
     }
 
-    loadAssessments('current', 0, sortby, sortorder, true);
+    loadAssessments(activetab, page, sortby, sortorder, true, subcategory, parent, coursetype);
 };
 
 const sortingStatus = function(sortby, sortorder) {
     Log.debug('sortingStatus called with sortby:' + sortby + ' sortorder:' + sortorder);
-    let sortByCourse = document.querySelector('#sortby_course');
-    let sortByCategoryorComponent = document.querySelector('#sortby_categoryorcomponent');
+    let sortByShortName = document.querySelector('#sortby_shortname');
+    let sortByFullName = document.querySelector('#sortby_fullname');
     let sortByAssessmentType = document.querySelector('#sortby_assessmenttype');
     let sortByWeight = document.querySelector('#sortby_weight');
     let sortByDueDate = document.querySelector('#sortby_duedate');
-    //let sortByStatus = document.querySelector('#sortby_status');
-    //let sortByGrade = document.querySelector('#sortby_grade');
+    let sortByStatus = document.querySelector('#sortby_status');
+    let sortByGrade = document.querySelector('#sortby_grade');
 
     switch(sortby) {
-        case 'coursetitle':
-            if(sortByCourse) {
+        case 'shortname':
+            if(sortByShortName) {
                 if (sortorder == 'asc') {
-                    sortByCourse.classList.add('th-sort-asc');
-                    sortByCourse.classList.remove('th-sort-desc');
-                    sortByCourse.setAttribute('data-value', 'asc');
+                    sortByShortName.classList.add('th-sort-asc');
+                    sortByShortName.classList.remove('th-sort-desc');
+                    sortByShortName.setAttribute('data-value', 'asc');
                 } else {
-                    sortByCourse.classList.add('th-sort-desc');
-                    sortByCourse.classList.remove('th-sort-asc');
-                    sortByCourse.setAttribute('data-value', 'desc');
+                    sortByShortName.classList.add('th-sort-desc');
+                    sortByShortName.classList.remove('th-sort-asc');
+                    sortByShortName.setAttribute('data-value', 'desc');
                 }
             }
             break;
-        case 'categoryorcomponent':
-            if(sortByCategoryorComponent) {
+        case 'fullname':
+            if(sortByFullName) {
                 if (sortorder == 'asc') {
-                    sortByCategoryorComponent.classList.add('th-sort-asc');
-                    sortByCategoryorComponent.classList.remove('th-sort-desc');
-                    sortByCategoryorComponent.setAttribute('data-value', 'asc');
+                    sortByFullName.classList.add('th-sort-asc');
+                    sortByFullName.classList.remove('th-sort-desc');
+                    sortByFullName.setAttribute('data-value', 'asc');
                 } else {
-                    sortByCategoryorComponent.classList.add('th-sort-desc');
-                    sortByCategoryorComponent.classList.remove('th-sort-asc');
-                    sortByCategoryorComponent.setAttribute('data-value', 'desc');
+                    sortByFullName.classList.add('th-sort-desc');
+                    sortByFullName.classList.remove('th-sort-asc');
+                    sortByFullName.setAttribute('data-value', 'desc');
                 }
             }
             break;
@@ -243,7 +261,7 @@ const sortingStatus = function(sortby, sortorder) {
                     sortByAssessmentType.setAttribute('data-value', 'desc');
                 }
             }
-        break;
+            break;
         case 'weight':
             if(sortByWeight) {
                 if (sortorder == 'asc') {
@@ -256,7 +274,7 @@ const sortingStatus = function(sortby, sortorder) {
                     sortByWeight.setAttribute('data-value', 'desc');
                 }
             }
-        break;
+            break;
         case 'duedate':
             if(sortByDueDate) {
                 if(sortorder == 'asc') {
@@ -267,6 +285,32 @@ const sortingStatus = function(sortby, sortorder) {
                     sortByDueDate.classList.add('th-sort-desc');
                     sortByDueDate.classList.remove('th-sort-asc');
                     sortByDueDate.setAttribute('data-value', 'desc');
+                }
+            }
+            break;
+        case 'status':
+            if(sortByStatus) {
+                if(sortorder == 'asc') {
+                    sortByStatus.classList.add('th-sort-asc');
+                    sortByStatus.classList.remove('th-sort-desc');
+                    sortByStatus.setAttribute('data-value', 'asc');
+                }else{
+                    sortByStatus.classList.add('th-sort-desc');
+                    sortByStatus.classList.remove('th-sort-asc');
+                    sortByStatus.setAttribute('data-value', 'desc');
+                }
+            }
+            break;
+        case 'grade':
+            if(sortByGrade) {
+                if(sortorder == 'asc') {
+                    sortByGrade.classList.add('th-sort-asc');
+                    sortByGrade.classList.remove('th-sort-desc');
+                    sortByGrade.setAttribute('data-value', 'asc');
+                }else{
+                    sortByGrade.classList.add('th-sort-desc');
+                    sortByGrade.classList.remove('th-sort-asc');
+                    sortByGrade.setAttribute('data-value', 'desc');
                 }
             }
             break;
@@ -291,7 +335,7 @@ const handleTabChange = function(event) {
         case currentTab:
             var activetab = 'current';
             var page = 0;
-            var sortby = 'coursetitle';
+            var sortby = 'shortname';
             var sortorder = 'asc';
 
             currentTab.classList.add('active');
@@ -302,8 +346,8 @@ const handleTabChange = function(event) {
         case pastTab:
             var activetab = 'past';
             var page = 0;
-            var sortby = 'coursetitle';
-            var sortorder = 'ASC';
+            var sortby = 'shortname';
+            var sortorder = 'asc';
 
             currentTab.classList.remove('active');
             pastTab.classList.add('active');

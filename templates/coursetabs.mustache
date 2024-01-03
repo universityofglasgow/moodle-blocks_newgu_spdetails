@@ -35,18 +35,18 @@
         
     }
 }}
-{{^ showdetails }}
+{{^showdetails}}
     <div class="alert alert-warning">
         {{ message }}
     </div>
-{{/ showdetails }}
-{{# showdetails }}
+{{/showdetails}}
+{{#showdetails}}
     <div class="assessments-overview-container border rounded my-2 p-2">
         <h3>{{# str }}headingataglance, block_gu_spdetails{{/ str }}</h3>
         <div id="assessmentSummaryContainer" class="align-middle"></div>
     </div>
     <div class="border rounded p-2">
-        <h3>{{# str }}heading, block_gu_spdetails{{/ str }}</h3>
+        <h3>{{#str}}heading, block_gu_spdetails{{/str}}</h3>
         <div id="courseTab-container" class="assessments-details-container mt-2">
             <div id="courseNav-container">
                 <ul class="nav nav-tabs" id="courses-Tab" role="tablist">
@@ -58,8 +58,13 @@
                     </li>
                 </ul>
             </div>
-
+            {{#pagination}}
+                {{pagination}}
+            {{/pagination}}
             <div id="course_contents_container" class="tab-content"></div>
+            {{#pagination}}
+                {{pagination}}
+            {{/pagination}}
         </div>
     </div>
-{{/ showdetails }}
+{{/showdetails}}

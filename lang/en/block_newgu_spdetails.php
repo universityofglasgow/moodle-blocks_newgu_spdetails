@@ -97,6 +97,8 @@ $string['label_componentname'] = 'Component: ';
 $string['label_weight'] = 'Weight towards course: ';
 $string['previous'] = 'Previous';
 
+$string['feedback_tobeconfirmed'] = 'To be confirmed';
+
 $string['status_graded'] = 'graded';
 $string['status_notsubmitted'] = 'notsubmitted';
 $string['status_notopen'] = 'notopen';

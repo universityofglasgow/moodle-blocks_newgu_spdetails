@@ -55,23 +55,35 @@
     <table class="table table-responsive assessments-details-table">
         <thead>
             <tr>
-                <th id="sortby_course" data-sortby="coursetitle" class="td20 th-sortable">{{#str}} header_course, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_categoryorcomponent" data-sortby="categoryorcomponent" class="td55 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_shortname" data-sortby="shortname" class="td20 th-sortable">{{#str}} header_course, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_fullname" data-sortby="fullname" class="td55 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
                 <th id="sortby_assessmenttype" data-sortby="assessmenttype" class="td20 th-sortable">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
                 <th id="sortby_weight" data-sortby="weight" class="td05 th-sortable">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
+                {{#data.hasstartdate}}
+                <th id="sortby_startdate" data-sortby="startdate" class="td05 th-sortable">{{#str}} header_coursestartdate, block_newgu_spdetails {{/str}}</th>
+                {{/data.hasstartdate}}
+                {{#data.hasenddate}}
+                <th id="sortby_enddate" data-sortby="enddate" class="td05 th-sortable">{{#str}} header_courseenddate, block_newgu_spdetails {{/str}}</th>
+                {{/data.hasenddate}}
             </tr>
         </thead>
         <tbody>
-        {{#coursedata}}
+        {{#data.coursedata}}
             {{#subcategories}}
-            <tr data-parent="0" data-id="{{id}}">
+            <tr data-parent="0" data-id="{{id}}" data-coursetype="{{coursetype}}">
                 <td class="td20"><a href="{{courseurl}}">{{coursename}}</a></td>
                 <td class="td55 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder-open"></i><strong>{{name}}</strong></a></td>
                 <td class="td20"><strong>{{assessmenttype}}</strong></td>
                 <td class="td05"><strong>{{subcatweight}}</strong></td>
+                {{#startdate}}
+                <td class="td05"><strong>{{startdate}}</strong></td>
+                {{/startdate}}
+                {{#enddate}}
+                <td class="td05"><strong>{{enddate}}</strong></td>
+                {{/enddate}}
             </tr>
             {{/subcategories}}
-        {{/coursedata}}
+        {{/data.coursedata}}
         </tbody>
     </table>
 </div>
