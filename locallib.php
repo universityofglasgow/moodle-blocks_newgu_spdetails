@@ -24,67 +24,81 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Return an array of graded items
+ * 
+ * @param string $modulename
+ * @param int $iteminstance
+ * @param int $courseid
+ * @param int $itemid
+ * @param int $userid
+ * @param float $grademax
+ * @param int $gradetype
+ * @return array
+ */
+function get_gradefeedback(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid, float $grademax, int $gradetype) {
+    global $CFG, $DB, $USER;
 
-function get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $userid, $grademax, $gradetype) {
-global $CFG, $DB, $USER;
-
-$link = "";
-$gradetodisplay = "";
-
-$gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
-
-$status = $gradestatus["status"];
-$link = $gradestatus["link"];
-$allowsubmissionsfromdate = $gradestatus["allowsubmissionsfromdate"];
-$duedate = $gradestatus["duedate"];
-$cutoffdate = $gradestatus["cutoffdate"];
-$gradingduedate = $gradestatus["gradingduedate"];
-
-$rawgrade = $gradestatus["rawgrade"];
-$finalgrade = $gradestatus["finalgrade"];
-
-$provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
-$converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
-
-$cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
-
-if ($finalgrade!=Null) {
-    if ($gradetype==1) {
-      $gradetodisplay = '<span class="graded">' . number_format((float)$finalgrade) . " / " . number_format((float)$grademax) . '</span>' . ' (Provisional)';
-    }
-    if ($gradetype==2) {
-      $gradetodisplay = '<span class="graded">' . $converted_22grademaxpoint . '</span>' . ' (Provisional)';
-    }
-    $link = $CFG->wwwroot . '/mod/'.$modulename.'/view.php?id=' . $cmid . '#page-footer';
-
-}
-
-if ($finalgrade==Null  && $duedate<time()) {
-  if ($status=="notopen" || $status=="notsubmitted") {
-      $gradetodisplay = 'To be confirmed';
-      $link = "";
-  }
-  if ($status=="overdue") {
-      $gradetodisplay = 'Overdue';
-      $link = "";
-  }
-  if ($status=="notsubmitted") {
-      $gradetodisplay = 'Not submitted';
-      if ($gradingduedate>time()) {
-          $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
-      }
-  }
-
-}
-
-if ($status=="tosubmit") {
-    $gradetodisplay = 'To be confirmed';
     $link = "";
-}
+    $gradetodisplay = "";
 
-return array("gradetodisplay"=>$gradetodisplay, "link"=>$link, "provisional_22grademaxpoint"=>$provisional_22grademaxpoint, "converted_22grademaxpoint"=>$converted_22grademaxpoint, "finalgrade"=>floor($finalgrade), "rawgrade"=>floor($rawgrade));
-//return array("gradetodisplay"=>$gradetodisplay, "link"=>$link);
+    $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
 
+    $status = $gradestatus["status"];
+    $link = $gradestatus["link"];
+    $allowsubmissionsfromdate = $gradestatus["allowsubmissionsfromdate"];
+    $duedate = $gradestatus["duedate"];
+    $cutoffdate = $gradestatus["cutoffdate"];
+    $gradingduedate = $gradestatus["gradingduedate"];
+
+    $rawgrade = $gradestatus["rawgrade"];
+    $finalgrade = $gradestatus["finalgrade"];
+
+    $provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
+    $converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
+
+    $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
+
+    if ($finalgrade!=Null) {
+        if ($gradetype==1) {
+            $gradetodisplay = '<span class="graded">' . number_format((float)$finalgrade) . " / " . number_format((float)$grademax) . '</span>' . ' (Provisional)';
+        }
+        if ($gradetype==2) {
+            $gradetodisplay = '<span class="graded">' . $converted_22grademaxpoint . '</span>' . ' (Provisional)';
+        }
+        $link = $CFG->wwwroot . '/mod/'.$modulename.'/view.php?id=' . $cmid . '#page-footer';
+    }
+
+    if ($finalgrade==Null  && $duedate<time()) {
+        if ($status=="notopen" || $status=="notsubmitted") {
+            $gradetodisplay = 'To be confirmed';
+            $link = "";
+        }
+        if ($status=="overdue") {
+            $gradetodisplay = 'Overdue';
+            $link = "";
+        }
+        if ($status=="notsubmitted") {
+            $gradetodisplay = 'Not submitted';
+            if ($gradingduedate>time()) {
+                $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
+            }
+        }
+    }
+
+    if ($status=="tosubmit") {
+        $gradetodisplay = 'To be confirmed';
+        $link = "";
+    }
+
+    return [
+      "gradetodisplay"=>$gradetodisplay, 
+      "link"=>$link, 
+      "provisional_22grademaxpoint"=>$provisional_22grademaxpoint, 
+      "converted_22grademaxpoint"=>$converted_22grademaxpoint, 
+      "finalgrade"=>$finalgrade, 
+      "rawgrade"=>$rawgrade
+    ];
 }
 
 
@@ -422,6 +436,3 @@ function get_ltiinstancenottoinclude() {
     }
     return $str_ltiinstancenottoinclude;
 }
-
-
-?>
