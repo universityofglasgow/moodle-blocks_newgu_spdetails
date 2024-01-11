@@ -14,11 +14,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Javascript to initialise the Assessment Summary section
+ * Javascript to initialise the Assessments due soon section
  *
- * @module     block_newgu_spdetails/assessmentsummary
+ * @module     block_newgu_spdetails/assessmentsduesoon
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
- * @copyright  2023 University of Glasgow
+ * @copyright  2024 University of Glasgow
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,63 +26,60 @@
 
 import * as Log from 'core/log';
 import * as ajax from 'core/ajax';
-import {Chart, DoughnutController} from 'core/chartjs';
+import {Chart, BarController} from 'core/chartjs';
 
 const Selectors = {
-    SUMMARY_BLOCK: '#assessmentSummaryContainer',
+    DUESOON_BLOCK: '#assessmentsDueSoonContainer',
 };
 
 /**
- * @method fetchAssessmentSummary
+ * @method fetchAssessmentsDueSoon
  */
-const fetchAssessmentSummary = () => {
-    Chart.register(DoughnutController);
-    let tempPanel = document.querySelector(Selectors.SUMMARY_BLOCK);
+const fetchAssessmentsDueSoon = () => {
+    Chart.register(BarController);
+    let tempPanel = document.querySelector(Selectors.DUESOON_BLOCK);
 
     tempPanel.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
         "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
 
     ajax.call([{
-        methodname: 'block_newgu_spdetails_get_assessmentsummary',
+        methodname: 'block_newgu_spdetails_get_assessmentsduesoon',
         args: {},
     }])[0].done(function(response) {
         document.querySelector('.loader').remove();
-        Log.debug('response is:' + response[0]['sub_assess']);
-        tempPanel.insertAdjacentHTML("afterbegin", "<canvas id='assessmentSummaryChart'\n" +
-            " aria-label='Assessment Summary chart data' role='graphics-object'>\n" +
+        Log.debug('response is:' + response[0]['24hours']);
+        tempPanel.insertAdjacentHTML("afterbegin", "<canvas id='assessmentsDueSoonChart'\n" +
+            " aria-label='Assessments Due Soon chart data' role='graphics-object'>\n" +
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
             "</canvas>");
 
         const data = [
             {
-                labeltitle: `Submitted`,
-                value: response[0]['sub_assess']
+                labeltitle: `24 hours:`,
+                value: response[0]['24hours']
             },
             {
-                labeltitle: `To be submitted`,
-                value: response[0]['tobe_sub']
+                labeltitle: `7 days:`,
+                value: response[0]['week']
             },
             {
-                labeltitle: `Overdue`,
-                value: response[0]['overdue']
-            },
-            {
-                labeltitle: `Marked`,
-                value: response[0]['assess_marked']
-            },
+                labeltitle: `month:`,
+                value: response[0]['month']
+            }
         ];
 
 
         new Chart(
-            document.getElementById('assessmentSummaryChart'),
+            document.getElementById('assessmentsDueSoonChart'),
             {
-                type: 'doughnut',
+                type: 'bar',
                 options: {
                     responsive: true,
+                    indexAxis: 'y',
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'right',
+                            position: 'top',
                             labels: {
                                 usePointStyle: true,
                                 font: {
@@ -101,18 +98,22 @@ const fetchAssessmentSummary = () => {
                             },
                         }
                     },
-                    radius: '100%',
-                    maintainAspectRatio: false
                 },
                 data: {
                     datasets: [{
+                        indexAxis: 'y',
                         data: data.map(row => row.value),
                         backgroundColor: [
-                            '#058',
-                            '#CC5500',
-                            '#FF0000FF',
-                            '#008000FF'
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(75, 192, 192, 0.2)'
                         ],
+                        borderColor: [
+                            'rgb(255, 99, 132)',
+                            'rgb(153, 102, 255)',
+                            'rgb(75, 192, 192)'
+                        ],
+                        borderWidth: 1,
                         hoverOffset: 4
                     }],
                     labels: data.map(row => row.labeltitle),
@@ -132,5 +133,5 @@ const fetchAssessmentSummary = () => {
  * @constructor
  */
 export const init = () => {
-    fetchAssessmentSummary();
+    fetchAssessmentsDueSoon();
 };

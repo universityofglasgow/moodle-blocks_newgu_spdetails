@@ -27,14 +27,6 @@
 defined('MOODLE_INTERNAL') || die;
 
 define('NUM_ASSESSMENTS_PER_PAGE', 12);
-define('CURRENT_TAB', 'current');
-define('PAST_TAB', 'past');
-define('SORT_BY_COURSE', 'coursetitle');
-define('SORT_BY_DATE', 'duedate');
-define('SORT_BY_STARTDATE', 'startdate');
-define('SORT_BY_ENDDATE', 'enddate');
-define('SORT_ORDER_ASC', 'asc');
-define('SORT_ORDER_DESC', 'desc');
 
 require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/grade/lib.php');
@@ -312,6 +304,8 @@ class block_newgu_spdetails_external extends external_api
             $coursedata['subcatfullname'] = $subcat->fullname;
             $coursedata['parent'] = $subcategory;
             $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory, 'itemtype' => 'category']);
+            // The assessment type is derived from the parent - which works only 
+            // as long as the parent name contains 'Formative' or 'Summative'...
             $assessmenttype = self::return_assessmenttype($subcat->fullname, $item->aggregationcoef);
             $weight = self::return_weight($assessmenttype, $subcat->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcat->fullname);
             $coursedata['weight'] = $weight;
@@ -342,7 +336,6 @@ class block_newgu_spdetails_external extends external_api
                     case 'gradebook':
 
                         foreach($assessmentitems as $assessmentitem) {
-                            $assessmenttype = self::return_assessmenttype($assessmentitem->itemname, $assessmentitem->aggregationcoef);
                             $assessmentweight = self::return_weight($assessmenttype, $subcat->aggregation, $assessmentitem->aggregationcoef, $assessmentitem->aggregationcoef2, $assessmentitem->itemname);
                             $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $USER->id);
                             $feedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $USER->id, $assessmentitem->grademax, $assessmentitem->gradetype);
@@ -358,7 +351,7 @@ class block_newgu_spdetails_external extends external_api
                                 'link' => $gradestatus['link'],
                                 'status_class' => $gradestatus['status_class'],
                                 'status_text' => $gradestatus['status_text'],
-                                'grade' => $gradestatus['finalgrade'],
+                                'grade' => (($gradestatus['finalgrade'] > 0) ? $gradestatus['finalgrade'] : get_string("status_text_tobeconfirmed", "block_newgu_spdetails")),
                                 'feedback' => $feedback['gradetodisplay']
                             ];
                         }
@@ -385,7 +378,7 @@ class block_newgu_spdetails_external extends external_api
                 
                 foreach($subcategories as $subcategory) {
                     $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
-                    $assessmenttype = self::return_assessmenttype($subcategory->fullname, $item->aggregationcoef);
+                    //$assessmenttype = self::return_assessmenttype($subcategory->fullname, $item->aggregationcoef);
                     $subcatweight = self::return_weight($assessmenttype, $subcategory->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcategory->fullname);
                     $subcatdata[] = [
                         'id' => $subcategory->id,
@@ -414,10 +407,14 @@ class block_newgu_spdetails_external extends external_api
      * @param bool $active - boolean to indicate current or past course(s)
      * @param return 
      */
-    public static function return_course_components($courses, $active) {
+    public static function return_course_components(array $courses, bool $active) {
         
         $coursedata = [];
         $data = [];
+
+        if (!$courses) {
+            return $data;
+        }
 
         foreach($courses as $course) {
             if ($course->gugradesenabled) {
@@ -464,6 +461,79 @@ class block_newgu_spdetails_external extends external_api
         }
 
         return $data;
+    }
+
+    /**
+     * Return the assessments that are due in the next 24 hours, week and month.
+     * 
+     * @return array
+     */
+    public static function get_assessmentsduesoon() {
+        global $DB, $USER;
+        $sortstring = 'shortname asc';
+        $courses = \local_gugrades\api::dashboard_get_courses($USER->id, true, false, $sortstring);
+
+        $stats = [
+            '24hours' => 0,
+            'week' => 0,
+            'month' => 0
+        ];
+
+        if (!$courses) {
+            return $stats;
+        }
+
+        $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'id', 'userid = :userid', ['userid' => $USER->id]);
+        $assignmentdata = [];
+        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        
+        foreach($courses as $course) {
+            if ($assignments = $DB->get_records('assign', ['course' => $course->id], 'id', '*',0,0)) {
+                foreach($assignments as $assignment) {
+                    if (!in_array($assignment->id, $assignmentsubmissions)) {
+                        if ($assignment->allowsubmissionsfromdate < $now) {
+                            if ($assignment->cuttoffdate == 0 || $assignment->cutoffddate > $now) {
+                                $assignmentdata[] = $assignment;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!$assignmentdata) {
+            return $stats;
+        }
+
+        $next24hours = mktime(date("H"), date("i"), date("s"), date("m"), date("d")+1, date("Y"));
+        $next7days = mktime(date("H"), date("i"), date("s"), date("m"), date("d")+7, date("Y"));
+        $nextmonth = mktime(date("H"), date("i"), date("s"), date("m")+1, date("d"), date("Y"));
+
+        $duein24hours = 0;
+        $duein7days = 0;
+        $dueinnextmonth = 0;
+
+        foreach($assignmentdata as $assignment) {
+            if (($assignment->duedate > $now) && ($assignment->duedate < $next24hours)) {
+                $duein24hours++;
+            }
+
+            if (($assignment->duedate > $now) && ($assignment->duedate > $next24hours) && ($assignment->duedate < $next7days)) {
+                $duein7days++;
+            }
+
+            if (($assignment->duedate > $now) && ($assignment->duedate > $next7days) && ($assignment->duedate < $nextmonth)) {
+                $dueinnextmonth++;
+            }
+        }
+
+        $stats = [
+            '24hours' => $duein24hours,
+            'week' => $duein7days,
+            'month' => $dueinnextmonth
+        ];
+
+        return $stats;
     }
 
     /**
@@ -657,7 +727,6 @@ class block_newgu_spdetails_external extends external_api
         }
     }
 
-
     /**
      * Returns the 'assessment type'
      *
@@ -755,7 +824,7 @@ class block_newgu_spdetails_external extends external_api
     }
 
     /**
-     * Using the userid, return the current grading status for this assessment item.
+     * For a given userid, return the current grading status for this assessment item.
      * 
      * @param string $modulename
      * @param int $iteminstance
@@ -796,9 +865,7 @@ class block_newgu_spdetails_external extends external_api
         if (!empty($arr_grade)) {
             $rawgrade = $arr_grade->rawgrade;
             $finalgrade = $arr_grade->finalgrade;
-        }
-
-        if (!empty($arr_grade)) {
+        
             if (is_null($arr_grade->rawgrade) && !is_null($arr_grade->finalgrade)) {
                 $provisionalgrade = $arr_grade->finalgrade;
             }
@@ -819,13 +886,16 @@ class block_newgu_spdetails_external extends external_api
                     $cutoffdate = $arr_assign->cutoffdate;
                     $gradingduedate = $arr_assign->gradingduedate;
                 }
+
                 if ($allowsubmissionsfromdate > time()) {
                     $status = get_string("status_submissionnotopen", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submissionnotopen", "block_newgu_spdetails");
                 }
+
                 if ($status == "") {
                     $arr_assignsubmission = $DB->get_record("assign_submission", ["assignment" => $iteminstance, "userid" => $userid]);
-
+                    $link = $CFG->wwwroot . "/mod/assign/view.php?id=" . $cmid;
+                    
                     if (!empty($arr_assignsubmission)) {
                         $status = $arr_assignsubmission->status;
 
@@ -833,6 +903,7 @@ class block_newgu_spdetails_external extends external_api
                             $status = get_string("status_notsubmitted", "block_newgu_spdetails");
                             $statustext = get_string("status_text_notsubmitted", "block_newgu_spdetails");
                             $statusclass = get_string("status_class_notsubmitted", "block_newgu_spdetails");
+                            
                             if (time() > $duedate + (86400 * 30) && $duedate != 0) {
                                 $status = get_string("status_overdue", "block_newgu_spdetails");
                                 $statusclass = get_string("status_class_overdue", "block_newgu_spdetails");
@@ -844,6 +915,7 @@ class block_newgu_spdetails_external extends external_api
                             $status = get_string("status_submitted", "block_newgu_spdetails");
                             $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
                             $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
+                            $link = '';
                         }
 
                     } else {
@@ -860,8 +932,6 @@ class block_newgu_spdetails_external extends external_api
                             $statusclass = get_string("status_class_overdue", "block_newgu_spdetails");
                             $statustext = get_string("status_text_overdue", "block_newgu_spdetails");
                         }
-
-                        $link = $CFG->wwwroot . "/mod/assign/view.php?id=" . $cmid;
                     }
                 }
                 break;
@@ -936,6 +1006,7 @@ class block_newgu_spdetails_external extends external_api
         if ((is_int($rawgrade) && floor($rawgrade) > 0) && (is_int($finalgrade) && floor($finalgrade) == 0)) {
             $provisional_22grademaxpoint = block_newgu_spdetails_external::return_22grademaxpoint((floor($rawgrade)) - 1, 1);
         }
+        
         if ((is_int($finalgrade) && floor($finalgrade) > 0)) {
             $converted_22grademaxpoint = block_newgu_spdetails_external::return_22grademaxpoint((floor($finalgrade)) - 1, 1);
         }
@@ -1155,7 +1226,19 @@ class block_newgu_spdetails_external extends external_api
     }
 
 
-    public static function get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $userid, $grademax, $gradetype) {
+    /**
+     * Method to return feedback from the teacher.
+     * 
+     * @param string $modulename
+     * @param int $iteminstance
+     * @param int $courseid
+     * @param int $itemid
+     * @param int $userid
+     * @param int $grademax
+     * @param string $gradetype
+     * @param return array
+     */
+    public static function get_gradefeedback(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid, int $grademax, string $gradetype) {
         global $CFG, $DB, $USER;
         
         $link = "";
@@ -1178,41 +1261,115 @@ class block_newgu_spdetails_external extends external_api
         
         $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
         
-        if ($finalgrade!=Null) {
-            if ($gradetype==1) {
+        if ($finalgrade != null) {
+            if ($gradetype == 1) {
                 $gradetodisplay = '<span class="graded">' . number_format((float)$finalgrade) . " / " . number_format((float)$grademax) . '</span>' . ' (Provisional)';
             }
-            if ($gradetype==2) {
+            
+            if ($gradetype == 2) {
                 $gradetodisplay = '<span class="graded">' . $converted_22grademaxpoint . '</span>' . ' (Provisional)';
             }
+
             $link = $CFG->wwwroot . '/mod/'.$modulename.'/view.php?id=' . $cmid . '#page-footer';
-        
         }
         
-        if ($finalgrade==Null  && $duedate<time()) {
-            if ($status=="notopen" || $status=="notsubmitted") {
+        if ($finalgrade == null  && $duedate < time()) {
+            if ($status == "notopen" || $status == "notsubmitted") {
                 $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
                 $link = "";
             }
-            if ($status=="overdue") {
+            if ($status == "overdue") {
                 $gradetodisplay = get_string("status_text_overdue", "block_newgu_spdetails");
                 $link = "";
             }
-            if ($status=="notsubmitted") {
+            if ($status == "notsubmitted") {
                 $gradetodisplay = get_string("status_text_notsubmitted", "block_newgu_spdetails");
-                if ($gradingduedate>time()) {
+                if ($gradingduedate > time()) {
                     $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
                 }
             }
         
         }
         
-        if ($status=="tosubmit") {
+        if ($status == "tosubmit") {
             $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
             $link = "";
         }
         
-        return array("gradetodisplay"=>$gradetodisplay, "link"=>$link, "provisional_22grademaxpoint"=>$provisional_22grademaxpoint, "converted_22grademaxpoint"=>$converted_22grademaxpoint, "finalgrade"=>floor($finalgrade), "rawgrade"=>floor($rawgrade));
+        return [
+            "gradetodisplay" => $gradetodisplay, 
+            "link" => $link, 
+            "provisional_22grademaxpoint" => $provisional_22grademaxpoint, 
+            "converted_22grademaxpoint" => $converted_22grademaxpoint, 
+            "finalgrade" => floor($finalgrade), 
+            "rawgrade" => floor($rawgrade)
+        ];
+    }
+
+    /**
+     * Method to return only LTI's that have "gradeable" activities 
+     * associated with them - and have been selected to be included.
+     * 
+     * @throws dml_exception
+     * @return mixed array int
+     */
+    function get_ltiinstancenottoinclude() {
+        global $DB;
+    
+        $str_ltitoinclude = "99999";
+        $str_ltinottoinclude = "99999";
+        $sql_ltitoinclude = "SELECT * FROM {config} WHERE name like '%block_newgu_spdetails_include_%' AND value=1";
+        $arr_ltitoinclude = $DB->get_records_sql($sql_ltitoinclude);
         
+        $array_ltitoinclude = [];
+        foreach ($arr_ltitoinclude as $key_ltitoinclude) {
+            $name = $key_ltitoinclude->name;
+            $name_pieces = explode("block_newgu_spdetails_include_",$name);
+            $ltitype = $name_pieces[1];
+            $array_ltitoinclude[] = $ltitype;
+        }
+
+        $str_ltitoinclude = implode(",", $array_ltitoinclude);
+    
+        if ($str_ltitoinclude == "") {
+            $str_ltitoinclude = "99999";
+        }
+    
+        $arr_ltitypenottoinclude = $DB->get_records_sql(
+            "SELECT id FROM {lti_types} WHERE id NOT IN (:ltistoinclude)",
+            [
+                "ltistoinclude" => $str_ltitoinclude
+            ]
+        );
+    
+        $array_ltitypenottoinclude = [];
+        $array_ltitypenottoinclude[] = 0;
+
+        foreach ($arr_ltitypenottoinclude as $key_ltitypenottoinclude) {
+            $array_ltitypenottoinclude[] = $key_ltitypenottoinclude->id;
+        }
+        
+        $str_ltitypenottoinclude = implode(",", $array_ltitypenottoinclude);
+    
+        $arr_ltiinstancenottoinclude = $DB->get_records_sql(
+            "SELECT * FROM {lti} WHERE typeid NOT IN (:ltisnottoinclude)",
+            [
+                "ltisnottoinclude" => $str_ltitypenottoinclude
+            ]
+        );
+    
+        $array_ltiinstancenottoinclude = [];
+        
+        foreach ($arr_ltiinstancenottoinclude as $key_ltiinstancenottoinclude) {
+            $array_ltiinstancenottoinclude[] = $key_ltiinstancenottoinclude->id;
+        }
+        
+        $str_ltiinstancenottoinclude = implode(",", $array_ltiinstancenottoinclude);
+    
+        if ($str_ltiinstancenottoinclude == "") {
+            $str_ltiinstancenottoinclude = 99999;
+        }
+
+        return $str_ltiinstancenottoinclude;
     }
 }

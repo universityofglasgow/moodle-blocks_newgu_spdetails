@@ -80,4 +80,14 @@ $functions = [
             MOODLE_OFFICIAL_MOBILE_SERVICE
         ],
     ],
+    'block_newgu_spdetails_get_assessmentsduesoon' => [
+        'classname'   => 'block_newgu_spdetails\external\get_assessmentsduesoon',
+        'description' => 'Return assessments due in the immediate or near future',
+        'type'        => 'read',
+        'ajax'        => true,
+        'loginrequired' => true,
+        'services'    => [
+            MOODLE_OFFICIAL_MOBILE_SERVICE
+        ],
+    ],
 ];

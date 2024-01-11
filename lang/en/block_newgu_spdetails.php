@@ -121,6 +121,8 @@ $string['status_text_submissionnotopen'] = 'Submission not open';
 $string['status_text_tosubmit'] = 'To submit';
 $string['status_text_submit'] = 'Submit';
 $string['status_text_submitted'] = 'Submitted';
+$string['status_text_tobeconfirmed'] = 'To be confirmed';
+
 $string['status_unavailable'] = 'submissionunavailable';
 
 $string['tab_current'] = 'Currently enrolled in';

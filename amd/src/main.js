@@ -23,6 +23,7 @@
  */
 
 import * as AssessmentSummary from 'block_newgu_spdetails/assessmentsummary';
+import * as AssessmentsDueSoon from 'block_newgu_spdetails/assessmentsduesoon';
 import * as CourseTabs from 'block_newgu_spdetails/coursetabs';
 
 /**
@@ -31,6 +32,8 @@ import * as CourseTabs from 'block_newgu_spdetails/coursetabs';
 export const init = () => {
     // Initialise the assessment summary section.
     AssessmentSummary.init();
+    // Initialise the assessments due soon section
+    AssessmentsDueSoon.init();
     // Initialise the assessment tabs section.
     CourseTabs.init();
 };
