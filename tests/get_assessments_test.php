@@ -97,7 +97,7 @@ class get_assessments_test extends advanced_testcase {
         $lib = new \block_newgu_spdetails_external();
         $this->lib = $lib;
 
-        // Create a "current" course...
+        // Create a "current" course - this will be a regular GradeBook course...
         $lastmonth = mktime(0, 0, 0, date("m")-1, date("d"), date("Y"));
         $nextyear  = mktime(0, 0, 0, date("m"), date("d"), date("Y")+1);
         $course = $this->getDataGenerator()->create_course([
@@ -132,13 +132,8 @@ class get_assessments_test extends advanced_testcase {
         $assignment2 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 2(i)', 'grade' => 20,  'course' => $course->id]);
         $assignment3 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 2(ii)', 'grade' => 30,  'course' => $course->id]);
         $groupassignment1 = $this->getDataGenerator()->create_module('assign', ['name' => 'Group Assessment', 'teamsubmission' => 1, 'course' => $course->id]);
-        // $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
-        // $survey = $this->getDataGenerator()->create_module('survey', ['course' => $course->id]);
-        // $wiki = $this->getDataGenerator()->create_module('wiki', ['course' => $course->id]);
-        // $workshop = $this->getDataGenerator()->create_module('workshop', ['course' => $course->id, 'name' => 'A workshop']);
-        // $forum = $this->getDataGenerator()->create_module('forum', ['course' => $course->id,'grade_forum' => 100]);
 
-        // Create some "gradeable" items...
+        // Create some "gradeable" items. Assignments to begin with...
         $assessmentitem1 = $this->getDataGenerator()->create_grade_item([
             'itemtype' => 'mod',
             'itemmodule' => 'assign',
@@ -184,6 +179,8 @@ class get_assessments_test extends advanced_testcase {
             'iteminstance' => $groupassignment1->id,
         ]);
 
+        // $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
+
         // $this->getDataGenerator()->create_grade_item([
         //     'itemtype' => 'mod',
         //     'itemmodule' => 'quiz',
@@ -191,6 +188,8 @@ class get_assessments_test extends advanced_testcase {
         //     'categoryid' => $summativecategory->id,
         //     'iteminstance' => $quiz->id
         // ]);
+
+        // $survey = $this->getDataGenerator()->create_module('survey', ['course' => $course->id]);
 
         // $this->getDataGenerator()->create_grade_item([
         //     'itemtype' => 'mod',
@@ -200,6 +199,8 @@ class get_assessments_test extends advanced_testcase {
         //     'iteminstance' => $survey->id
         // ]);
 
+        // $wiki = $this->getDataGenerator()->create_module('wiki', ['course' => $course->id]);
+
         // $this->getDataGenerator()->create_grade_item([
         //     'itemtype' => 'mod',
         //     'itemmodule' => 'wiki',
@@ -208,6 +209,8 @@ class get_assessments_test extends advanced_testcase {
         //     'iteminstance' => $wiki->id
         // ]);
 
+        // $workshop = $this->getDataGenerator()->create_module('workshop', ['course' => $course->id, 'name' => 'A workshop']);
+
         // $this->getDataGenerator()->create_grade_item([
         //     'itemtype' => 'mod',
         //     'itemmodule' => 'workshop',
@@ -215,6 +218,8 @@ class get_assessments_test extends advanced_testcase {
         //     'categoryid' => $summativecategory->id,
         //     'iteminstance' => $workshop->id
         // ]);
+
+        // $forum = $this->getDataGenerator()->create_module('forum', ['course' => $course->id,'grade_forum' => 100]);
 
         // $this->getDataGenerator()->create_grade_item([
         //         'itemtype' => 'mod',
