@@ -85,6 +85,12 @@ class get_assessments_test extends advanced_testcase {
     
     /**
      * Set up our test conditions...
+     * 
+     * Our tests will need to cover the 3 course types - namely:
+     * 1) GuGrades
+     * 2) GCAT
+     * 3) GradeBook
+     * 
      * @return void
      * @throws dml_exception
      */
@@ -115,6 +121,12 @@ class get_assessments_test extends advanced_testcase {
         ]);
         $subcategory = $this->getDataGenerator()->create_grade_category(['fullname' => 'Average of assignments - Sub components - Simple Weighted Mean', 'courseid' => $course->id, 'parent' => $summativecategory->id]);
         $formativecategory = $this->getDataGenerator()->create_grade_category(['fullname' => 'Formative activities', 'courseid' => $course->id, 'parent' => $summativecategory->parent]);
+
+        // Howard's API adds some additional data
+        $course->firstlevel[] = [
+            'id' => $summativecategory->id,
+            'fullname' => $summativecategory->fullname
+        ];
         
         // Set up and enrol a teacher...
         $teacher = $this->getDataGenerator()->create_user(['email' => 'teacher1@example.co.uk', 'username' => 'teacher1']);
@@ -353,6 +365,7 @@ class get_assessments_test extends advanced_testcase {
 
     /**
      * Test that only current courses are returned.
+     * Course "type" is irrelevant for this test - so we just pick a type.
      */
     public function test_retrieve_gradeable_activities_current_courses() {
         $userid = $this->student1->id;

@@ -43,7 +43,7 @@ class get_assessments extends external_api {
             'sortby' => new external_value(PARAM_ALPHA, 'Sort columns by', VALUE_DEFAULT),
             'sortorder' => new external_value(PARAM_ALPHA, 'Sort by order', VALUE_DEFAULT),
             'subcategory' => new external_value(PARAM_INT, 'Subcategory id', VALUE_DEFAULT),
-            'coursetype' => new external_value(PARAM_ALPHA, 'The type of course, GCAT, Gradebook etc', VALUE_DEFAULT),
+            'coursetype' => new external_value(PARAM_ALPHA, 'The type of course, GCAT, Gradebook etc', VALUE_DEFAULT)
         ]);
     }
 

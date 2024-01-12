@@ -55,7 +55,7 @@ const initCourseTabs = () => {
     });
 };
 
-const loadAssessments = function(activetab,page,sortby,sortorder,isPageClicked,subcategory = null,parent = null,coursetype = null) {
+const loadAssessments = function(activetab, page, sortby, sortorder, isPageClicked, subcategory = null, coursetype = null) {
     let containerBlock = document.querySelector('#course_contents_container');
 
     let whichTemplate = subcategory === null ? 'coursecategory' : 'coursesubcategory';
@@ -91,8 +91,8 @@ const loadAssessments = function(activetab,page,sortby,sortorder,isPageClicked,s
             let subCategories = document.querySelectorAll('.subcategory-row');
             let sortColumns = document.querySelectorAll('.th-sortable');
             subCategoryEventHandler(subCategories);
-            subCategoryReturnHandler(parent);
-            sortingEventHandler(sortColumns, activetab, page, subcategory, parent, coursetype);
+            subCategoryReturnHandler(coursedata.parent);
+            sortingEventHandler(sortColumns, activetab, page, subcategory, coursetype);
             sortingStatus(sortby, sortorder);
         }).catch((error) => displayException(error));
     }).fail(function(response) {
@@ -135,7 +135,6 @@ const subCategoryEventHandler = (rows) => {
 
 const showSubcategoryDetails = (object) => {
     let id = object.parentElement.getAttribute('data-id');
-    let parent = object.parentElement.getAttribute('data-parent');
     let coursetype = object.parentElement.getAttribute('data-coursetype');
     if (id !== null) {
         document.querySelector('#courseNav-container').classList.add('hidden-container');
@@ -147,20 +146,12 @@ const showSubcategoryDetails = (object) => {
             activetab = 'past';
         }
         // Ordering by DueDate by default....
-        loadAssessments(activetab, 0, 'duedate', 'asc', true, id, parent, coursetype);
+        loadAssessments(activetab, 0, 'duedate', 'asc', true, id, coursetype);
     }
 };
 
 const subCategoryReturnHandler = (id) => {
-    // We want this to work in 2 ways.
-    // When descending levels, we want to know which level to return to, hence setting the data-parent.
-    // When ascending, we don't want to get stuck at a sub level, hence, not worrying if we pass null
-    // - this gets picked up as 'not a sub category' and will therefore display everything from the top
-    // level, i.e. all courses.
     Log.debug('subCategoryReturnHandler called with id:' + id);
-    if (id !== null) {
-        document.querySelector('#subcategory-return-assessment').setAttribute('data-parent', id);
-    }
 
     // The 'return to...' element won't exist on the page at the top most level.
     if (document.querySelector('#subcategory-return-assessment')) {
@@ -180,20 +171,20 @@ const subCategoryReturnHandler = (id) => {
             }else{
                 activetab = 'past';
             }
-            loadAssessments(activetab, 0, 'shortname', 'asc', true, id, null, coursetype);
+            loadAssessments(activetab, 0, 'shortname', 'asc', true, id, coursetype);
         });
     }
 };
 
-const sortingEventHandler = (rows, activetab, page, subcategory, parent, coursetype) => {
+const sortingEventHandler = (rows, activetab, page, subcategory, coursetype) => {
     if (rows.length > 0) {
         rows.forEach((element) => {
-            element.addEventListener('click', () => sortingHeaders(element, activetab, page, subcategory, parent, coursetype));
+            element.addEventListener('click', () => sortingHeaders(element, activetab, page, subcategory, coursetype));
         });
     }
 };
 
-const sortingHeaders = (object, activetab, page, subcategory, parent, coursetype) => {
+const sortingHeaders = (object, activetab, page, subcategory, coursetype) => {
     let sortby = object.getAttribute('data-sortby');
     let sortorder = object.getAttribute('data-value');
     if (sortorder === null) {
@@ -209,7 +200,7 @@ const sortingHeaders = (object, activetab, page, subcategory, parent, coursetype
         }
     }
 
-    loadAssessments(activetab, page, sortby, sortorder, true, subcategory, parent, coursetype);
+    loadAssessments(activetab, page, sortby, sortorder, true, subcategory, coursetype);
 };
 
 const sortingStatus = function(sortby, sortorder) {
