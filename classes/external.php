@@ -302,12 +302,11 @@ class block_newgu_spdetails_external extends external_api
                 $parentId = $parent->id;
             }
             $data['parent'] = $parentId;
-
-            $tree = \local_gugrades\api::get_activities($subcat->courseid, $subcategory);    
+   
             $courseid = $subcat->courseid;
             $course = get_course($courseid);
             $coursedata['coursename'] = $course->shortname;
-            $coursedata['subcatfullname'] = $tree->category->fullname;
+            $coursedata['subcatfullname'] = $subcat->fullname;
             $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory, 'itemtype' => 'category']);
             
             // The assessment type is derived from the parent - which works only 
@@ -322,21 +321,21 @@ class block_newgu_spdetails_external extends external_api
             //
             // We'll need to merge these arrays at some point, to allow the sorting to
             // to work on all items, rather than by category/activity item
-            if (count($tree->items) > 0) {
+            $assessmentitems = grade_item::fetch_all(['categoryid' => $subcategory]);
+            if ($assessmentitems && count($assessmentitems) > 0) {
                 
                 // Owing to the fact that we can't sort using the grade_item method....
-                $fieldName = array_column($tree->items, 'itemname');
                 switch($sortorder) {
                     case "asc":
-                        array_multisort($fieldName, SORT_ASC, $tree->items);
+                        asort($assessmentitems, SORT_REGULAR);
                         break;
 
                     case "desc":
-                        array_multisort($fieldName, SORT_DESC, $tree->items);
+                        arsort($assessmentitems, SORT_REGULAR);
                         break;
                 }
 
-                foreach($tree->items as $assessmentitem) {
+                foreach($assessmentitems as $assessmentitem) {
                     $assessmentweight = self::return_weight($assessmenttype, $subcat->aggregation, $assessmentitem->aggregationcoef, $assessmentitem->aggregationcoef2, $assessmentitem->itemname);
                     $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $USER->id);
                     $feedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $USER->id, $assessmentitem->grademax, $assessmentitem->gradetype);
@@ -530,6 +529,85 @@ class block_newgu_spdetails_external extends external_api
             '24hours' => $duein24hours,
             'week' => $duein7days,
             'month' => $dueinnextmonth
+        ];
+
+        return $stats;
+    }
+
+    /**
+     * Return a summary of current assessments for the student
+     * 
+     * @return array
+     */
+    public static function get_assessmentsummary() {
+        global $DB, $USER;
+
+        $marked = 0;
+        $total_overdue = 0;
+        $total_submissions = 0;
+        $total_tosubmit = 0;
+
+        $currentcourses = \block_newgu_spdetails_external::return_enrolledcourses($USER->id, "current");
+
+        $stats = [
+            'total_submissions' => 0,
+            'total_tosubmit' => 0,
+            'total_overdue' => 0,
+            'marked' => 0
+        ];
+
+        if (!$currentcourses) {
+            return $stats;
+        }
+
+        
+        $str_currentcourses = implode(",", $currentcourses);
+        $str_itemsnotvisibletouser = \block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
+
+        $records = $DB->get_recordset_sql("SELECT id, courseid, itemmodule, iteminstance FROM {grade_items} WHERE courseid IN (" . $str_currentcourses . ") AND id NOT IN (" . $str_itemsnotvisibletouser . ") AND courseid > 1 AND itemtype='mod'");
+
+        if ($records->valid()) {
+            foreach ($records as $key_gi) {
+
+                $modulename = $key_gi->itemmodule;
+                $iteminstance = $key_gi->iteminstance;
+                $courseid = $key_gi->courseid;
+                $itemid = $key_gi->id;
+
+                // security checks first off...
+                $context = \context_course::instance($courseid);
+                self::validate_context($context);
+                require_capability('mod/assign:viewownsubmissionsummary', $context, $USER->id);
+
+                $gradestatus = \block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
+                $status = $gradestatus["status"];
+                $finalgrade = $gradestatus["finalgrade"];
+
+                if ($status == get_string("status_tosubmit", "block_newgu_spdetails")) {
+                    $total_tosubmit++;
+                }
+                if ($status == get_string("status_notsubmitted", "block_newgu_spdetails")) {
+                    $total_tosubmit++;
+                }
+                if ($status == get_string("status_submitted", "block_newgu_spdetails")) {
+                    $total_submissions++;
+                    if ($finalgrade != Null) {
+                        $marked++;
+                    }
+                }
+                if ($status == get_string("status_overdue", "block_newgu_spdetails")) {
+                    $total_overdue++;
+                }
+            }
+        }
+
+        $records->close();
+
+        $stats = [
+            'total_submissions' => $total_submissions,
+            'total_tosubmit' => $total_tosubmit,
+            'total_overdue' => $total_overdue,
+            'marked' => $marked
         ];
 
         return $stats;
@@ -738,7 +816,7 @@ class block_newgu_spdetails_external extends external_api
         $type = strtolower($gradecategoryname);
         $hasweight = !empty((float)$aggregationcoef);
 
-        if (strpos($type, 'summative') !== false && $hasweight) {
+        if (strpos($type, 'summative') !== false || $hasweight) {
             $assessmenttype = get_string('summative', 'block_newgu_spdetails');
         } else if (strpos($type, 'formative') !== false) {
             $assessmenttype = get_string('formative', 'block_newgu_spdetails');
@@ -757,20 +835,15 @@ class block_newgu_spdetails_external extends external_api
      * @param string $aggregationcoef
      * @param string $aggregationcoef2
      * @param string $subcategoryparentfullname
+     * 
+     * According to the spec, weighting is now derived only from the weight in the Gradebook set up.
+     * @see https://gla.sharepoint.com/:w:/s/GCATUpgradeProjectTeam/EVDsT68UetZMn8Ug5ISb394BfYLW_MwcyMI7RF0JAC38PQ?e=BOofAS
      * @return string Weight (in percentage), or '—' if empty
      */
     public static function return_weight($assessmenttype, $aggregation, $aggregationcoef,
                                          $aggregationcoef2, $subcategoryparentfullname)
     {
-        $summative = get_string('summative', 'block_newgu_spdetails');
-
-        // 'Weighted mean of grades' - or $aggregation - has an option value of 10 in the settings page.
-        //$weight = ($aggregation == '10') ?
-        //    (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100) :
-        //    (($assessmenttype === $summative || $subcategoryparentfullname === $summative) ?
-        //        $aggregationcoef2 * 100 : 0);
         $weight = (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100);
-
         $finalweight = ($weight > 0) ? round($weight, 2) . '%' : get_string('emptyvalue', 'block_newgu_spdetails');
 
         return $finalweight;
@@ -1226,7 +1299,7 @@ class block_newgu_spdetails_external extends external_api
 
 
     /**
-     * Method to return feedback from the teacher.
+     * Method to return grading feedback.
      * 
      * @param string $modulename
      * @param int $iteminstance
@@ -1244,17 +1317,14 @@ class block_newgu_spdetails_external extends external_api
         $gradetodisplay = "";
         
         $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
-        
         $status = $gradestatus["status"];
         $link = $gradestatus["link"];
         $allowsubmissionsfromdate = $gradestatus["allowsubmissionsfromdate"];
         $duedate = $gradestatus["duedate"];
         $cutoffdate = $gradestatus["cutoffdate"];
         $gradingduedate = $gradestatus["gradingduedate"];
-        
         $rawgrade = $gradestatus["rawgrade"];
         $finalgrade = $gradestatus["finalgrade"];
-        
         $provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
         $converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
         

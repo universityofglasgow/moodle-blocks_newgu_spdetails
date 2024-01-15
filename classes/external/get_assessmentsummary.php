@@ -51,95 +51,46 @@ class get_assessmentsummary extends external_api {
 
     /**
      * Return the assessment summary statistics
+     * 
      * @return array of assessment summary statistics
-     * @throws \coding_exception
-     * @throws \dml_exception
      */
-    public static function execute(): array
-    {
-        global $DB, $USER;
+    public static function execute(): array {
+        global $USER;
 
         $cache = cache::make('block_newgu_spdetails', 'studentdashboarddata');
-        $stats = [];
-        $sub_assess = 0;
-        $tobe_sub = 0;
-        $overdue = 0;
-        $assess_marked = 0;
-        $total_overdue = 0;
-        $total_submissions = 0;
-        $total_tosubmit = 0;
-        $marked = 0;
         $currenttime = time();
         $twohours = $currenttime - 7200;
         $cachekey = self::CACHE_KEY . $USER->id;
 
         if (!$cache->get([$cachekey]) || $cache->get([$cachekey[0]['timeupdated']]) < $twohours) {
 
-            $currentcourses = \block_newgu_spdetails_external::return_enrolledcourses($USER->id, "current");
+            $assessmentsummary = \block_newgu_spdetails_external::get_assessmentsummary();
+            $total_submissions = $assessmentsummary['total_submissions'];
+            $total_tosubmit = $assessmentsummary['total_tosubmit'];
+            $total_overdue = $assessmentsummary['total_overdue'];
+            $marked = $assessmentsummary['marked'];
 
-            if (!empty($currentcourses)) {
-                $str_currentcourses = implode(",", $currentcourses);
+            $sub_assess = $total_submissions;
+            $tobe_sub = $total_tosubmit;
+            $overdue = $total_overdue;
+            $assess_marked = $marked;
 
-                $str_itemsnotvisibletouser = \block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
+            $statscount = [
+                "timeupdated" => time(),
+                "sub_assess" => $total_submissions,
+                "tobe_sub" => $total_tosubmit,
+                "overdue" => $total_overdue,
+                "assess_marked" => $marked
+            ];
 
-                $records = $DB->get_recordset_sql("SELECT id, courseid, itemmodule, iteminstance FROM {grade_items} WHERE courseid IN (" . $str_currentcourses . ") AND id NOT IN (" . $str_itemsnotvisibletouser . ") AND courseid > 1 AND itemtype='mod'");
-
-                if ($records->valid()) {
-                    foreach ($records as $key_gi) {
-
-                        $modulename = $key_gi->itemmodule;
-                        $iteminstance = $key_gi->iteminstance;
-                        $courseid = $key_gi->courseid;
-                        $itemid = $key_gi->id;
-
-                        // security checks first off...
-                        $context = \context_course::instance($courseid);
-                        self::validate_context($context);
-                        require_capability('mod/assign:viewownsubmissionsummary', $context, $USER->id);
-
-                        $gradestatus = \block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
-                        $status = $gradestatus["status"];
-                        $finalgrade = $gradestatus["finalgrade"];
-
-                        if ($status == get_string("status_tosubmit", "block_newgu_spdetails")) {
-                            $total_tosubmit++;
-                        }
-                        if ($status == get_string("status_notsubmitted", "block_newgu_spdetails")) {
-                            $total_tosubmit++;
-                        }
-                        if ($status == get_string("status_submitted", "block_newgu_spdetails")) {
-                            $total_submissions++;
-                            if ($finalgrade != Null) {
-                                $marked++;
-                            }
-                        }
-                        if ($status == get_string("status_overdue", "block_newgu_spdetails")) {
-                            $total_overdue++;
-                        }
-                    }
-                }
-                $records->close();
-
-                $sub_assess = $total_submissions;
-                $tobe_sub = $total_tosubmit;
-                $overdue = $total_overdue;
-                $assess_marked = $marked;
-
-                $statscount = [
-                    "timeupdated" => time(),
-                    "sub_assess" => $total_submissions,
-                    "tobe_sub" => $total_tosubmit,
-                    "overdue" => $total_overdue,
-                    "assess_marked" => $marked
-                ];
-
-                $cachedata = [
-                    $cachekey => [
-                        $statscount
-                    ]
-                ];
-                $cache->set_many($cachedata);
-            }
+            $cachedata = [
+                $cachekey => [
+                    $statscount
+                ]
+            ];
+            
+            $cache->set_many($cachedata);
+            
         } else {
             $cachedata = $cache->get_many([$cachekey]);
             $sub_assess = $cachedata["sub_assess"];
