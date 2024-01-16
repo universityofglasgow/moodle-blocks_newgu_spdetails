@@ -36,7 +36,7 @@ use cache;
 
 class get_assessmentsummary extends external_api {
 
-    const CACHE_KEY = 'studentid:';
+    const CACHE_KEY = 'studentid_summary:';
 
     /**
      * Returns description of method parameters
@@ -59,10 +59,11 @@ class get_assessmentsummary extends external_api {
 
         $cache = cache::make('block_newgu_spdetails', 'studentdashboarddata');
         $currenttime = time();
-        $twohours = $currenttime - 7200;
+        $thirtyminutes = $currenttime - 1800;
         $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
 
-        if (!$cache->get([$cachekey]) || $cache->get([$cachekey[0]['timeupdated']]) < $twohours) {
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['timeupdated'] < $thirtyminutes) {
 
             $assessmentsummary = \block_newgu_spdetails_external::get_assessmentsummary();
             $total_submissions = $assessmentsummary['total_submissions'];
@@ -88,15 +89,15 @@ class get_assessmentsummary extends external_api {
                     $statscount
                 ]
             ];
-            
+
             $cache->set_many($cachedata);
             
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $sub_assess = $cachedata["sub_assess"];
-            $tobe_sub = $cachedata["tobe_sub"];
-            $overdue = $cachedata["overdue"];
-            $assess_marked = $cachedata["assess_marked"];
+            $sub_assess = $cachedata[$cachekey][0]["sub_assess"];
+            $tobe_sub = $cachedata[$cachekey][0]["tobe_sub"];
+            $overdue = $cachedata[$cachekey][0]["overdue"];
+            $assess_marked = $cachedata[$cachekey][0]["assess_marked"];
         }
 
         $stats[] = [

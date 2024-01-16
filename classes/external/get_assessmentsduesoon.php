@@ -34,7 +34,7 @@ use cache;
 
 class get_assessmentsduesoon extends external_api {
 
-    const CACHE_KEY = 'studentid:';
+    const CACHE_KEY = 'studentid_duesoon:';
 
     /**
      * Returns description of method parameters
@@ -63,8 +63,9 @@ class get_assessmentsduesoon extends external_api {
         $currenttime = time();
         $tenminutes = $currenttime - 600;
         $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
 
-        if (!$cache->get([$cachekey]) || $cache->get([$cachekey[0]['summaryupdated']]) < $tenminutes) {
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['summaryupdated'] < $tenminutes) {
             $assessmentsduesoon = \block_newgu_spdetails_external::get_assessmentsduesoon();
             $twentyfourhours = $assessmentsduesoon['24hours'];
             $week = $assessmentsduesoon['week'];
@@ -85,9 +86,9 @@ class get_assessmentsduesoon extends external_api {
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $twentyfourhours = $cachedata["24hours"];
-            $week = $cachedata["week"];
-            $month = $cachedata["month"];
+            $twentyfourhours = $cachedata[$cachekey][0]["24hours"];
+            $week = $cachedata[$cachekey][0]["week"];
+            $month = $cachedata[$cachekey][0]["month"];
         }
         
         $stats[] = [
