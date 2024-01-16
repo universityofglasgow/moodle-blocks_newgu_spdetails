@@ -89,9 +89,8 @@ class get_assessmentsummary extends external_api {
                     $statscount
                 ]
             ];
-
             $cache->set_many($cachedata);
-            
+
         } else {
             $cachedata = $cache->get_many([$cachekey]);
             $sub_assess = $cachedata[$cachekey][0]["sub_assess"];

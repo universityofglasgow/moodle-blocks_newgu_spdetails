@@ -47,7 +47,6 @@ const fetchAssessmentSummary = () => {
         args: {},
     }])[0].done(function(response) {
         document.querySelector('.loader').remove();
-        Log.debug('response is:' + response[0]['sub_assess']);
         tempPanel.insertAdjacentHTML("afterbegin", "<canvas id='assessmentSummaryChart'\n" +
             " aria-label='Assessment Summary chart data' role='graphics-object'>\n" +
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
@@ -108,10 +107,10 @@ const fetchAssessmentSummary = () => {
                     datasets: [{
                         data: data.map(row => row.value),
                         backgroundColor: [
-                            '#058',
-                            '#CC5500',
-                            '#FF0000FF',
-                            '#008000FF'
+                            'rgba(129,187,255)',
+                            'rgba(255,153,0)',
+                            'rgba(255,0,0)',
+                            'rgba(0,153,0)'
                         ],
                         hoverOffset: 4
                     }],

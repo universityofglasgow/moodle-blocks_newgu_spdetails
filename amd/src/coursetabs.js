@@ -55,7 +55,7 @@ const initCourseTabs = () => {
     });
 };
 
-const loadAssessments = function(activetab, page, sortby, sortorder, isPageClicked, subcategory = null, coursetype = null) {
+const loadAssessments = function(activetab, page, sortby, sortorder, isPageClicked, subcategory = null) {
     let containerBlock = document.querySelector('#course_contents_container');
 
     let whichTemplate = subcategory === null ? 'coursecategory' : 'coursesubcategory';
@@ -74,8 +74,7 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             page: page,
             sortby: sortby,
             sortorder: sortorder,
-            subcategory: subcategory,
-            coursetype: coursetype
+            subcategory: subcategory
         }
     }]);
     promise[0].done(function(response) {
@@ -92,7 +91,7 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             let sortColumns = document.querySelectorAll('.th-sortable');
             subCategoryEventHandler(subCategories);
             subCategoryReturnHandler(coursedata.parent);
-            sortingEventHandler(sortColumns, activetab, page, subcategory, coursetype);
+            sortingEventHandler(sortColumns, activetab, page, subcategory);
             sortingStatus(sortby, sortorder);
         }).catch((error) => displayException(error));
     }).fail(function(response) {
@@ -163,7 +162,6 @@ const subCategoryReturnHandler = (id) => {
                 id = null;
                 document.querySelector('#courseNav-container').classList.remove('hidden-container');
             }
-            let coursetype = document.querySelector('#subcategory-return-assessment').getAttribute('data-coursetype');
             let currentTab = document.querySelector('#current_tab');
             let activetab = '';
             if(currentTab.classList.contains('active')) {
@@ -171,20 +169,20 @@ const subCategoryReturnHandler = (id) => {
             }else{
                 activetab = 'past';
             }
-            loadAssessments(activetab, 0, 'shortname', 'asc', true, id, coursetype);
+            loadAssessments(activetab, 0, 'shortname', 'asc', true, id);
         });
     }
 };
 
-const sortingEventHandler = (rows, activetab, page, subcategory, coursetype) => {
+const sortingEventHandler = (rows, activetab, page, subcategory) => {
     if (rows.length > 0) {
         rows.forEach((element) => {
-            element.addEventListener('click', () => sortingHeaders(element, activetab, page, subcategory, coursetype));
+            element.addEventListener('click', () => sortingHeaders(element, activetab, page, subcategory));
         });
     }
 };
 
-const sortingHeaders = (object, activetab, page, subcategory, coursetype) => {
+const sortingHeaders = (object, activetab, page, subcategory) => {
     let sortby = object.getAttribute('data-sortby');
     let sortorder = object.getAttribute('data-value');
     if (sortorder === null) {
@@ -200,7 +198,7 @@ const sortingHeaders = (object, activetab, page, subcategory, coursetype) => {
         }
     }
 
-    loadAssessments(activetab, page, sortby, sortorder, true, subcategory, coursetype);
+    loadAssessments(activetab, page, sortby, sortorder, true, subcategory);
 };
 
 const sortingStatus = function(sortby, sortorder) {

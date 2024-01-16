@@ -104,14 +104,14 @@ const fetchAssessmentsDueSoon = () => {
                         indexAxis: 'y',
                         data: data.map(row => row.value),
                         backgroundColor: [
-                            'rgba(255, 99, 132, 0.2)',
-                            'rgba(153, 102, 255, 0.2)',
-                            'rgba(75, 192, 192, 0.2)'
+                            'rgba(255,0,0,0.6)',
+                            'rgba(255,153,0,0.6)',
+                            'rgba(129,187,255,0.6)'
                         ],
                         borderColor: [
-                            'rgb(255, 99, 132)',
-                            'rgb(153, 102, 255)',
-                            'rgb(75, 192, 192)'
+                            'rgba(255,0,0)',
+                            'rgba(255,153,0)',
+                            'rgba(129,187,255)'
                         ],
                         borderWidth: 1,
                         hoverOffset: 4

@@ -47,16 +47,20 @@
             <div class="row row-cols-2">
                 <div class="col">
                     <div class="card">
+                        <div class="card-header">
+                            <h5>{{# str }}overview_cardheader, block_newgu_spdetails{{/ str }}</h5>
+                        </div>
                         <div class="card-body">
-                            <h6>Assessments overview</h6>
                             <div id="assessmentSummaryContainer" class="align-middle"></div>
                         </div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="card">
+                        <div class="card-header">
+                            <h5>{{# str }}due_cardheader, block_newgu_spdetails{{/ str }}</h5>
+                        </div>
                         <div class="card-body">
-                            <h6>Assessments due in the next:</h6>
                             <div id="assessmentsDueSoonContainer" style="height:300px" class="align-middle"></div>
                         </div>
                     </div>

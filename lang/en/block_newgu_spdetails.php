@@ -32,6 +32,8 @@ $string['assessments'] = 'Assessments';
 $string['clicktoview'] = 'Click here to view your assessment details';
 $string['headingataglance'] = 'Your assessments at a glance';
 $string['blocktitle'] = 'MyGrades - Your assessments at a glance';
+$string['overview_cardheader'] = 'Assessments overview';
+$string['due_cardheader'] = 'Assessments due in the next:';
 
 $string['tobesubmitted'] = 'To be submitted / attended';
 $string['submitted'] = ' submitted';

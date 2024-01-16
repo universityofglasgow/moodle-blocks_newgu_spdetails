@@ -42,8 +42,7 @@ class get_assessments extends external_api {
             'page' => new external_value(PARAM_INT, 'The page number', VALUE_DEFAULT),
             'sortby' => new external_value(PARAM_ALPHA, 'Sort columns by', VALUE_DEFAULT),
             'sortorder' => new external_value(PARAM_ALPHA, 'Sort by order', VALUE_DEFAULT),
-            'subcategory' => new external_value(PARAM_INT, 'Subcategory id', VALUE_DEFAULT),
-            'coursetype' => new external_value(PARAM_ALPHA, 'The type of course, GCAT, Gradebook etc', VALUE_DEFAULT)
+            'subcategory' => new external_value(PARAM_INT, 'Subcategory id', VALUE_DEFAULT)
         ]);
     }
 
@@ -52,15 +51,14 @@ class get_assessments extends external_api {
      * @return array of assessments, grouped by course.
      * @throws \invalid_parameter_exception
      */
-    public static function execute($activetab, $page, $sortby, $sortorder, $subcategory, $coursetype): array {
+    public static function execute($activetab, $page, $sortby, $sortorder, $subcategory): array {
         $params = self::validate_parameters(self::execute_parameters(),
             [
                 'activetab' => $activetab,
                 'page' => $page,
                 'sortby' => $sortby,
                 'sortorder' => $sortorder,
-                'subcategory' => $subcategory,
-                'coursetype' => $coursetype
+                'subcategory' => $subcategory
             ]);
         return [
             'result' => json_encode(\block_newgu_spdetails_external::retrieve_assessments(
@@ -68,8 +66,7 @@ class get_assessments extends external_api {
                 $params['page'],
                 $params['sortby'],
                 $params['sortorder'],
-                $params['subcategory'],
-                $params['coursetype']))
+                $params['subcategory']))
         ];
     }
 
