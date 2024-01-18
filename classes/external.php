@@ -38,6 +38,7 @@ class block_newgu_spdetails_external extends external_api
     /**
      * Returns description of method parameters
      * @return external_function_parameters
+     * @deprecated as no longer used - to be removed.
      */
     public static function get_groupusers_parameters()
     {
@@ -51,6 +52,7 @@ class block_newgu_spdetails_external extends external_api
 
     /**
      * Get List of users in selected group
+     * @deprecated as no longer used - to be removed.
      */
     public static function get_groupusers(int $selected_group = 0, int $courseid = 0)
     {
@@ -84,6 +86,7 @@ class block_newgu_spdetails_external extends external_api
      *
      * @return external_description
      * @since Moodle 3.6
+     * @deprecated as no longer used - to be removed.
      */
 
     public static function get_groupusers_returns()
@@ -103,6 +106,7 @@ class block_newgu_spdetails_external extends external_api
     /**
      * Returns description of method parameters
      * @return external_function_parameters
+     * @deprecated as no longer used - to be removed.
      */
     public static function get_coursegroups_parameters()
     {
@@ -116,6 +120,7 @@ class block_newgu_spdetails_external extends external_api
 
     /**
      * Get List of groups in selected course
+     * @deprecated as no longer used - to be removed.
      */
     public static function get_coursegroups(int $selected_course = 0, int $groupid = 0)
     {
@@ -151,6 +156,7 @@ class block_newgu_spdetails_external extends external_api
      *
      * @return external_description
      * @since Moodle 3.6
+     * @deprecated as no longer used - to be removed.
      */
 
     public static function get_coursegroups_returns()
@@ -171,6 +177,7 @@ class block_newgu_spdetails_external extends external_api
     /**
      * Returns description of method parameters
      * @return external_function_parameters
+     * @deprecated as no longer used - to be removed.
      */
     public static function get_statistics_parameters()
     {
@@ -187,7 +194,6 @@ class block_newgu_spdetails_external extends external_api
      * @param string $sortby
      * @param string $sortorder
      * @param int $subcategory
-     * @param string $coursetype
      * @return array
      */
     public static function retrieve_assessments(string $activetab, int $page, string $sortby, string $sortorder, int $subcategory = null) {
@@ -232,7 +238,6 @@ class block_newgu_spdetails_external extends external_api
      * @param string $sortby
      * @param string $sortorder
      * @param int $subcategory
-     * @param string $coursetype
      * 
      * @return array $items
      * @throws dml_exception
@@ -240,6 +245,7 @@ class block_newgu_spdetails_external extends external_api
     public static function retrieve_gradable_activities(string $activetab = null, int $userid, string $sortby = null, string $sortorder, int $subcategory = null) {
         $gradableactivities = [];
 
+        // Start with getting the top level categories for all courses.
         if (!$subcategory) {
             switch ($activetab) {
                 case 'current':
@@ -268,7 +274,6 @@ class block_newgu_spdetails_external extends external_api
              *     'coursename' => 'GCAT 2023 TW - Existing GCAT',
              *     'subcatfullname' => 'Summative - Various 22 Point Scale Aggregations - course weighting 75%',
              *     'weight' => '75%',
-             *     'coursetype' => 'gcatenabled',
              *     'assessmentitems' => [
              *         [
              *           "id" => 27,
@@ -309,13 +314,16 @@ class block_newgu_spdetails_external extends external_api
             // as long as the parent name contains 'Formative' or 'Summative'...
             $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory, 'itemtype' => 'category']);
             $assessmenttype = self::return_assessmenttype($subcat->fullname, $item->aggregationcoef);
-            $weight = self::return_weight($assessmenttype, $subcat->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcat->fullname);
+
+            // The assessment weight is derived from the aggregation coefficient 
+            // value of the grade item, only if it's been set in the gradebook set up however.
+            $weight = self::return_weight($item->aggregationcoef);
             $coursedata['weight'] = $weight;
             
             // We'll need to merge these next two arrays at some point, to allow the sorting to
-            // to work on all items, rather than by category/activity item
-            $coursedata['assessmentitems'] = self::return_assessment_items($subcategory, $userid, $sortorder);
+            // to work on all items, rather than just by category/activity item as it currently does.
             $coursedata['subcategories'] = self::return_course_sub_categories($subcategory, $course->id, $assessmenttype, $sortorder);
+            $coursedata['assessmentitems'] = self::return_assessment_items($subcategory, $userid, $assessmenttype, $courseid, $sortorder);
             $activitydata['coursedata'] = $coursedata;
             
             $gradableactivities = $activitydata;
@@ -328,7 +336,7 @@ class block_newgu_spdetails_external extends external_api
      * Given an array of 1 or more courses, return pertinent information.
      * 
      * @param array $courses - an array of courses the user is enrolled in
-     * @param bool $active - boolean to indicate current or past course(s)
+     * @param bool $active - indicate if this is a current or past course
      * @param return array $data
      */
     public static function return_course_components(array $courses, bool $active) {
@@ -365,14 +373,12 @@ class block_newgu_spdetails_external extends external_api
                     $subcatname = $subcategory['fullname'];
                     $item = grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcatid, 'itemtype' => 'category']);
                     $assessmenttype = self::return_assessmenttype($subcatname, $item->aggregationcoef);
-                    $subcatweight = self::return_weight($assessmenttype, $parent->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcatname);
-                    $coursetype = (($course->gugradesenabled) ? 'gugradesenabled' : (($course->gcatenabled) ? 'gcatenabled' : 'gradebook'));
+                    $subcatweight = self::return_weight($item->aggregationcoef);
                     $subcatdata[] = [
                         'id' => $subcatid,
                         'name' => $subcatname,
                         'assessmenttype' => $assessmenttype,
-                        'subcatweight' => $subcatweight,
-                        'coursetype' => $coursetype
+                        'subcatweight' => $subcatweight
                     ];
                 }
             }
@@ -381,7 +387,7 @@ class block_newgu_spdetails_external extends external_api
             $data['coursedata'][] = $coursedata;
         }
 
-        // This is needed in the template for 'past' courses.
+        // This is needed by the template for 'past' courses.
         if (!$active) {
             $data['hasstartdate'] = true;
             $data['hasenddate'] = true;
@@ -394,45 +400,116 @@ class block_newgu_spdetails_external extends external_api
      * Return the assessment items for this category
      * 
      * @param int $subcategory
+     * @param int $userid
+     * @param string $assessmenttype
      * @param string $sortorder
+     * @param int $courseid
      * @return array $assessmentdata
      */
-    public static function return_assessment_items(int $subcategory, int $userid, string $sortorder = "asc") {
+    public static function return_assessment_items(int $subcategory, int $userid, string $assessmenttype, int $courseid, string $sortorder = "asc") {
+        global $DB, $USER;
+
+        // If this isn't current user, do they have the rights to look at other users.
+        $context = \context_course::instance($courseid);
+        if ($USER->id != $userid) {
+            require_capability('local/gugrades:readotherdashboard', $context);
+        } else {
+            require_capability('local/gugrades:readdashboard', $context);
+        }
+
+        // We've lost all knowledge at this point of the course type: gcat, mygrades etc.
+        // We now need to run the same query again that's in Howard's API in order to 
+        // determine the course type - using the course id that's now being passed in.
+        $gugradesenabled = false;
+        $gcatenabled = false;
+    
+        // MyGrades check
+        $sqlname = $DB->sql_compare_text('name');
+        $sql = "SELECT * FROM {local_gugrades_config}
+            WHERE courseid = :courseid
+            AND $sqlname = :name
+            AND value = :value";
+        $params = [
+            'courseid' => $courseid, 
+            'name' => 'enabledashboard', 
+            'value' => 1
+        ];
+        if ($DB->record_exists_sql($sql, $params)) {
+            $gugradesenabled = true;
+        }
+
+        // GCAT check
+        $sqlshortname = $DB->sql_compare_text('shortname');
+        $sql = "SELECT * FROM {customfield_data} cd
+            JOIN {customfield_field} cf ON cf.id = cd.fieldid
+            WHERE cd.instanceid = :courseid
+            AND cd.intvalue = 1
+            AND $sqlshortname = 'show_on_studentdashboard'";
+        $params = [
+            'courseid' => $courseid
+        ];
+        if ($DB->record_exists_sql($sql, $params)) {
+            $gcatenabled = true;
+        }
+
+        // With the course type now determined, we can use it to derive the "items"
+        // from either the local_gugrades_x tables, or the regular grade_x tables.
         $assessmentdata = [];
             
-        $assessmentitems = grade_item::fetch_all(['categoryid' => $subcategory]);
-        if ($assessmentitems && count($assessmentitems) > 0) {
-            
-            // Owing to the fact that we can't sort using the grade_item method....
-            switch($sortorder) {
-                case "asc":
-                    asort($assessmentitems, SORT_REGULAR);
-                    break;
-
-                case "desc":
-                    arsort($assessmentitems, SORT_REGULAR);
-                    break;
+        if ($gugradesenabled) {
+            $assessmentitems = \local_gugrades\grades::get_dashboard_grades($userid, $subcategory);
+            if ($assessmentitems && count($assessmentitems) > 0) {
+                // This will only give us back items where the grade has been released.
+                // What do we do for items where the grade hasn't yet been released?
+                foreach($assessmentitems as $assessmentitem) {
+                    $tmp = $assessmentitem;
+                    $blah = 0;
+                }
+            } else {
+                // Perhaps the grades haven't been released yet?
             }
+        } else if (!$gugradesenabled && ($gcatenabled || !$gcatenabled)) {
+            $assessmentitems = grade_item::fetch_all(['categoryid' => $subcategory]);
+            if ($assessmentitems && count($assessmentitems) > 0) {
+                
+                // Owing to the fact that we can't sort using the grade_item::fetch_all method....
+                switch($sortorder) {
+                    case "asc":
+                        uasort($assessmentitems, function($a, $b) {
+                            return strcmp($a->itemname, $b->itemname);
+                        });
+                        break;
 
-            foreach($assessmentitems as $assessmentitem) {
-                $assessmentweight = self::return_weight($assessmenttype, $subcat->aggregation, $assessmentitem->aggregationcoef, $assessmentitem->aggregationcoef2, $assessmentitem->itemname);
-                $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid);
-                $feedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->grademax, $assessmentitem->gradetype);
-                $duedate = DateTime::createFromFormat('U', $gradestatus['duedate']);
-                $assessmentdata[] = [
-                    'id' => $assessmentitem->id,
-                    'assessmenturl' => $gradestatus['assessmenturl'],
-                    'itemname' => $assessmentitem->itemname,
-                    'assessmenttype' => $assessmenttype,
-                    'assessmentweight' => $assessmentweight,
-                    'duedate' => $duedate->format('jS F Y'),
-                    'status' => $gradestatus['status'],
-                    'link' => $gradestatus['link'],
-                    'status_class' => $gradestatus['status_class'],
-                    'status_text' => $gradestatus['status_text'],
-                    'grade' => (($gradestatus['finalgrade'] > 0) ? $gradestatus['finalgrade'] : get_string("status_text_tobeconfirmed", "block_newgu_spdetails")),
-                    'feedback' => $feedback['gradetodisplay']
-                ];
+                    case "desc":
+                        uasort($assessmentitems, function($a, $b) {
+                            return strcmp($b->itemname, $a->itemname);
+                        });
+                        break;
+                }
+
+                $coursetype = (($gcatenabled) ? "gcatenabled" : "gradebookenabled");
+
+                foreach($assessmentitems as $assessmentitem) {
+                    $assessmentweight = self::return_weight($assessmentitem->aggregationcoef);
+                    $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid);
+                    $feedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->grademax, $assessmentitem->gradetype);
+                    $duedate = DateTime::createFromFormat('U', $gradestatus['duedate']);
+                    $assessmentdata[] = [
+                        'id' => $assessmentitem->id,
+                        'assessmenturl' => $gradestatus['assessmenturl'],
+                        'itemname' => $assessmentitem->itemname,
+                        'assessmenttype' => $assessmenttype,
+                        'assessmentweight' => $assessmentweight,
+                        'duedate' => $duedate->format('jS F Y'),
+                        'status' => $gradestatus['status'],
+                        'link' => $gradestatus['link'],
+                        'status_class' => $gradestatus['status_class'],
+                        'status_text' => $gradestatus['status_text'],
+                        'grade' => (($gradestatus['finalgrade'] > 0) ? $gradestatus['finalgrade'] : get_string("status_text_tobeconfirmed", "block_newgu_spdetails")),
+                        'feedback' => $feedback['gradetodisplay'],
+                        $coursetype => 'true'
+                    ];
+                }
             }
         }
 
@@ -452,26 +529,29 @@ class block_newgu_spdetails_external extends external_api
         $subcatdata = [];
         if ($subcategories && count($subcategories) > 0) {
             
-            // Owing to the fact that we can't sort using the grade_category method....
+            // Owing to the fact that we can't sort using the grade_category::fetch_all method....
             switch($sortorder) {
                 case "asc":
-                    asort($subcategories, SORT_REGULAR);
+                    uasort($subcategories, function($a, $b) {
+                        return strcmp($a->fullname, $b->fullname);
+                    });
                     break;
 
                 case "desc":
-                    arsort($subcategories, SORT_REGULAR);
+                    uasort($subcategories, function($a, $b) {
+                        return strcmp($b->fullname, $a->fullname);
+                    });
                     break;
             }
             
             foreach($subcategories as $subcategory) {
                 $item = grade_item::fetch(['courseid' => $courseid,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
-                $subcatweight = self::return_weight($assessmenttype, $subcategory->aggregation, $item->aggregationcoef, $item->aggregationcoef2, $subcategory->fullname);
+                $subcatweight = self::return_weight($item->aggregationcoef);
                 $subcatdata[] = [
                     'id' => $subcategory->id,
                     'name' => $subcategory->fullname,
                     'assessmenttype' => $assessmenttype,
-                    'subcatweight' => $subcatweight,
-                    'coursetype' => $coursetype
+                    'subcatweight' => $subcatweight
                 ];
             }
         }
@@ -823,8 +903,8 @@ class block_newgu_spdetails_external extends external_api
     }
 
     /**
-     * Returns the 'assessment type'
-     *
+     * Returns the 'assessment type' for an assessment, using its weighting as a
+     * 
      * @param string $gradecategoryname
      * @param int $aggregationcoef
      * @return string 'Formative', 'Summative', or '—'
@@ -834,11 +914,11 @@ class block_newgu_spdetails_external extends external_api
         $type = strtolower($gradecategoryname);
         $hasweight = !empty((float)$aggregationcoef);
 
-        if (strpos($type, 'summative') !== false || $hasweight) {
+        if ($hasweight || (!$hasweight && strpos($type, 'summative') !== false)) {
             $assessmenttype = get_string('summative', 'block_newgu_spdetails');
-        } else if (strpos($type, 'formative') !== false) {
+        } else if (!$hasweight && strpos($type, 'formative') !== false) {
             $assessmenttype = get_string('formative', 'block_newgu_spdetails');
-        } else {
+        } else if (!$hasweight && strpos($type, 'summative') === false && strpos($type, 'formative') === false) {
             $assessmenttype = get_string('emptyvalue', 'block_newgu_spdetails');
         }
 
@@ -847,19 +927,15 @@ class block_newgu_spdetails_external extends external_api
 
     /**
      * Returns the 'weight' in percentage
-     *
-     * @param string $assessmenttype
-     * @param string $aggregation
+     * 
      * @param string $aggregationcoef
-     * @param string $aggregationcoef2
-     * @param string $subcategoryparentfullname
      * 
      * According to the spec, weighting is now derived only from the weight in the Gradebook set up.
      * @see https://gla.sharepoint.com/:w:/s/GCATUpgradeProjectTeam/EVDsT68UetZMn8Ug5ISb394BfYLW_MwcyMI7RF0JAC38PQ?e=BOofAS
+     * 
      * @return string Weight (in percentage), or '—' if empty
      */
-    public static function return_weight($assessmenttype, $aggregation, $aggregationcoef,
-                                         $aggregationcoef2, $subcategoryparentfullname)
+    public static function return_weight($aggregationcoef)
     {
         $weight = (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100);
         $finalweight = ($weight > 0) ? round($weight, 2) . '%' : get_string('emptyvalue', 'block_newgu_spdetails');
@@ -1133,6 +1209,7 @@ class block_newgu_spdetails_external extends external_api
      * reasons presumably.
      *
      * @return array
+     * @deprecated as no longer used - to be removed.
      */
     public static function get_statistics()
     {
@@ -1251,6 +1328,7 @@ class block_newgu_spdetails_external extends external_api
      *
      * @return external_description
      * @since Moodle 3.6
+     * @deprecated as no longer used - to be removed.
      */
 
     public static function get_statistics_returns()
@@ -1268,6 +1346,9 @@ class block_newgu_spdetails_external extends external_api
         );
     }
 
+    /**
+     * @deprecated as no longer used - to be removed.
+     */
     public static function nogroupusers($courseid)
     {
         global $DB;
@@ -1394,7 +1475,7 @@ class block_newgu_spdetails_external extends external_api
     }
 
     /**
-     * Method to return only LTI's that have "gradeable" activities 
+     * Method to return only LTI's that have "gradable" activities 
      * associated with them - and have been selected to be included.
      * 
      * @throws dml_exception

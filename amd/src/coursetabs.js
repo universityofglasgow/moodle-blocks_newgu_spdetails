@@ -134,7 +134,6 @@ const subCategoryEventHandler = (rows) => {
 
 const showSubcategoryDetails = (object) => {
     let id = object.parentElement.getAttribute('data-id');
-    let coursetype = object.parentElement.getAttribute('data-coursetype');
     if (id !== null) {
         document.querySelector('#courseNav-container').classList.add('hidden-container');
         let currentTab = document.querySelector('#current_tab');
@@ -145,7 +144,7 @@ const showSubcategoryDetails = (object) => {
             activetab = 'past';
         }
         // Ordering by DueDate by default....
-        loadAssessments(activetab, 0, 'duedate', 'asc', true, id, coursetype);
+        loadAssessments(activetab, 0, 'duedate', 'asc', true, id);
     }
 };
 
@@ -318,34 +317,28 @@ const handleTabChange = function(event) {
 
     let currentTab = document.querySelector('#current_tab');
     let pastTab = document.querySelector('#past_tab');
+    let activetab = '';
+    let page = 0;
+    let sortby = 'shortname';
+    let sortorder = 'asc';
     let isPageClicked = false;
 
     switch(event.target) {
         case currentTab:
-            var activetab = 'current';
-            var page = 0;
-            var sortby = 'shortname';
-            var sortorder = 'asc';
-
+            activetab = 'current';
             currentTab.classList.add('active');
             pastTab.classList.remove('active');
-
-            loadAssessments(activetab, page, sortby, sortorder, isPageClicked);
             break;
         case pastTab:
-            var activetab = 'past';
-            var page = 0;
-            var sortby = 'shortname';
-            var sortorder = 'asc';
-
+            activetab = 'past';
             currentTab.classList.remove('active');
             pastTab.classList.add('active');
-
-            loadAssessments(activetab, page, sortby, sortorder, isPageClicked);
             break;
         default:
             break;
     }
+
+    loadAssessments(activetab, page, sortby, sortorder, isPageClicked);
 };
 
 
