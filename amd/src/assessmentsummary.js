@@ -107,10 +107,10 @@ const fetchAssessmentSummary = () => {
                     datasets: [{
                         data: data.map(row => row.value),
                         backgroundColor: [
-                            'rgba(129,187,255)',
+                            'rgba(0,153,0)',
                             'rgba(255,153,0)',
                             'rgba(255,0,0)',
-                            'rgba(0,153,0)'
+                            'rgba(129,187,255)'
                         ],
                         hoverOffset: 4
                     }],

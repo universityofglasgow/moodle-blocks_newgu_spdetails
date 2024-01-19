@@ -316,7 +316,7 @@ class block_newgu_spdetails_external extends external_api
             $assessmenttype = self::return_assessmenttype($subcat->fullname, $item->aggregationcoef);
 
             // The assessment weight is derived from the aggregation coefficient 
-            // value of the grade item, only if it's been set in the gradebook set up however.
+            // value of the grade item, only if it's been set in the gradebook however.
             $weight = self::return_weight($item->aggregationcoef);
             $coursedata['weight'] = $weight;
             
@@ -351,7 +351,7 @@ class block_newgu_spdetails_external extends external_api
         }
 
         foreach($courses as $course) {
-            // Fetch the Summative and Formative categories...
+            // Fetch the categories and subcategories...
             $parent = grade_category::fetch(['courseid' => $course->id, 'hidden' => 0, 'parent' => NULL]);
             $coursedata['coursename'] = $course->shortname;
             $courseurl = new moodle_url('/course/view.php', ['id' => $course->id]);
@@ -417,7 +417,7 @@ class block_newgu_spdetails_external extends external_api
             require_capability('local/gugrades:readdashboard', $context);
         }
 
-        // We've lost all knowledge at this point of the course type: gcat, mygrades etc.
+        // We've lost all knowledge at this point of the course type: mygrades, gcat etc.
         // We now need to run the same query again that's in Howard's API in order to 
         // determine the course type - using the course id that's now being passed in.
         $gugradesenabled = false;
@@ -455,21 +455,18 @@ class block_newgu_spdetails_external extends external_api
         // With the course type now determined, we can use it to derive the "items"
         // from either the local_gugrades_x tables, or the regular grade_x tables.
         $assessmentdata = [];
-            
+        
+        
+        // This should be the point where we query either grade_items or local_gugrades_grade
+        // Check if our course is MyGrades enabled, if so, run a custom SQL query LEFT JOINing
+        // local_gugrades_grade against grade_items and checking for grade entries there, in 
+        // order to use/fetch grade status info - otherwise, just fall back to the below query
+        // grade_item::fetchall()
         if ($gugradesenabled) {
-            $assessmentitems = \local_gugrades\grades::get_dashboard_grades($userid, $subcategory);
-            if ($assessmentitems && count($assessmentitems) > 0) {
-                // This will only give us back items where the grade has been released.
-                // What do we do for items where the grade hasn't yet been released?
-                foreach($assessmentitems as $assessmentitem) {
-                    $tmp = $assessmentitem;
-                    $blah = 0;
-                }
-            } else {
-                // Perhaps the grades haven't been released yet?
-            }
+            $gradeitems = \local_gugrades\grades::get_dashboard_grades($userid, $subcategory);
+            
         } else if (!$gugradesenabled && ($gcatenabled || !$gcatenabled)) {
-            $assessmentitems = grade_item::fetch_all(['categoryid' => $subcategory]);
+            $assessmentitems = grade_item::fetch_all(['courseid' => $courseid, 'categoryid' => $subcategory, 'hidden' => 0, 'display' => 0]);
             if ($assessmentitems && count($assessmentitems) > 0) {
                 
                 // Owing to the fact that we can't sort using the grade_item::fetch_all method....
@@ -494,6 +491,7 @@ class block_newgu_spdetails_external extends external_api
                     $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid);
                     $feedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->grademax, $assessmentitem->gradetype);
                     $duedate = DateTime::createFromFormat('U', $gradestatus['duedate']);
+                    // $coursetype is only really needed/used by the unit tests.
                     $assessmentdata[] = [
                         'id' => $assessmentitem->id,
                         'assessmenturl' => $gradestatus['assessmenturl'],

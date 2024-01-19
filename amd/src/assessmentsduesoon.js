@@ -76,6 +76,12 @@ const fetchAssessmentsDueSoon = () => {
                 options: {
                     responsive: true,
                     indexAxis: 'y',
+                    scales: {
+                        x: {
+                            suggestedMin: 1,
+                            suggestedMax: 10
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: true,
@@ -106,12 +112,12 @@ const fetchAssessmentsDueSoon = () => {
                         backgroundColor: [
                             'rgba(255,0,0,0.6)',
                             'rgba(255,153,0,0.6)',
-                            'rgba(129,187,255,0.6)'
+                            'rgba(0,153,0,0.6)'
                         ],
                         borderColor: [
                             'rgba(255,0,0)',
                             'rgba(255,153,0)',
-                            'rgba(129,187,255)'
+                            'rgba(0,153,0)'
                         ],
                         borderWidth: 1,
                         hoverOffset: 4
