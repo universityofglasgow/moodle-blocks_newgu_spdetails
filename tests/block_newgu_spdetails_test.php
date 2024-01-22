@@ -47,6 +47,10 @@ class block_newgu_spdetails_test extends advanced_testcase {
         $spdetails = new block_newgu_spdetails();
 
         $this->spdetails = $spdetails;
+
+        // The $PAGE object is never instantiated in our test conditions, hence...
+        $page = new moodle_page();
+        $this->spdetails->page = $page;
     }
 
     /**
@@ -72,6 +76,6 @@ class block_newgu_spdetails_test extends advanced_testcase {
     public function test_get_content() {
 
         $returned = $this->spdetails->get_content();
-        $this->assertEmpty($returned->text);
+        $this->assertNotEmpty($returned->text);
     }
 }
