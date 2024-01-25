@@ -108,18 +108,26 @@
                 <td class="td5">{{assessmentweight}}</td>
                 <td class="td15">{{duedate}}</td>
                 <td class="td15">
-                {{#status}}
-                    {{#link}}
-                        <a href="{{link}}">
-                    {{/link}}
+                {{#grade_status}}
+                    {{#status_link}}
+                        <a href="{{status_link}}">
+                    {{/status_link}}
                         <span class="status-item{{#status_class}} {{status_class}}{{/status_class}}">{{status_text}}</span>
-                    {{#link}}
+                    {{#status_link}}
                         </a>
-                    {{/link}}
-                {{/status}}
+                    {{/status_link}}
+                {{/grade_status}}
                 </td>
                 <td class="td10">{{grade}}</td>
-                <td class="td10">{{feedback}}</td>
+                <td class="td10">
+                    {{#grade_feedback_link}}
+                        <a href="{{grade_feedback_link}}">
+                    {{/grade_feedback_link}}
+                    {{grade_feedback}}
+                    {{#grade_feedback_link}}
+                        </a>
+                    {{/grade_feedback_link}}
+                </td>
             </tr>
             {{/assessmentitems}}
         {{/data.coursedata}}

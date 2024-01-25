@@ -302,7 +302,14 @@ class get_assessments_test extends advanced_testcase {
             'startdate' => $lastmonth,
             'enddate' => $nextyear
         ]);
-        $gugradescontext = \context_course::instance($gugradescourse->id);
+
+        // We also need to mock "enable" this as a MyGrades type course.
+        $gugradesparams = [
+            'courseid' => $gugradescourse->id,
+            'name' => 'enabledashboard',
+            'value' => 1
+        ];
+        $DB->insert_record('local_gugrades_config', $gugradesparams);
 
         // Add some grading categories..
         $gugrades_summativecategory = $this->getDataGenerator()->create_grade_category([
@@ -332,6 +339,9 @@ class get_assessments_test extends advanced_testcase {
         ];
         $gugradescourse->gugradesenabled = true;
         $gugradescourse->gcatenabled = false;
+
+        // Create some context...
+        $gugradescontext = \context_course::instance($gugradescourse->id);
 
         // Enrol the teacher...
         $this->getDataGenerator()->enrol_user($teacher->id, $gugradescourse->id, $this->get_roleid('editingteacher'));
@@ -587,8 +597,8 @@ class get_assessments_test extends advanced_testcase {
     /**
      * Test of the components of the course that get returned.
      */
-    public function test_return_course_components() {
-        $returned = $this->lib->return_course_components([$this->gcatcourse], true);
+    public function test_get_course_components() {
+        $returned = $this->lib->get_course_components([$this->gcatcourse], true);
 
         $this->assertIsArray($returned);
         $this->assertArrayHasKey('coursedata',$returned);
@@ -645,7 +655,7 @@ class get_assessments_test extends advanced_testcase {
     /**
      * Test that for a given assessment, the correct grade is returned.
      */
-    public function test_return_gradestatus() {
+    public function test_get_gradestatus() {
 
     }
 

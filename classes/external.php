@@ -265,7 +265,7 @@ class block_newgu_spdetails_external extends external_api
             }
 
             $courses = \local_gugrades\api::dashboard_get_courses($userid, $currentcourses, $pastcourses, $sortby . " " . $sortorder);                    
-            $gradableactivities = self::return_course_components($courses, $currentcourses);
+            $gradableactivities = self::get_course_components($courses, $currentcourses);
         } else {
             /**
              * Return Structure:
@@ -322,8 +322,8 @@ class block_newgu_spdetails_external extends external_api
             
             // We'll need to merge these next two arrays at some point, to allow the sorting to
             // to work on all items, rather than just by category/activity item as it currently does.
-            $coursedata['subcategories'] = self::return_course_sub_categories($subcategory, $course->id, $assessmenttype, $sortorder);
-            $coursedata['assessmentitems'] = self::return_assessment_items($subcategory, $userid, $assessmenttype, $courseid, $sortorder);
+            $coursedata['subcategories'] = self::get_course_sub_categories($subcategory, $course->id, $assessmenttype, $sortorder);
+            $coursedata['assessmentitems'] = self::get_assessment_items($subcategory, $userid, $assessmenttype, $courseid, $sortorder);
             $activitydata['coursedata'] = $coursedata;
             
             $gradableactivities = $activitydata;
@@ -339,8 +339,7 @@ class block_newgu_spdetails_external extends external_api
      * @param bool $active - indicate if this is a current or past course
      * @param return array $data
      */
-    public static function return_course_components(array $courses, bool $active) {
-        
+    public static function get_course_components(array $courses, bool $active) {
         $coursedata = [];
         $data = [
             'parent' => 0
@@ -406,7 +405,7 @@ class block_newgu_spdetails_external extends external_api
      * @param int $courseid
      * @return array $assessmentdata
      */
-    public static function return_assessment_items(int $subcategory, int $userid, string $assessmenttype, int $courseid, string $sortorder = "asc") {
+    public static function get_assessment_items(int $subcategory, int $userid, string $assessmenttype, int $courseid, string $sortorder = "asc") {
         global $DB, $USER;
 
         // If this isn't current user, do they have the rights to look at other users.
@@ -456,58 +455,73 @@ class block_newgu_spdetails_external extends external_api
         // from either the local_gugrades_x tables, or the regular grade_x tables.
         $assessmentdata = [];
         
-        
         // This should be the point where we query either grade_items or local_gugrades_grade
         // Check if our course is MyGrades enabled, if so, run a custom SQL query LEFT JOINing
         // local_gugrades_grade against grade_items and checking for grade entries there, in 
         // order to use/fetch grade status info - otherwise, just fall back to the below query
         // grade_item::fetchall()
-        if ($gugradesenabled) {
-            $gradeitems = \local_gugrades\grades::get_dashboard_grades($userid, $subcategory);
+        
+        $assessmentitems = grade_item::fetch_all(['courseid' => $courseid, 'categoryid' => $subcategory, 'hidden' => 0, 'display' => 0]);
+        if ($assessmentitems && count($assessmentitems) > 0) {
             
-        } else if (!$gugradesenabled && ($gcatenabled || !$gcatenabled)) {
-            $assessmentitems = grade_item::fetch_all(['courseid' => $courseid, 'categoryid' => $subcategory, 'hidden' => 0, 'display' => 0]);
-            if ($assessmentitems && count($assessmentitems) > 0) {
+            // Owing to the fact that we can't sort using the grade_item::fetch_all method....
+            switch($sortorder) {
+                case "asc":
+                    uasort($assessmentitems, function($a, $b) {
+                        return strcmp($a->itemname, $b->itemname);
+                    });
+                    break;
+
+                case "desc":
+                    uasort($assessmentitems, function($a, $b) {
+                        return strcmp($b->itemname, $a->itemname);
+                    });
+                    break;
+            }
+
+            $coursetype = (($gcatenabled) ? "gcatenabled" : "gradebookenabled");
+
+            if ($gugradesenabled) {
+                $gradeitems = \local_gugrades\grades::get_dashboard_grades($userid, $subcategory);
+            }
+
+            foreach($assessmentitems as $assessmentitem) {
+                $assessmentweight = self::return_weight($assessmentitem->aggregationcoef);
+                // What do we actually want back from return_gradestatus:
+                // 1 the status as a value
+                //   -- grade_status
+                //   -- status_link
+                //   -- status_text
+                //   -- status_class
+                //   -- grade
                 
-                // Owing to the fact that we can't sort using the grade_item::fetch_all method....
-                switch($sortorder) {
-                    case "asc":
-                        uasort($assessmentitems, function($a, $b) {
-                            return strcmp($a->itemname, $b->itemname);
-                        });
-                        break;
-
-                    case "desc":
-                        uasort($assessmentitems, function($a, $b) {
-                            return strcmp($b->itemname, $a->itemname);
-                        });
-                        break;
-                }
-
-                $coursetype = (($gcatenabled) ? "gcatenabled" : "gradebookenabled");
-
-                foreach($assessmentitems as $assessmentitem) {
-                    $assessmentweight = self::return_weight($assessmentitem->aggregationcoef);
-                    $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid);
-                    $feedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->grademax, $assessmentitem->gradetype);
-                    $duedate = DateTime::createFromFormat('U', $gradestatus['duedate']);
-                    // $coursetype is only really needed/used by the unit tests.
-                    $assessmentdata[] = [
-                        'id' => $assessmentitem->id,
-                        'assessmenturl' => $gradestatus['assessmenturl'],
-                        'itemname' => $assessmentitem->itemname,
-                        'assessmenttype' => $assessmenttype,
-                        'assessmentweight' => $assessmentweight,
-                        'duedate' => $duedate->format('jS F Y'),
-                        'status' => $gradestatus['status'],
-                        'link' => $gradestatus['link'],
-                        'status_class' => $gradestatus['status_class'],
-                        'status_text' => $gradestatus['status_text'],
-                        'grade' => (($gradestatus['finalgrade'] > 0) ? $gradestatus['finalgrade'] : get_string("status_text_tobeconfirmed", "block_newgu_spdetails")),
-                        'feedback' => $feedback['gradetodisplay'],
-                        $coursetype => 'true'
-                    ];
-                }
+                // 2 the grade as a string
+                // An object to pass to get_feedback - which doesn't need to repeat return_gradestatus
+                // $gradeandgradestatus = self::get_gradeandgradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->gradetype);
+                // 'status' => $gradeandgradestatus->status;
+                // 'status_class' => $gradeandgradestatus->status_class;
+                // etc etc
+                $gradestatus = self::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid);
+                $duedate = DateTime::createFromFormat('U', $gradestatus['duedate']);
+                $gradefeedback = self::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->grademax, $assessmentitem->gradetype);
+                $feedback = (($gradefeedback['link']) ? get_string('readfeedback', 'block_newgu_spdetails') : (($assessmentitem->itemmodule != 'quiz') ? $gradefeedback['gradetodisplay'] : ''));
+                // $coursetype is only really needed/used by the unit tests.
+                $assessmentdata[] = [
+                    'id' => $assessmentitem->id,
+                    'assessmenturl' => $gradestatus['assessmenturl'],
+                    'itemname' => $assessmentitem->itemname,
+                    'assessmenttype' => $assessmenttype,
+                    'assessmentweight' => $assessmentweight,
+                    'duedate' => $duedate->format('jS F Y'),
+                    'grade_status' => $gradestatus['status'],
+                    'status_link' => $gradestatus['link'],
+                    'status_class' => $gradestatus['status_class'],
+                    'status_text' => $gradestatus['status_text'],
+                    'grade' => $gradefeedback['gradetodisplay'],
+                    'grade_feedback' => $feedback,
+                    'grade_feedback_link' => $gradefeedback['link'],
+                    $coursetype => 'true'
+                ];
             }
         }
 
@@ -522,7 +536,7 @@ class block_newgu_spdetails_external extends external_api
      * @param string $sortorder
      * @param return array $subcatdata
      */
-    public static function return_course_sub_categories(int $subcategory, int $courseid, string $assessmenttype, string $sortorder) {
+    public static function get_course_sub_categories(int $subcategory, int $courseid, string $assessmenttype, string $sortorder) {
         $subcategories = grade_category::fetch_all(['parent' => $subcategory, 'hidden' => 0]);
         $subcatdata = [];
         if ($subcategories && count($subcategories) > 0) {
@@ -859,7 +873,13 @@ class block_newgu_spdetails_external extends external_api
         return $cntstaff;
     }
 
-    public static function get_cmid($cmodule, $courseid, $instance)
+    /**
+     * @param string $cmdodule
+     * @param int $courseid
+     * @param int $instance
+     * @param return int $cmid
+     */
+    public static function get_cmid(string $cmodule, int $courseid, int $instance)
     {
         // cmodule is module name e.g. quiz, forums etc.
         global $DB;
@@ -907,8 +927,7 @@ class block_newgu_spdetails_external extends external_api
      * @param int $aggregationcoef
      * @return string 'Formative', 'Summative', or '—'
      */
-    public static function return_assessmenttype($gradecategoryname, $aggregationcoef)
-    {
+    public static function return_assessmenttype(string $gradecategoryname, int $aggregationcoef) {
         $type = strtolower($gradecategoryname);
         $hasweight = !empty((float)$aggregationcoef);
 
@@ -926,15 +945,14 @@ class block_newgu_spdetails_external extends external_api
     /**
      * Returns the 'weight' in percentage
      * 
-     * @param string $aggregationcoef
+     * @param float $aggregationcoef
      * 
      * According to the spec, weighting is now derived only from the weight in the Gradebook set up.
      * @see https://gla.sharepoint.com/:w:/s/GCATUpgradeProjectTeam/EVDsT68UetZMn8Ug5ISb394BfYLW_MwcyMI7RF0JAC38PQ?e=BOofAS
      * 
      * @return string Weight (in percentage), or '—' if empty
      */
-    public static function return_weight($aggregationcoef)
-    {
+    public static function return_weight(float $aggregationcoef) {
         $weight = (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100);
         $finalweight = ($weight > 0) ? round($weight, 2) . '%' : get_string('emptyvalue', 'block_newgu_spdetails');
 
@@ -988,6 +1006,234 @@ class block_newgu_spdetails_external extends external_api
     }
 
     /**
+     * Reimplementation of return_gradestatus as it misses the mark on a
+     * number of fundamental levels.
+     * 
+     * @param string $modulename
+     * @param int $iteminstance
+     * @param int $courseid
+     * @param int $itemid
+     * @param int $userid
+     * @param int $gradetype
+     * @return array
+     */
+    public static function get_gradeandgradestatus(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid, int $gradetype) {
+        $gradestatus = new stdClass();
+        $gradestatus->status = '';
+        $gradestatus->statustext = '';
+        $gradestatus->statusclass = '';
+        $gradestatus->duedate = 0;
+        $gradestatus->cutoffdate = 0;
+        $gradestatus->gradingduedate = 0;
+        $gradestatus->link = '';
+        $gradestatus->assessmenturl = '';
+        $gradestatus->gradetodisplay = '';
+
+        $url = $CFG->wwwroot . '/mod/';
+        $script = '/view.php?id=';
+        $rawscaleid = 0;
+        $finalgrade = null;
+
+        $gradeqry = $DB->get_record_sql(
+            "SELECT rawscaleid,finalgrade FROM {grade_grades} WHERE itemid = :itemid AND userid = :userid",
+            [
+                'itemid' => $itemid,
+                'userid' => $userid
+            ]
+        );
+
+        if (!empty($gradeqry)) {
+            $rawscaleid = $gradeqry->rawscaleid;
+            $finalgrade = $gradeqry->finalgrade;
+        }
+
+        switch ($modulename) {
+            case 'assign':
+                $assignment = $DB->get_record('assign', ['id' => $iteminstance]);
+                $cmid = self::get_cmid('assign', $courseid, $iteminstance);
+                $gradestatus->assessmenturl = $url . $modulename . $script . $cmid;
+
+                if (!empty($assignment)) {
+                    $allowsubmissionsfromdate = $assignment->allowsubmissionsfromdate;
+                    $gradestatus->duedate = $assignment->duedate;
+                    $gradestatus->cutoffdate = $assignment->cutoffdate;
+                    $gradestatus->gradingduedate = $assignment->gradingduedate;
+                }
+
+                $overrides = $DB->get_record('assign_overrides', ['assignid' => $iteminstance, 'userid' => $userid]);
+                if (!empty($overrides)) {
+                    $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;
+                    $gradestatus->duedate = $overrides->duedate;
+                    $gradestatus->cutoffdate = $overrides->cutoffdate;
+                }
+
+                $userflags = $DB->get_record('assign_user_flags', ['assignment' => $iteminstance, 'userid' => $userid]);
+                if (!empty($userflags)) {
+                    if ($userflags->extensionduedate > 0) {
+                        $gradestatus->duedate = $userflags->extensionduedate;
+                    }
+                }
+
+                if ($allowsubmissionsfromdate > time()) {
+                    $gradestatus->status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
+                    $gradestatus->statustext = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
+                    $gradestatus->gradetodisplay = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                }
+
+                if ($gradestatus->status == '') {
+                    $assignsubmission = $DB->get_record('assign_submission', ['assignment' => $iteminstance, 'userid' => $userid]);
+                    $gradestatus->link = $url . $modulename . $script . $cmid;
+                    
+                    if (!empty($assignsubmission)) {
+                        $gradestatus->status = $assignsubmission->status;
+
+                        if ($gradestatus->status == 'new') {
+                            $gradestatus->status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                            $gradestatus->statustext = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                            $gradestatus->statusclass = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+                            $gradestatus->gradetodisplay = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                            if ($gradestatus->gradingduedate > time()) {
+                                $gradestatus->gradetodisplay = get_string('status_text_dueby', 'block_newgu_spdetails', date("d/m/Y", $gradestatus->gradingduedate));
+                            }
+                            
+                            if (time() > $gradestatus->duedate + (86400 * 30) && $gradestatus->duedate != 0) {
+                                $gradestatus->status = get_string('status_overdue', 'block_newgu_spdetails');
+                                $gradestatus->statusclass = get_string('status_class_overdue', 'block_newgu_spdetails');
+                                $gradestatus->statustext = get_string('status_text_overdue', 'block_newgu_spdetails');
+                                $gradestatus->gradetodisplay = get_string('status_text_overdue', 'block_newgu_spdetails');
+                            }
+                        }
+
+                        if ($gradestatus->status == get_string('status_submitted', 'block_newgu_spdetails')) {
+                            $gradestatus->statusclass = get_string('status_class_submitted', 'block_newgu_spdetails');
+                            $gradestatus->statustext = get_string('status_text_submitted', 'block_newgu_spdetails');
+                            $gradestatus->link = '';
+                        }
+
+                    } else {
+                        $gradestatus->status = get_string('status_tosubmit', 'block_newgu_spdetails');
+                        $gradestatus->statustext = get_string('status_text_tosubmit', 'block_newgu_spdetails');
+                        $gradestatus->gradetodisplay = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+
+                        if (time() > $gradestatus->duedate && $gradestatus->duedate != 0) {
+                            $gradestatus->status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                            $gradestatus->statustext = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                            $gradestatus->gradetodisplay = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                            if ($gradestatus->gradingduedate > time()) {
+                                $gradestatus->gradetodisplay = get_string('status_text_dueby', 'block_newgu_spdetails', date("d/m/Y", $gradestatus->gradingduedate));
+                            }
+                        }
+
+                        if (time() > $gradestatus->duedate + (86400 * 30) && $gradestatus->duedate != 0) {
+                            $gradestatus->status = get_string('status_overdue', 'block_newgu_spdetails');
+                            $gradestatus->statusclass = get_string('status_class_overdue', 'block_newgu_spdetails');
+                            $gradestatus->statustext = get_string('status_text_overdue', 'block_newgu_spdetails');
+                        }
+                    }
+                }
+                break;
+
+            case "forum":
+                $forumsubmissions = $DB->count_records("forum_discussion_subs", ["forum" => $iteminstance, "userid" => $userid]);
+                $cmid = block_newgu_spdetails_external::get_cmid('forum', $courseid, $iteminstance);
+                $assessmenturl = $CFG->wwwroot . "/mod/forum/view.php?id=" . $cmid;
+
+                if ($forumsubmissions > 0) {
+                    $status = get_string("status_submitted", "block_newgu_spdetails");;
+                    $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
+                } else {
+                    $status = get_string("status_tosubmit", "block_newgu_spdetails");;
+                    $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submit", "block_newgu_spdetails");
+                    $link = $CFG->wwwroot . "/mod/forum/view.php?id=" . $cmid;
+                }
+                break;
+
+            case "quiz":
+                $cmid = block_newgu_spdetails_external::get_cmid("quiz", $courseid, $iteminstance);
+                $assessmenturl = $CFG->wwwroot . "/mod/quiz/view.php?id=" . $cmid;
+
+                $quizattempts = $DB->count_records("quiz_attempts", ["quiz" => $iteminstance, "userid" => $userid, "state" => "finished"]);
+                if ($quizattempts > 0) {
+                    $status = get_string("status_submitted", "block_newgu_spdetails");
+                    $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
+                } else {
+                    $status = get_string("status_tosubmit", "block_newgu_spdetails");
+                    $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submit", "block_newgu_spdetails");
+                    $link = $CFG->wwwroot . "/mod/quiz/view.php?id=" . $cmid;
+                }
+                break;
+
+            case "workshop":
+                $arr_workshop = $DB->get_record("workshop", ["id" => $iteminstance]);
+                $cmid = block_newgu_spdetails_external::get_cmid("workshop", $courseid, $iteminstance);
+                $assessmenturl = $CFG->wwwroot . "/mod/workshop/view.php?id=" . $cmid;
+
+                $workshopsubmissions = $DB->count_records("workshop_submissions", ["workshopid" => $iteminstance, "authorid" => $userid]);
+                if ($workshopsubmissions > 0) {
+                    $status = get_string("status_submitted", "block_newgu_spdetails");
+                    $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
+                } else {
+                    $status = get_string("status_tosubmit", "block_newgu_spdetails");
+                    $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
+                    $statustext = get_string("status_text_submit", "block_newgu_spdetails");
+                    if ($arr_workshop->submissionstart == 0) {
+                        $status = get_string("status_submissionnotopen", "block_newgu_spdetails");
+                        $statusclass = "";
+                        $statustext = get_string("status_text_submissionnotopen", "block_newgu_spdetails");
+                    }
+                    $link = $CFG->wwwroot . "/mod/workshop/view.php?id=" . $cmid;
+                }
+                break;
+
+            default :
+            break;
+        }
+
+        if ($finalgrade != null) {
+            
+            // What is gradetype??
+            switch($gradetype) {
+                case 1:
+                    $gradestatus->gradetodisplay = number_format((float)$finalgrade) . " / " . number_format((float)$grademax) . ' (Provisional)';
+                    break;
+
+                case 2:
+                    $gradestatus->gradetodisplay = $converted_22grademaxpoint . ' (Provisional)';
+                    break;
+            }
+
+            $gradestatus->status = get_string('status_graded', 'block_newgu_spdetails');
+            $gradestatus->statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
+            $gradestatus->statustext = get_string('status_text_graded', 'block_newgu_spdetails');
+            $gradestatus->link = $url . $modulename . $script . $cmid . '#page-footer';
+        }
+        
+        if ($finalgrade == null  && $gradestatus->duedate < time()) {
+            if ($status == "notopen" || $status == "notsubmitted") {
+                $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
+                $link = "";
+            }
+            if ($status == "overdue") {
+                $gradetodisplay = get_string("status_text_overdue", "block_newgu_spdetails");
+                $link = "";
+            }
+            if ($status == "notsubmitted") {
+                $gradetodisplay = get_string("status_text_notsubmitted", "block_newgu_spdetails");
+                if ($gradingduedate > time()) {
+                    $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
+                }
+            }
+        }
+
+        return $gradestatus;
+    }
+
+    /**
      * For a given userid, return the current grading status for this assessment item.
      * 
      * @param string $modulename
@@ -997,9 +1243,7 @@ class block_newgu_spdetails_external extends external_api
      * @param int $userid
      * @return array
      */
-    public static function return_gradestatus(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid)
-    {
-
+    public static function return_gradestatus(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid) {
         global $DB, $CFG;
 
         $status = "";
@@ -1030,14 +1274,15 @@ class block_newgu_spdetails_external extends external_api
             $rawgrade = $arr_grade->rawgrade;
             $finalgrade = $arr_grade->finalgrade;
         
-            if (is_null($arr_grade->rawgrade) && !is_null($arr_grade->finalgrade)) {
-                $provisionalgrade = $arr_grade->finalgrade;
+            if (is_null($rawgrade) && !is_null($finalgrade)) {
+                $provisionalgrade = $finalgrade;
             }
-            if (!is_null($arr_grade->rawgrade) && is_null($arr_grade->finalgrade)) {
-                $provisionalgrade = $arr_grade->rawgrade;
+            if (!is_null($rawgrade) && is_null($finalgrade)) {
+                $provisionalgrade = $rawgrade;
             }
         }
 
+        // Refactor this to allow any activity type to be parsed...
         switch ($modulename) {
             case "assign":
                 $arr_assign = $DB->get_record("assign", ["id" => $iteminstance]);
@@ -1080,6 +1325,12 @@ class block_newgu_spdetails_external extends external_api
                             $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
                             $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
                             $link = '';
+
+                            if ($finalgrade != null) {
+                                $status = get_string("status_graded", "block_newgu_spdetails");
+                                $statusclass = get_string("status_class_graded", "block_newgu_spdetails");
+                                $statustext = get_string("status_text_graded", "block_newgu_spdetails");
+                            }
                         }
 
                     } else {
@@ -1161,17 +1412,11 @@ class block_newgu_spdetails_external extends external_api
             break;
         }
 
-        $arr_grades = $DB->get_record("grade_grades", ["itemid" => $itemid, "userid" => $userid]);
-
-        if (!empty($arr_grades)) {
-            $finalgrade = $arr_grades->finalgrade;
-        }
-
-        if ((is_int($rawgrade) && floor($rawgrade) > 0) && (is_int($finalgrade) && floor($finalgrade) == 0)) {
+        if (floor($rawgrade)>0 && floor($finalgrade)==0) {
             $provisional_22grademaxpoint = block_newgu_spdetails_external::return_22grademaxpoint((floor($rawgrade)) - 1, 1);
         }
         
-        if ((is_int($finalgrade) && floor($finalgrade) > 0)) {
+        if (floor($finalgrade)>0) {
             $converted_22grademaxpoint = block_newgu_spdetails_external::return_22grademaxpoint((floor($finalgrade)) - 1, 1);
         }
 
@@ -1196,6 +1441,85 @@ class block_newgu_spdetails_external extends external_api
         return $gradestatus;
     }
 
+    /**
+     * Method to return grading feedback.
+     * 
+     * @param string $modulename
+     * @param int $iteminstance
+     * @param int $courseid
+     * @param int $itemid
+     * @param int $userid
+     * @param int $grademax
+     * @param string $gradetype
+     * @param return array
+     */
+    public static function get_gradefeedback(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid, int $grademax, string $gradetype) {
+        global $CFG, $DB, $USER;
+        
+        $link = "";
+        $gradetodisplay = "";
+        
+        $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
+        $status = $gradestatus["status"];
+        $link = $gradestatus["link"];
+        $allowsubmissionsfromdate = $gradestatus["allowsubmissionsfromdate"];
+        $duedate = $gradestatus["duedate"];
+        $cutoffdate = $gradestatus["cutoffdate"];
+        $gradingduedate = $gradestatus["gradingduedate"];
+        $rawgrade = $gradestatus["rawgrade"];
+        $finalgrade = $gradestatus["finalgrade"];
+        $provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
+        $converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
+        
+        $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
+        
+        if ($finalgrade != null) {
+            
+            switch($gradetype) {
+                case 1:
+                    $gradetodisplay = number_format((float)$finalgrade) . " / " . number_format((float)$grademax) . ' (Provisional)';
+                    break;
+
+                case 2:
+                    $gradetodisplay = $converted_22grademaxpoint . ' (Provisional)';
+                    break;
+            }
+
+            $link = $CFG->wwwroot . '/mod/'.$modulename.'/view.php?id=' . $cmid . '#page-footer';
+        }
+        
+        if ($finalgrade == null  && $duedate < time()) {
+            if ($status == "notopen" || $status == "notsubmitted") {
+                $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
+                $link = "";
+            }
+            if ($status == "overdue") {
+                $gradetodisplay = get_string("status_text_overdue", "block_newgu_spdetails");
+                $link = "";
+            }
+            if ($status == "notsubmitted") {
+                $gradetodisplay = get_string("status_text_notsubmitted", "block_newgu_spdetails");
+                if ($gradingduedate > time()) {
+                    $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
+                }
+            }
+        
+        }
+        
+        if ($status == "tosubmit") {
+            $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
+            $link = "";
+        }
+        
+        return [
+            "gradetodisplay" => $gradetodisplay, 
+            "link" => $link, 
+            "provisional_22grademaxpoint" => $provisional_22grademaxpoint, 
+            "converted_22grademaxpoint" => $converted_22grademaxpoint, 
+            "finalgrade" => floor($finalgrade), 
+            "rawgrade" => floor($rawgrade)
+        ];
+    }
 
     /**
      * This method returns a summary of the gradable items
@@ -1392,84 +1716,6 @@ class block_newgu_spdetails_external extends external_api
 
 
         return $sql_enrolledstudents;
-    }
-
-
-    /**
-     * Method to return grading feedback.
-     * 
-     * @param string $modulename
-     * @param int $iteminstance
-     * @param int $courseid
-     * @param int $itemid
-     * @param int $userid
-     * @param int $grademax
-     * @param string $gradetype
-     * @param return array
-     */
-    public static function get_gradefeedback(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid, int $grademax, string $gradetype) {
-        global $CFG, $DB, $USER;
-        
-        $link = "";
-        $gradetodisplay = "";
-        
-        $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
-        $status = $gradestatus["status"];
-        $link = $gradestatus["link"];
-        $allowsubmissionsfromdate = $gradestatus["allowsubmissionsfromdate"];
-        $duedate = $gradestatus["duedate"];
-        $cutoffdate = $gradestatus["cutoffdate"];
-        $gradingduedate = $gradestatus["gradingduedate"];
-        $rawgrade = $gradestatus["rawgrade"];
-        $finalgrade = $gradestatus["finalgrade"];
-        $provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
-        $converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
-        
-        $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
-        
-        if ($finalgrade != null) {
-            if ($gradetype == 1) {
-                $gradetodisplay = '<span class="graded">' . number_format((float)$finalgrade) . " / " . number_format((float)$grademax) . '</span>' . ' (Provisional)';
-            }
-            
-            if ($gradetype == 2) {
-                $gradetodisplay = '<span class="graded">' . $converted_22grademaxpoint . '</span>' . ' (Provisional)';
-            }
-
-            $link = $CFG->wwwroot . '/mod/'.$modulename.'/view.php?id=' . $cmid . '#page-footer';
-        }
-        
-        if ($finalgrade == null  && $duedate < time()) {
-            if ($status == "notopen" || $status == "notsubmitted") {
-                $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
-                $link = "";
-            }
-            if ($status == "overdue") {
-                $gradetodisplay = get_string("status_text_overdue", "block_newgu_spdetails");
-                $link = "";
-            }
-            if ($status == "notsubmitted") {
-                $gradetodisplay = get_string("status_text_notsubmitted", "block_newgu_spdetails");
-                if ($gradingduedate > time()) {
-                    $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
-                }
-            }
-        
-        }
-        
-        if ($status == "tosubmit") {
-            $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
-            $link = "";
-        }
-        
-        return [
-            "gradetodisplay" => $gradetodisplay, 
-            "link" => $link, 
-            "provisional_22grademaxpoint" => $provisional_22grademaxpoint, 
-            "converted_22grademaxpoint" => $converted_22grademaxpoint, 
-            "finalgrade" => floor($finalgrade), 
-            "rawgrade" => floor($rawgrade)
-        ];
     }
 
     /**

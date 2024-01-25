@@ -26,19 +26,20 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// Not mentioned in the Moodle spec - but a list of the services our plugin provides...
 $services = [
-        // Define service for NEW GU SPDETAILS
-        'New GU Details' => [
-            'functions' => [
-                'block_staff_dashboard_get_groupusers',
-                'block_newgu_spdetails_get_coursegroups',
-                'block_newgu_spdetails_get_assessmentsummary',
-                'block_newgu_spdetails_get_assessments'
-            ],
-            'requiredcapability' => '',
-            'restrictedusers' => 1,
-            'enabled' => 1,
+    'block_newgu_spdetails' => [
+        'functions' => [
+            'block_staff_dashboard_get_groupusers',
+            'block_newgu_spdetails_get_coursegroups',
+            'block_newgu_spdetails_get_assessmentsummary',
+            'block_newgu_spdetails_get_assessments',
+            'block_newgu_spdetails_get_assessmentsduesoon'
         ],
+        'requiredcapability' => '',
+        'restrictedusers' => 1,
+        'enabled' => 1,
+    ],
 ];
 
 $functions = [

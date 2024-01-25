@@ -64,7 +64,7 @@ $string['startdate'] = 'Start Date';
 $string['enddate'] = 'End Date';
 $string['viewsubmission'] = 'View Submission';
 
-$string['readfeedback'] = 'Read Feedback';
+$string['readfeedback'] = 'View Feedback';
 $string['summative'] = 'Summative';
 $string['formative'] = 'Formative';
 $string['emptyvalue'] = '—';
@@ -109,6 +109,7 @@ $string['status_submissionnotopen'] = 'submissionnotopen';
 $string['status_submitted'] = 'submitted';
 $string['status_tosubmit'] = 'tosubmit';
 
+$string['status_class_graded'] = 'status-graded';
 $string['status_class_overdue'] = 'status-overdue';
 $string['status_class_tosubmit'] = 'status-tosubmit';
 $string['status_class_submit'] = 'status-submit';
@@ -124,6 +125,7 @@ $string['status_text_tosubmit'] = 'To submit';
 $string['status_text_submit'] = 'Submit';
 $string['status_text_submitted'] = 'Submitted';
 $string['status_text_tobeconfirmed'] = 'To be confirmed';
+$string['status_text_dueby'] = 'Due {$a}';
 
 $string['status_unavailable'] = 'submissionunavailable';
 
