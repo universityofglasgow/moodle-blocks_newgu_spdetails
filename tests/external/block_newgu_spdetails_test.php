@@ -28,7 +28,6 @@ global $CFG, $DB;
 
 require_once('config.php');
 require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
-require_once($CFG->dirroot .'/blocks/newgu_spdetails/classes/external.php');
 require_once($CFG->dirroot .'/blocks/newgu_spdetails/block_newgu_spdetails.php');
 
 /**

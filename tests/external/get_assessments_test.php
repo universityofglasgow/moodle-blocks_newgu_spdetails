@@ -33,7 +33,6 @@ global $CFG;
 
 require_once('config.php');
 require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
-require_once($CFG->dirroot .'/blocks/newgu_spdetails/classes/external.php');
 
 class get_assessments_test extends advanced_testcase {
     
@@ -100,8 +99,14 @@ class get_assessments_test extends advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $lib = new \block_newgu_spdetails_external();
+        $lib = new \block_newgu_spdetails\api();
         $this->lib = $lib;
+
+        $courseapi = new \block_newgu_spdetails\course();
+        $this->courseapi = $courseapi;
+
+        $activityapi = new \block_newgu_spdetails\activity();
+        $this->activityapi = $activityapi;
 
         /** Create a "current" course - this will be a GCAT style course to start... */
         $lastmonth = mktime(0, 0, 0, date("m")-1, date("d"), date("Y"));
@@ -146,17 +151,21 @@ class get_assessments_test extends advanced_testcase {
         $gcatcourse->gcatenabled = true;
         $gcatcontext = \context_course::instance($gcatcourse->id);
 
-        // But we also need to mock the "enabled" state in the 
+        // But we also need to mock the "gcat enabled" state in the 
         // customfield_x tables for GCAT type courses.
         $cfcparams = [
-            'name' => 'GCAT Options'
+            'name' => 'GCAT Options',
+            'component' => 'core_course',
+            'area' => 'course'
         ];
         $this->getDataGenerator()->create_custom_field_category($cfcparams);
+        $configdata = '{"required":"0","uniquevalues":"0","checkbydefault":"0","locked":"0","visibility":"0"}';
         $cfparams = [
             'name' => 'Show assessments on Student Dashboard',
             'shortname' => 'show_on_studentdashboard',
             'type' => 'checkbox',
-            'category' => 'GCAT Options'
+            'category' => 'GCAT Options',
+            'configdata' => $configdata
         ];
         $this->getDataGenerator()->create_custom_field($cfparams);
 
@@ -199,7 +208,7 @@ class get_assessments_test extends advanced_testcase {
         $assignment3 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 2(ii)', 'grade' => 30,  'course' => $gcatcourse->id]);
         $groupassignment1 = $this->getDataGenerator()->create_module('assign', ['name' => 'Group Assessment', 'teamsubmission' => 1, 'course' => $gcatcourse->id]);
 
-        // Create some "gradable" items. Assignments to begin with...
+        // Create some "gradable" items. Regular assignments to begin with...
         $assessmentitem1 = $this->getDataGenerator()->create_grade_item([
             'itemtype' => 'mod',
             'itemmodule' => 'assign',
@@ -247,52 +256,6 @@ class get_assessments_test extends advanced_testcase {
             'grademax' => 23.0,
             'aggregationcoef' => 0.20000,
             'iteminstance' => $groupassignment1->id,
-        ]);
-
-        /** Gradebook type course. */
-        $gradebookcourse = $this->getDataGenerator()->create_course([
-            'fullname' => 'GCAT 2023 TW - Gradebook Grades Only', 
-            'shortname' => 'GCAT2023TWGB',
-            'startdate' => $lastmonth,
-            'enddate' => $nextyear
-        ]);
-        $gradebookcontext = \context_course::instance($gradebookcourse->id);
-
-        // Add a grading category..
-        $gradebookcategory = $this->getDataGenerator()->create_grade_category([
-            'fullname' => 'SPS5022 Oral Presentation 2022-2023', 
-            'courseid' => $gradebookcourse->id
-        ]);
-
-        $gradebookcourse->firstlevel[] = [
-            'id' => $gradebookcategory->id,
-            'fullname' => $gradebookcategory->fullname
-        ];
-        $gradebookcourse->gugradesenabled = false;
-        $gradebookcourse->gcatenabled = false;
-
-        // Enrol the teacher...
-        $this->getDataGenerator()->enrol_user($teacher->id, $gradebookcourse->id, $this->get_roleid('editingteacher'));
-        $this->getDataGenerator()->role_assign('editingteacher', $teacher->id, $gradebookcontext);
-
-        // Enrol the student
-        $this->getDataGenerator()->enrol_user($student1->id, $gradebookcourse->id, $this->get_roleid());
-        $this->getDataGenerator()->role_assign('student', $student1->id, $gradebookcontext);
-
-        $assignment4 = $this->getDataGenerator()->create_module('assign', [
-            'name' => 'SPS5022 Essay - FINAL - Thursday 12th', 
-            'grade' => 4, 
-            'course' => $gradebookcourse->id
-        ]);
-
-        $assessmentitem4 = $this->getDataGenerator()->create_grade_item([
-            'itemtype' => 'mod',
-            'itemmodule' => 'assign',
-            'itemname' => 'Assessment 1',
-            'courseid' => $gradebookcourse->id,
-            'categoryid' => $gradebookcategory->id,
-            'grademax' => 23.00000,
-            'iteminstance' => $assignment4->id
         ]);
 
         /** Create a MyGrades type course */
@@ -350,6 +313,90 @@ class get_assessments_test extends advanced_testcase {
         // Enrol the student
         $this->getDataGenerator()->enrol_user($student1->id, $gugradescourse->id, $this->get_roleid());
         $this->getDataGenerator()->role_assign('student', $student1->id, $gugradescontext);
+
+        /** Regular Gradebook type course. */
+        $gradebookcourse = $this->getDataGenerator()->create_course([
+            'fullname' => 'GCAT 2023 TW - Gradebook Grades Only', 
+            'shortname' => 'GCAT2023TWGB',
+            'startdate' => $lastmonth,
+            'enddate' => $nextyear
+        ]);
+        $gradebookcontext = \context_course::instance($gradebookcourse->id);
+
+        // Add a grading category..
+        $gradebookcategory = $this->getDataGenerator()->create_grade_category([
+            'fullname' => 'SPS5022 Oral Presentation 2022-2023', 
+            'courseid' => $gradebookcourse->id
+        ]);
+
+        $gradebookcourse->firstlevel[] = [
+            'id' => $gradebookcategory->id,
+            'fullname' => $gradebookcategory->fullname
+        ];
+        $gradebookcourse->gugradesenabled = false;
+        $gradebookcourse->gcatenabled = false;
+
+        // Enrol the teacher...
+        $this->getDataGenerator()->enrol_user($teacher->id, $gradebookcourse->id, $this->get_roleid('editingteacher'));
+        $this->getDataGenerator()->role_assign('editingteacher', $teacher->id, $gradebookcontext);
+
+        // Enrol the student
+        $this->getDataGenerator()->enrol_user($student1->id, $gradebookcourse->id, $this->get_roleid());
+        $this->getDataGenerator()->role_assign('student', $student1->id, $gradebookcontext);
+
+        $assignment4 = $this->getDataGenerator()->create_module('assign', [
+            'name' => 'SPS5022 Essay - FINAL - Thursday 12th', 
+            'grade' => 4, 
+            'course' => $gradebookcourse->id
+        ]);
+
+        $assessmentitem4 = $this->getDataGenerator()->create_grade_item([
+            'itemtype' => 'mod',
+            'itemmodule' => 'assign',
+            'itemname' => 'Assessment 1',
+            'courseid' => $gradebookcourse->id,
+            'categoryid' => $gradebookcategory->id,
+            'grademax' => 23.00000,
+            'iteminstance' => $assignment4->id
+        ]);
+
+        /** Lets add some scales to all of the courses created so far... */
+        // Schedule A
+        $scaleitems = 'H:0, G2:1, G1:2, F3:3, F2:4, F1:5, E3:6, E2:7, E1:8, D3:9, D2:10, D1:11,
+            C3:12, C2:13, C1:14, B3:15, B2:16, B1:17, A5:18, A4:19, A3:20, A2:21, A1:22';
+        $scale1 = $this->getDataGenerator()->create_scale([
+            'name' => 'UofG 22 point scale',
+            'scale' => $scaleitems,
+            'courseid' => $gugradescourse->id,
+        ]);
+        $scale2 = $this->getDataGenerator()->create_scale([
+            'name' => 'UofG 22 point scale',
+            'scale' => $scaleitems,
+            'courseid' => $gcatcourse->id,
+        ]);
+        $scale3 = $this->getDataGenerator()->create_scale([
+            'name' => 'UofG 22 point scale',
+            'scale' => $scaleitems,
+            'courseid' => $gradebookcourse->id,
+        ]);
+
+        // Schedule B scale.
+        $scaleitemsb = 'H, G0, F0, E0, D0, C0, B0, A0';
+        $scaleb1 = $this->getDataGenerator()->create_scale([
+            'name' => 'UofG Schedule B',
+            'scale' => $scaleitemsb,
+            'courseid' => $gugradescourse->id,
+        ]);
+        $scaleb1 = $this->getDataGenerator()->create_scale([
+            'name' => 'UofG Schedule B',
+            'scale' => $scaleitemsb,
+            'courseid' => $gcatcourse->id,
+        ]);
+        $scaleb1 = $this->getDataGenerator()->create_scale([
+            'name' => 'UofG Schedule B',
+            'scale' => $scaleitemsb,
+            'courseid' => $gradebookcourse->id,
+        ]);
 
         /** Create a "past" course for the test student(s). */
         $lastmonth = mktime(0, 0, 0, date("m")-1, date("d"), date("Y"));
@@ -597,8 +644,8 @@ class get_assessments_test extends advanced_testcase {
     /**
      * Test of the components of the course that get returned.
      */
-    public function test_get_course_components() {
-        $returned = $this->lib->get_course_components([$this->gcatcourse], true);
+    public function test_get_course_structure() {
+        $returned = $this->courseapi->get_course_structure([$this->gcatcourse], true);
 
         $this->assertIsArray($returned);
         $this->assertArrayHasKey('coursedata',$returned);
@@ -629,10 +676,10 @@ class get_assessments_test extends advanced_testcase {
         $expected2 = get_string("summative", $lang);
         $expected3 = get_string("emptyvalue", $lang);
 
-        $this->assertEquals($expected1, $this->lib->return_assessmenttype("12312 formative", 0));
-        $this->assertEquals($expected2, $this->lib->return_assessmenttype("12312 summative", 1));
-        $this->assertEquals($expected2, $this->lib->return_assessmenttype("123123 summative", 0));
-        $this->assertEquals($expected3, $this->lib->return_assessmenttype(time(), 0));
+        $this->assertEquals($expected1, $this->courseapi->return_assessmenttype("12312 formative", 0));
+        $this->assertEquals($expected2, $this->courseapi->return_assessmenttype("12312 summative", 1));
+        $this->assertEquals($expected2, $this->courseapi->return_assessmenttype("123123 summative", 0));
+        $this->assertEquals($expected3, $this->courseapi->return_assessmenttype(time(), 0));
     }
 
     /**
@@ -641,21 +688,29 @@ class get_assessments_test extends advanced_testcase {
     public function test_return_weight() {
         $aggregationcoef = 10;
         $expected1 = round($aggregationcoef, 2).'%';
-        $this->assertEquals($expected1, $this->lib->return_weight($aggregationcoef));
+        $this->assertEquals($expected1, $this->courseapi->return_weight($aggregationcoef));
 
         $aggregationcoef = 1;
         $expected2 = round($aggregationcoef * 100, 2).'%';
-        $this->assertEquals($expected2, $this->lib->return_weight($aggregationcoef));
+        $this->assertEquals($expected2, $this->courseapi->return_weight($aggregationcoef));
 
         $aggregationcoef = 0;
         $expected3 = '—';
-        $this->assertEquals($expected3, $this->lib->return_weight($aggregationcoef));
+        $this->assertEquals($expected3, $this->courseapi->return_weight($aggregationcoef));
     }
 
     /**
-     * Test that for a given assessment, the correct grade is returned.
+     * Test that for a given assessment, the correct grade status is returned.
      */
     public function test_get_gradestatus() {
+
+    }
+
+    public function test_get_provisionalgrade() {
+
+    }
+
+    public function test_get_finalgrade() {
 
     }
 

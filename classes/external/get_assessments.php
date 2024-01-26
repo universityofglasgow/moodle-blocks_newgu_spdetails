@@ -61,7 +61,7 @@ class get_assessments extends external_api {
                 'subcategory' => $subcategory
             ]);
         return [
-            'result' => json_encode(\block_newgu_spdetails_external::retrieve_assessments(
+            'result' => json_encode(\block_newgu_spdetails\api::retrieve_assessments(
                 $params['activetab'],
                 $params['page'],
                 $params['sortby'],

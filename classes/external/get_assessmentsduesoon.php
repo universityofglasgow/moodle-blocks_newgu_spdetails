@@ -66,7 +66,7 @@ class get_assessmentsduesoon extends external_api {
         $cachedata = $cache->get_many([$cachekey]);
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['summaryupdated'] < $tenminutes) {
-            $assessmentsduesoon = \block_newgu_spdetails_external::get_assessmentsduesoon();
+            $assessmentsduesoon = \block_newgu_spdetails\api::get_assessmentsduesoon();
             $twentyfourhours = $assessmentsduesoon['24hours'];
             $week = $assessmentsduesoon['week'];
             $month = $assessmentsduesoon['month'];

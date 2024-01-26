@@ -65,7 +65,7 @@ class get_assessmentsummary extends external_api {
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['timeupdated'] < $thirtyminutes) {
 
-            $assessmentsummary = \block_newgu_spdetails_external::get_assessmentsummary();
+            $assessmentsummary = \block_newgu_spdetails\api::get_assessmentsummary();
             $total_submissions = $assessmentsummary['total_submissions'];
             $total_tosubmit = $assessmentsummary['total_tosubmit'];
             $total_overdue = $assessmentsummary['total_overdue'];
