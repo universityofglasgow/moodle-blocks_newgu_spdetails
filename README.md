@@ -10,7 +10,7 @@ The initial view on the Dashboard presents an 'at a glance' summary of assignmen
 
 The main view displays more detailed information of the work that has been completed, or is outstanding for each of the courses that the student is enrolled on to.
 
-There is also a Staff view of the dashboard, which allows Staff that are enrolled on a particular course to view the students progress also this is currently accessed via the Dashboard also.
+There is also a Staff view of the 'dashboard', which allows only Staff that are enrolled on a particular course to view the students progress also. This is accessed through the Course navigation 'More' menu - aptly named 'Student Dashoard - Staff View'.
 
 # Installation
 ___

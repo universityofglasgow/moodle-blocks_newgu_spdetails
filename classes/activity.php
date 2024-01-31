@@ -28,7 +28,7 @@
  class activity {
     
     /**
-     * 
+     * Main method called from the API
      */
     public static function get_activityitems(int $subcategory, int $userid, string $sortorder) {
 
@@ -107,69 +107,43 @@
     public static function get_assessment_items(int $subcategory, int $userid, string $assessmenttype, int $courseid, string $sortorder = "asc") {
         global $DB, $USER;
 
-        // If this isn't current user, do they have the rights to look at other users.
+        // Do we need to carry out a context check here?
+        // Other than Admin or a teacher, is there anyway someone 
+        // other than the student can view their dashboard?
         $context = \context_course::instance($courseid);
         if ($USER->id != $userid) {
-            require_capability('local/gugrades:readotherdashboard', $context);
-        } else {
-            require_capability('local/gugrades:readdashboard', $context);
+            $hascap = has_capability('block/newgu_spdetails:readotherdashboard', $context);
         }
 
-        // We've lost all knowledge at this point of the course type: mygrades, gcat etc.
-        // We now need to run the same query again that's in Howard's API in order to 
-        // determine the course type - using the course id that's now being passed in.
-        $gugradesenabled = false;
-        $gcatenabled = false;
-    
-        // MyGrades check
-        $sqlname = $DB->sql_compare_text('name');
-        $sql = "SELECT * FROM {local_gugrades_config}
-            WHERE courseid = :courseid
-            AND $sqlname = :name
-            AND value = :value";
-        $params = [
-            'courseid' => $courseid, 
-            'name' => 'enabledashboard', 
-            'value' => 1
-        ];
-        if ($DB->record_exists_sql($sql, $params)) {
-            $gugradesenabled = true;
-        }
+        // We've lost all knowledge at this point of the course type - fetch it again.
+        $gugradesenabled = \block_newgu_spdetails\course::is_mygrades_type($courseid);
+        $gcatenabled = \block_newgu_spdetails\course::is_gcat_type($courseid);
 
-        // GCAT check
-        $sqlshortname = $DB->sql_compare_text('shortname');
-        $sql = "SELECT * FROM {customfield_data} cd
-            JOIN {customfield_field} cf ON cf.id = cd.fieldid
-            WHERE cd.instanceid = :courseid
-            AND cd.intvalue = 1
-            AND $sqlshortname = 'show_on_studentdashboard'";
-        $params = [
-            'courseid' => $courseid
-        ];
-        if ($DB->record_exists_sql($sql, $params)) {
-            $gcatenabled = true;
-        }
-
-        // With the course type now determined, we can use it to derive the "items"
-        // from either the local_gugrades_x tables, or the regular grade_x tables.
-        $assessmentdata = [];
-
-        // This should be the point where we query either grade_items or local_gugrades_grade
+        // This should be the point where we either query grade_items or local_gugrades_grade
         // Check if our course is MyGrades enabled, if so, run a custom SQL query LEFT JOINing
         // local_gugrades_grade against grade_items and checking for grade entries there, in 
         // order to use/fetch grade status info - otherwise, just fall back to the below query
         // grade_item::fetchall()
         if ($gugradesenabled) {
-            $assessmentitems = \local_gugrades\grades::get_dashboard_grades($userid, $subcategory);
-        }
-
-        if ($gcatenabled) {
-
+            //$assessmentitems = \local_gugrades\grades::get_dashboard_grades($userid, $subcategory);
+            // Custom SQL for now - \local_gugrades\grades::get_dashboard_grades() doesn't give us what we need....
+            $sql = "SELECT gi.id, gi.courseid, gi.categoryid, gi.itemname, gi.itemmodule, gi.iteminstance, 
+            gi.grademax, gi.gradetype, gi.scaleid, gi.aggregationcoef, gg.rawgrade, gg.convertedgrade,
+            gg.displaygrade, gg.gradetype AS gg_gradetype
+            FROM mdl_grade_items gi 
+            LEFT JOIN mdl_local_gugrades_grade gg ON (gg.gradeitemid = gi.id AND gg.userid = :userid)
+            WHERE
+            gi.categoryid = :gradecategoryid";
+            $assessmentitems = $DB->get_records_sql($sql, ['gradecategoryid' => $subcategory, 'userid' => $userid]);
         }
         
         if (!$gugradesenabled && ($gcatenabled || !$gcatenabled)) {
-            $assessmentitems = \grade_item::fetch_all(['courseid' => $courseid, 'categoryid' => $subcategory, 'hidden' => 0, 'display' => 0]);
+            $assessmentitems = \grade_item::fetch_all(['courseid' => $courseid, 'categoryid' => $subcategory]);
         }
+
+        // With the course type now determined, we can use it to derive the "items"
+        // from either the local_gugrades_x tables, or the regular grade_x tables.
+        $assessmentdata = [];
 
         if ($assessmentitems && count($assessmentitems) > 0) {
             
@@ -188,25 +162,33 @@
                     break;
             }
 
-            $coursetype = (($gcatenabled) ? "gcatenabled" : "gradebookenabled");
+            $coursetype = (($gugradesenabled) ? "gugradesenabled" : (($gcatenabled) ? "gcatenabled" : "gradebookenabled"));
+
+            $lti_instances_to_exclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
 
             foreach($assessmentitems as $assessmentitem) {
-                $assessmentweight = \block_newgu_spdetails\course::return_weight($assessmentitem->aggregationcoef);
-                // What do we actually want back from return_gradestatus:
-                // 1 the status as a value
-                //   -- grade_status
-                //   -- status_link
-                //   -- status_text
-                //   -- status_class
-                //   -- grade
+                // First off, exlude the LTI instances that are not required to be shown...
+                if ($assessmentitem->itemmodule == 'lti') {
+                    if (is_array($lti_instances_to_exclude) && in_array($assessmentitem->courseid, $lti_instances_to_exclude) ||
+                    $assessmentitem->courseid == $lti_instances_to_exclude) {
+                        continue;
+                    }
+                }
                 
-                // 2 the grade as a string
-                // An object to pass to get_feedback - which doesn't need to repeat return_gradestatus
-                // $gradeandgradestatus = self::get_gradeandgradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->gradetype);
-                // 'status' => $gradeandgradestatus->status;
-                // 'status_class' => $gradeandgradestatus->status_class;
-                // etc etc
-                // $gradestatus = \block_newgu_spdetails\grade::return_grade_and_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->gradetype, $assessmentitem->scaleid);
+                $assessmentweight = \block_newgu_spdetails\course::return_weight($assessmentitem->aggregationcoef);
+                
+                // if ($gugradesenabled) {
+                //     if (in_array($assessmentitem->id, $gradesenabled_assessmentitems) {
+                //         // Call the appropriate \local_gugrades\ methods
+                //        $gradestatus = $gradesenabled_assessmentitems->$assessmentitem->id->object
+                //     } else {
+                //         // All other properties for the assessment need to be set if no corresponding mygrades record was found.
+                //         $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->gradetype, $assessmentitem->scaleid);
+                //     }
+                // }
+                // OR...
+                // $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->gradetype, $assessmentitem->scaleid, $assessmentitem->grademax, $coursetype);
+                
                 $gradestatus = \block_newgu_spdetails\grade::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid);
                 $duedate = \DateTime::createFromFormat('U', $gradestatus['duedate']);
                 $gradefeedback = \block_newgu_spdetails\grade::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->grademax, $assessmentitem->gradetype);
@@ -233,4 +215,34 @@
 
         return $assessmentdata;
     }
- }
+
+    /**
+     * "Borrowed" from local_gugrades...
+     * Factory to get correct class for assignment type
+     * These are found in blocks_newgu_spdetails/classes/activities
+     * Pick manual for manual grades, xxx_activity for activity xxx (if exists) or default_activity
+     * for everything else
+     * @param int $gradeitemid
+     * @param int $courseid
+     * @param int $groupid
+     * @return object
+     */
+    public static function activity_factory(int $gradeitemid, int $courseid, int $groupid = 0) {
+        global $DB;
+
+        $item = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);
+        $module = $item->itemmodule;
+        if ($item->itemtype == 'manual') {
+            return new \blocks_newgu_spdetails\activities\manual($gradeitemid, $courseid, $groupid);
+        } else {
+            $classname = '\\blocks_newgu_spdetails\\activities\\' . $module . '_activity';
+            if (class_exists($classname)) {
+                return new $classname($gradeitemid, $courseid, $groupid);
+            } else {
+                return new \blocks_newgu_spdetails\activities\default_activity($gradeitemid, $courseid, $groupid);
+            }
+        }
+    }
+
+}
+ 

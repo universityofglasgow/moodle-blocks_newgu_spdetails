@@ -30,34 +30,65 @@ class grade {
      * Reimplementation of return_gradestatus as it misses the mark on a
      * number of fundamental levels.
      * 
-     * @param string $modulename
-     * @param int $iteminstance
      * @param int $courseid
      * @param int $itemid
      * @param int $userid
      * @param int $gradetype
      * @param int $scaleid
+     * @param int $grademax
+     * @param string $coursetype
      * @return object
      */
-    public static function get_grade_and_gradestatus(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid, int $gradetype, int $scaleid) {
+    public static function get_grade_status_and_feedback(int $courseid, int $itemid, int $userid, int $gradetype, int $scaleid, int $grademax, string $coursetype) {
+        
         $gradestatus = new stdClass();
-        $gradestatus->status = '';
-        $gradestatus->statustext = '';
-        $gradestatus->statusclass = '';
+        $gradestatus->assessmenturl = '';
         $gradestatus->duedate = 0;
         $gradestatus->cutoffdate = 0;
         $gradestatus->gradingduedate = 0;
+        $gradestatus->status = '';
+        $gradestatus->statustext = '';
+        $gradestatus->statusclass = '';
         $gradestatus->link = '';
-        $gradestatus->assessmenturl = '';
         $gradestatus->gradetodisplay = '';
+        $gradestatus->gradefeedback = '';
 
         $url = $CFG->wwwroot . '/mod/';
         $script = '/view.php?id=';
         $rawgrade = null;
         $finalgrade = null;
 
+        // $activity = \block_newgu_spdetails\activity::activity_factory($itemid, $courseid, 0);
+        // $activitygrade = $activity->get_first_grade($userid);
+        // if ($activitygrade->finalgrade > 0) {
+        //     $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->finalgrade, $gradetype, $scaleid, $grademax, $coursetype)
+        //     $gradestatus->status = get_string('status_graded', 'block_newgu_spdetails');
+        //     $gradestatus->statustext = get_string('status_text_graded', 'block_newgu_spdetails');
+        //     $gradestatus->statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
+        //     $gradestatus->link = $url . $modulename . $script . $cmid . '#page-footer';
+        //     $gradestatus->assessmenturl = $url . $modulename . $script . $cmid;
+        //     $gradestatus->gradetodisplay = $grade;
+        //     $gradestatus->feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails', $url . $activity->assign->modulename . $script . $cmid);
+        //
+        //     return $gradestatus;
+        // }
+        //
+        // // It's not been mentioned/specced w/regards provisional grades - do we treat rawgrades as such?
+        // if ($activitygrade->rawgrade > 0) {
+        //    $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype, $activitygrade->rawscaleid)
+        // }
+        //
+        // What should we do here if only a 'grade' has been returned?
+        // if ($activitygrade->grade > 0) {
+        //    
+        // }
+        //
+        // We don't have a final grade, lets work backwards to determine the status and feedback.
+        // $status = $activity->get_status();
+
+
         $gradeqry = $DB->get_record_sql(
-            "SELECT rawgrade,finalgrade FROM {grade_grades} WHERE itemid = :itemid AND userid = :userid AND hidden = :ishidden",
+            "SELECT rawgrade, rawscaleid, finalgrade FROM {grade_grades} WHERE itemid = :itemid AND userid = :userid AND hidden = :ishidden",
             [
                 'itemid' => $itemid,
                 'userid' => $userid,
@@ -67,48 +98,36 @@ class grade {
 
         if (!empty($gradeqry)) {
             $rawgrade = (!empty($gradeqry->rawgrade) ? floor($gradeqry->rawgrade) : null);
+            $rawscaleid = (!empty($gradeqry->rawscaleid) ? floor($gradeqry->rawscaleid) : null);
             $finalgrade = (!empty($gradeqry->finalgrade) ? floor($gradeqry->finalgrade) : null);
         }
 
-        $cmid = self::get_cmid($modulename, $courseid, $iteminstance);
+        $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
 
-        if ($rawgrade > 0 && ($finalgrade == null || $finalgrade == 0)) {
-            $provisional_22grademaxpoint = self::return_22grademaxpoint($rawgrade - 1, 1);
-        }
+        /** Start at the top and work backwards... */ 
 
-        // Do the easy stuff first...
+        // Do we have a final grade...
         if ($finalgrade != null && $finalgrade > 0) {
             
-            $converted_22grademaxpoint = self::return_22grademaxpoint($finalgrade - 1, 1);
-            
-            switch($gradetype) {
-                // Point Scale
-                case GRADE_TYPE_VALUE:
-                    $gradestatus->gradetodisplay = floor($finalgrade);
-                    break;
-
-                case GRADE_TYPE_SCALE:
-                    // Using the scaleid, derive the scale values...
-                    $scaleparams = [
-                        'scaleid' => $scaleid
-                    ];
-                    $scale = new \grade_scale($scaleparams, false);
-                    $gradestatus->gradetodisplay = $scale->get_nearest_item($finalgrade);
-                    break;
-                    
-                // Grade Type is None
-                case GRADE_TYPE_TEXT:
-                    break;
-            }
-
             $gradestatus->status = get_string('status_graded', 'block_newgu_spdetails');
             $gradestatus->statustext = get_string('status_text_graded', 'block_newgu_spdetails');
             $gradestatus->statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
             $gradestatus->link = $url . $modulename . $script . $cmid . '#page-footer';
+            $gradestatus->assessmenturl = $url . $modulename . $script . $cmid;
+            $gradestatus->gradetodisplay = self::get_formatted_grade_from_grade_type($finalgrade, $gradetype, $scaleid);
 
             return $gradestatus;
         }
 
+        // Do we have a provisional grade instead...
+        if ($rawgrade > 0 && ($finalgrade == null || $finalgrade == 0)) {
+            $gradestatus->link = $url . $modulename . $script . $cmid . '#page-footer';
+            $gradestatus->assessmenturl = $url . $modulename . $script . $cmid;
+            $gradestatus->gradetodisplay = self::get_formatted_grade_from_grade_type($rawgrade, $gradetype, $rawscaleid);
+        }
+
+        // Now lets work through where we're at assessment and submission wise...
+        // This needs to be a factory call of some sort...
         switch ($modulename) {
             case 'assign':
                 $assignment = $DB->get_record('assign', ['id' => $iteminstance]);
@@ -273,6 +292,57 @@ class grade {
     }
 
     /**
+     * This method returns the grade using the format that was set
+     * in the Assessment settings page, i.e. Point, Scale or None.
+     * 
+     * @param int $grade
+     * @param int $gradetype
+     * @param int $scaleid
+     * @param int $grademax
+     * @param string $coursetype
+     */
+    public static function get_formatted_grade_from_grade_type(int $grade, int $gradetype, int $scaleid = null, int $grademax, string $coursetype) {
+        
+        $return_grade = null;
+        switch($gradetype) {
+            // Point Scale
+            case GRADE_TYPE_VALUE:
+                switch ($coursetype) {
+                    case "gcatenabled":
+                    break;
+                    case "gradebookenabled":
+                        $return_grade = number_format($grade, 3) . " / " . $grademax;
+                    break;
+                }
+                break;
+
+            case GRADE_TYPE_SCALE:
+                // Using the scaleid, derive the scale values...
+                $scaleparams = [
+                    'scaleid' => $scaleid
+                ];
+                $scale = new \grade_scale($scaleparams, false);
+
+                switch ($coursetype) {
+                    case "gcatenabled":
+                        $return_grade = $grade . " / " . $grademax . " - " . $scale->get_nearest_item($grade);
+                    break;
+                    case "gradebookenabled":
+                        $return_grade = $scale->get_nearest_item($grade);
+                    break;
+                }
+                break;
+                
+            // Grade Type has been set to None in the settings...
+            case GRADE_TYPE_TEXT:
+                $return_grade = get_string('status_text_tobeconfirmed','block_newgu_spdetails');
+                break;
+        }
+
+        return $return_grade;
+    }
+
+    /**
      * For a given userid, return the current grading status for this assessment item.
      * 
      * @param string $modulename
@@ -321,7 +391,7 @@ class grade {
             }
         }
 
-        $cmid = self::get_cmid($modulename, $courseid, $iteminstance);
+        $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
 
         // Refactor this to allow any activity type to be parsed...
         switch ($modulename) {
@@ -479,6 +549,30 @@ class grade {
     }
 
     /**
+     * Returns a corresponding value for grades with gradetype = "value" and grademax = "22"
+     *
+     * @param int $grade
+     * @param int $idnumber = 1 - Schedule A, 2 - Schedule B
+     * @return string 22-grade max point value
+     */
+    public static function return_22grademaxpoint($grade, $idnumber) {
+        $values = array('H', 'G2', 'G1', 'F3', 'F2', 'F1', 'E3', 'E2', 'E1', 'D3', 'D2', 'D1',
+            'C3', 'C2', 'C1', 'B3', 'B2', 'B1', 'A5', 'A4', 'A3', 'A2', 'A1');
+        if ($grade <= 22) {
+            $value = $values[$grade];
+            if ($idnumber == 2) {
+                $stringarray = str_split($value);
+                if ($stringarray[0] != 'H') {
+                    $value = $stringarray[0] . '0';
+                }
+            }
+            return $value;
+        } else {
+            return "";
+        }
+    }
+
+    /**
      * Method to return grading feedback.
      * 
      * @param string $modulename
@@ -508,7 +602,7 @@ class grade {
         $provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
         $converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
         
-        $cmid = self::get_cmid($modulename, $courseid, $iteminstance);
+        $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
         
         if ($finalgrade != null) {
             
@@ -567,4 +661,5 @@ class grade {
             "rawgrade" => $rawgrade
         ];
     }
+
 }

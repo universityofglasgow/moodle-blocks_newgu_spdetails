@@ -76,7 +76,6 @@ class api extends \external_api
             }
 
             //$pagination = $OUTPUT->paging_bar($totalassessments, $page, $limit, $url);
-            
             //$data['pagination'] = $pagination;
         }
 
@@ -116,7 +115,7 @@ class api extends \external_api
             }
 
             $courses = \local_gugrades\api::dashboard_get_courses($userid, $currentcourses, $pastcourses, $sortby . " " . $sortorder);                    
-            $gradableactivities = \block_newgu_spdetails\course::get_course_structure($courses, $currentcourses);
+            return \block_newgu_spdetails\course::get_course_structure($courses, $currentcourses);
         } else {
             $gradableactivities = \block_newgu_spdetails\activity::get_activityitems($subcategory, $userid, $sortorder);
         }
@@ -145,9 +144,14 @@ class api extends \external_api
         }
 
         // This should probably account for workshop and other submission activities...
-        $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'id', 'userid = :userid', ['userid' => $USER->id]);
-        $assignmentdata = [];
+        // As these tables will have an enourmous amount of data, we need to perhaps 
+        // restrict searching for items only to the last month.
         $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        $lastmonth = mktime(date("H"), date("i"), date("s"), date("m")-1, date("d"), date("Y"));
+        $assignmentdata = [];
+        $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
+        $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+        $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'id', $select,$params);
         
         foreach($courses as $course) {
             if ($assignments = $DB->get_records('assign', ['course' => $course->id], 'id', '*',0,0)) {
@@ -203,7 +207,7 @@ class api extends \external_api
      * 
      * @TODO - this needs to be refactored to make better use of
      * \local_gugrades\api::dashboard_get_courses instead of
-     * self::return_enrolledcourses
+     * \block_newgu_spdetails\course::return_enrolledcourses
      * 
      * @return array
      */
@@ -215,7 +219,7 @@ class api extends \external_api
         $total_submissions = 0;
         $total_tosubmit = 0;
 
-        $currentcourses = self::return_enrolledcourses($USER->id, "current");
+        $currentcourses = \block_newgu_spdetails\course::return_enrolledcourses($USER->id, "current");
 
         $stats = [
             'total_submissions' => 0,
@@ -247,7 +251,7 @@ class api extends \external_api
                 self::validate_context($context);
                 require_capability('mod/assign:viewownsubmissionsummary', $context, $USER->id);
 
-                $gradestatus = self::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
+                $gradestatus = \block_newgu_spdetails\grade::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
                 $status = $gradestatus["status"];
                 $finalgrade = $gradestatus["finalgrade"];
 
@@ -317,83 +321,6 @@ class api extends \external_api
     }
 
     /**
-     * This method returns all courses a user is currently enrolled in.
-     * Courses can be filtered by course type and user type.
-     *
-     * @param int $userid
-     * @param string $coursetype
-     * @param string $usertype
-     * @return array|void
-     * @throws dml_exception
-     */
-    public static function return_enrolledcourses(int $userid, string $coursetype, string $usertype = "student")
-    {
-
-        $currentdate = time();
-        $coursetypewhere = "";
-
-        global $DB;
-
-        $fields = "c.id, c.fullname as coursename";
-        $fieldwhere = "c.visible = 1 AND c.visibleold = 1";
-
-        if ($coursetype == "past") {
-            $coursetypewhere = " AND ( c.enddate + (86400 * 30) <=" . $currentdate . " AND c.enddate!=0 )";
-        }
-
-        if ($coursetype == "current") {
-            $coursetypewhere = " AND ( c.enddate + (86400 * 30) >" . $currentdate . " OR c.enddate=0 )";
-        }
-
-        if ($coursetype == "all") {
-            $coursetypewhere = "";
-        }
-
-        $enrolmentselect = "SELECT DISTINCT e.courseid FROM {enrol} e
-                            JOIN {user_enrolments} ue
-                            ON (ue.enrolid = e.id AND ue.userid = ?)";
-
-        $enrolmentjoin = "JOIN ($enrolmentselect) en ON (en.courseid = c.id)";
-
-        $sql = "SELECT $fields FROM {course} c $enrolmentjoin
-                WHERE $fieldwhere $coursetypewhere";
-
-        $param = [$userid];
-
-        $results = $DB->get_records_sql($sql, $param);
-
-        if ($results) {
-            $studentcourses = [];
-            $staffcourses = [];
-            foreach ($results as $courseid => $courseobject) {
-
-                $coursename = $courseobject->coursename;
-
-                if (self::return_isstudent($courseid, $userid)) {
-                    array_push($studentcourses, $courseid);
-
-                } else {
-                    $cntstaff = self::checkrole($userid, $courseid);
-                    if ($cntstaff != 0) {
-                        array_push($staffcourses, ["courseid" => $courseid, "coursename" => $coursename]);
-                    }
-                }
-            }
-
-            if ($usertype == "student") {
-                return $studentcourses;
-            }
-
-            if ($usertype == "staff") {
-                return $staffcourses;
-            }
-
-        } else {
-            return [];
-        }
-    }
-
-    /**
      * This function checks that, for a given userid, the user
      * is enrolled on a given course (passed in as courseid).
      *
@@ -430,53 +357,6 @@ class api extends \external_api
         $cntstaff = $arr_cntstaff->cntstaff;
 
         return $cntstaff;
-    }
-
-    /**
-     * @param string $cmdodule
-     * @param int $courseid
-     * @param int $instance
-     * @param return int $cmid
-     */
-    public static function get_cmid(string $cmodule, int $courseid, int $instance)
-    {
-        // cmodule is module name e.g. quiz, forums etc.
-        global $DB;
-
-        $arr_module = $DB->get_record('modules', array('name' => $cmodule));
-        $moduleid = $arr_module->id;
-
-        $arr_coursemodule = $DB->get_record('course_modules', array('course' => $courseid, 'module' => $moduleid, 'instance' => $instance));
-
-        $cmid = $arr_coursemodule->id;
-
-        return $cmid;
-
-    }
-
-    /**
-     * Returns a corresponding value for grades with gradetype = "value" and grademax = "22"
-     *
-     * @param int $grade
-     * @param int $idnumber = 1 - Schedule A, 2 - Schedule B
-     * @return string 22-grade max point value
-     */
-    public static function return_22grademaxpoint($grade, $idnumber)
-    {
-        $values = array('H', 'G2', 'G1', 'F3', 'F2', 'F1', 'E3', 'E2', 'E1', 'D3', 'D2', 'D1',
-            'C3', 'C2', 'C1', 'B3', 'B2', 'B1', 'A5', 'A4', 'A3', 'A2', 'A1');
-        if ($grade <= 22) {
-            $value = $values[$grade];
-            if ($idnumber == 2) {
-                $stringarray = str_split($value);
-                if ($stringarray[0] != 'H') {
-                    $value = $stringarray[0] . '0';
-                }
-            }
-            return $value;
-        } else {
-            return "";
-        }
     }
 
     /**
@@ -604,13 +484,13 @@ class api extends \external_api
      * @throws dml_exception
      * @return mixed array int
      */
-    function get_ltiinstancenottoinclude() {
+    public static function get_ltiinstancenottoinclude() {
         global $DB;
     
         $str_ltitoinclude = "99999";
         $str_ltinottoinclude = "99999";
         $arr_ltitoinclude = $DB->get_records_sql(
-            "SELECT * FROM {config} WHERE name LIKE :configname AND value = :configvalue",
+            "SELECT name FROM {config} WHERE name LIKE :configname AND value = :configvalue",
             [
                 "configname" => "%block_newgu_spdetails_include_%",
                 "configvalue" => 1
@@ -631,11 +511,11 @@ class api extends \external_api
             $str_ltitoinclude = "99999";
         }
     
+        // Not sure how to pass :namedvalue in as an array of values
+        // e.g. passing in 1,2,4 seems to get truncated somewhere
+        // along the way.
         $arr_ltitypenottoinclude = $DB->get_records_sql(
-            "SELECT id FROM {lti_types} WHERE id NOT IN (:ltistoinclude)",
-            [
-                "ltistoinclude" => $str_ltitoinclude
-            ]
+            "SELECT id FROM {lti_types} WHERE id NOT IN ($str_ltitoinclude)"
         );
     
         $array_ltitypenottoinclude = [];
@@ -647,11 +527,10 @@ class api extends \external_api
         
         $str_ltitypenottoinclude = implode(",", $array_ltitypenottoinclude);
     
+        // The LTI instance *needs* to have been selected in the assessment,
+        // otherwise typeid in mdl_lti will be null
         $arr_ltiinstancenottoinclude = $DB->get_records_sql(
-            "SELECT * FROM {lti} WHERE typeid NOT IN (:ltisnottoinclude)",
-            [
-                "ltisnottoinclude" => $str_ltitypenottoinclude
-            ]
+            "SELECT * FROM {lti} WHERE typeid NOT IN ($str_ltitypenottoinclude)"
         );
     
         $array_ltiinstancenottoinclude = [];
@@ -668,4 +547,5 @@ class api extends \external_api
 
         return $str_ltiinstancenottoinclude;
     }
+
 }

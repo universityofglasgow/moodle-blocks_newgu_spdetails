@@ -15,31 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * New GU SP Details
+ * Concrete implementation for manual grades
  * @package    block_newgu_spdetails
- * @copyright  2023 NEW GU
- * @author
+ * @copyright  2024
+ * @author     Howard Miller
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace blocks_newgu_spdetails\activities;
 
-$capabilities = [
+/**
+ * Manual grade items
+ */
+class manual extends base {
 
-    'block/newgu_spdetails:myaddinstance' => [
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [],
-        'clonepermissionsfrom' => 'moodle/my:manageblocks'
-    ],
-    'block/newgu_spdetails:readotherdashboard' => [
-        'riskbitmask' => RISK_PERSONAL,
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => [
-            'manager' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
-        ],
-    ],
-];
+    /**
+     * Get item type
+     * @return string
+     */
+    public function get_itemtype() {
+        return  'manual';
+    }
+
+}

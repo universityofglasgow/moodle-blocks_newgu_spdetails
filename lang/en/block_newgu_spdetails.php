@@ -118,6 +118,7 @@ $string['status_class_notsubmitted'] = 'status-notsubmitted';
 $string['status_class_overdue'] = 'status-overdue';
 
 $string['status_text_graded'] = 'Graded';
+$string['status_text_provisional'] = '(Provisional)';
 $string['status_text_notsubmitted'] = 'Not submitted';
 $string['status_text_overdue'] = 'Overdue';
 $string['status_text_submissionnotopen'] = 'Submission not open';
@@ -126,6 +127,7 @@ $string['status_text_submit'] = 'Submit';
 $string['status_text_submitted'] = 'Submitted';
 $string['status_text_tobeconfirmed'] = 'To be confirmed';
 $string['status_text_dueby'] = 'Due {$a}';
+$string['status_text_viewfeedback'] = '<a href="{$a}">View Feedback</a>';
 
 $string['status_unavailable'] = 'submissionunavailable';
 

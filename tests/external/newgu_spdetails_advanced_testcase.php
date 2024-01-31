@@ -15,26 +15,28 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for the block_newgu_spdetails class.
+ * Custom class for setting up our course types, gradebook, activities and assignments.
  *
  * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
- * @copyright  2023 University of Glasgow
+ * @copyright  2024 University of Glasgow
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace blocks\newgu_spdetails;
+namespace blocks_newgu_spdetails\external;
 
-use advanced_testcase;
+use externallib_advanced_testcase;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
-require_once('config.php');
-require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
+require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 
-class get_assessments_test extends advanced_testcase {
+/**
+ * Class containing setUp, activities and other utility methods.
+ */
+class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
     
     /**
      * @var object $course
@@ -47,9 +49,39 @@ class get_assessments_test extends advanced_testcase {
     protected $teacher;
 
     /**
-     * @var object $student
+     * @var object $student1
      */
-    protected $student;
+    protected $student1;
+
+    /**
+     * @var object $lib
+     */
+    protected $lib;
+
+    /**
+     * @var object $courseapi
+     */
+    protected $courseapi;
+
+    /**
+     * @var object $activityapi
+     */
+    protected $activityapi;
+
+    /**
+     * @var object $gcatcourse
+     */
+    protected $gcatcourse;
+
+    /**
+     * @var obejct $gugradescourse
+     */
+    protected $gugradescourse;
+
+    /**
+     * @var object $gradebookcourse
+     */
+    protected $gradebookcourse;
 
     /**
      * Add assignment grade
@@ -446,7 +478,7 @@ class get_assessments_test extends advanced_testcase {
             'iteminstance' => $assignment_past->id
         ]);
 
-        // Add an assignment grade.
+        // Add a past assignment grade.
         $assignmentgrade1_past = $this->add_assignment_grade($assignment_past->id, $student1->id, 95.5);
 
         // $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
@@ -587,134 +619,5 @@ class get_assessments_test extends advanced_testcase {
 
         $role = $DB->get_record("role", ['archetype' => $archetype]);
         return $role->id;
-    }
-
-    /**
-     * Test that only current courses are returned.
-     * Course "type" is irrelevant for this test - so we just pick a type.
-     */
-    public function test_retrieve_gradable_activities_current_courses() {
-        $userid = $this->student1->id;
-        $sortorder = 'asc';
-        $summativecategoryid = $this->summativecategory->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $summativecategoryid);
-
-        $this->assertIsArray($returned);
-        $this->assertArrayHasKey('coursedata',$returned);
-        $this->assertCount(3, $returned['coursedata']['assessmentitems']);
-    }
-
-    /**
-     * Test that only past courses are returned.
-     */
-    public function test_retrieve_gradable_activities_past_courses() {
-        $userid = $this->student1->id;
-        $sortorder = 'asc';
-        $summativecategory_pastid = $this->summativecategory_past->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $summativecategory_pastid);
-
-        $this->assertIsArray($returned);
-        $this->assertArrayHasKey('coursedata',$returned);
-        $this->assertCount(1, $returned['coursedata']['assessmentitems']);
-    }
-
-    /**
-     * Test the different course types that can be in use in the system
-     */
-    public function test_retrieve_gradable_activities_by_course_type() {
-        $userid = $this->student1->id;
-        $sortorder = 'asc';
-
-        /** MyGrades course type */
-        $gugradessubcategoryid = $this->gugrades_subcategory->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $gugradessubcategoryid);
-        $this->assertEquals($this->gugradescourse->gugradesenabled, $returned['coursedata']['assessmentitems'][0]['gugradesenabled']);
-
-        /** GCAT course type */
-        $gcatsubcategoryid = $this->summative_subcategory->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $gcatsubcategoryid);
-        $this->assertEquals($this->gcatcourse->gcatenabled, $returned['coursedata']['assessmentitems'][0]['gcatenabled']);
-
-        /** Gradebook course type */
-        $gradebookcategoryid = $this->gradebookcategory->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $gradebookcategoryid);
-        $this->assertEquals(true, $returned['coursedata']['assessmentitems'][0]['gradebookenabled']);
-    }
-
-    /**
-     * Test of the components of the course that get returned.
-     */
-    public function test_get_course_structure() {
-        $returned = $this->courseapi->get_course_structure([$this->gcatcourse], true);
-
-        $this->assertIsArray($returned);
-        $this->assertArrayHasKey('coursedata',$returned);
-        $this->assertIsString($returned['coursedata'][0]['coursename']);
-        $this->assertEquals($this->gcatcourse->shortname, $returned['coursedata'][0]['coursename']);
-
-        $this->assertIsArray($returned['coursedata'][0]['subcategories']);
-        $this->assertArrayHasKey('subcategories',$returned['coursedata'][0]);
-        $this->assertEquals($this->summativecategory->fullname, $returned['coursedata'][0]['subcategories'][0]['name']);
-        $this->assertEquals('Summative', $returned['coursedata'][0]['subcategories'][0]['assessmenttype']);
-        $this->assertEquals('—', $returned['coursedata'][0]['subcategories'][0]['subcatweight']);
-    }
-
-    /**
-     * Test of the context checking when viewing the dashboard as the student
-     * and as another user, teacher or other member of staff for example
-     */
-    public function test_retrieve_gradable_activities_capability_check() {
-
-    }
-
-    /**
-     * Test of the language string settings against mock assessment types and weighting.
-     */
-    public function test_return_assessmenttype() {
-        $lang = 'block_newgu_spdetails';
-        $expected1 = get_string("formative", $lang);
-        $expected2 = get_string("summative", $lang);
-        $expected3 = get_string("emptyvalue", $lang);
-
-        $this->assertEquals($expected1, $this->courseapi->return_assessmenttype("12312 formative", 0));
-        $this->assertEquals($expected2, $this->courseapi->return_assessmenttype("12312 summative", 1));
-        $this->assertEquals($expected2, $this->courseapi->return_assessmenttype("123123 summative", 0));
-        $this->assertEquals($expected3, $this->courseapi->return_assessmenttype(time(), 0));
-    }
-
-    /**
-     * Test that the correct weighting for a given course 'type' is returned.
-     */
-    public function test_return_weight() {
-        $aggregationcoef = 10;
-        $expected1 = round($aggregationcoef, 2).'%';
-        $this->assertEquals($expected1, $this->courseapi->return_weight($aggregationcoef));
-
-        $aggregationcoef = 1;
-        $expected2 = round($aggregationcoef * 100, 2).'%';
-        $this->assertEquals($expected2, $this->courseapi->return_weight($aggregationcoef));
-
-        $aggregationcoef = 0;
-        $expected3 = '—';
-        $this->assertEquals($expected3, $this->courseapi->return_weight($aggregationcoef));
-    }
-
-    /**
-     * Test that for a given assessment, the correct grade status is returned.
-     */
-    public function test_get_gradestatus() {
-
-    }
-
-    public function test_get_provisionalgrade() {
-
-    }
-
-    public function test_get_finalgrade() {
-
-    }
-
-    public function test_return_gradefeedback() {
-
     }
 }

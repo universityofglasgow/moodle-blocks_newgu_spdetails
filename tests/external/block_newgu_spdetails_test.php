@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 global $CFG, $DB;
 
-require_once('config.php');
+require_once($CFG->dirroot .'/config.php');
 require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot .'/blocks/newgu_spdetails/block_newgu_spdetails.php');
 

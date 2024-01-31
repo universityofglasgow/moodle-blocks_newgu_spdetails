@@ -9,7 +9,7 @@ Please see document https://moodledev.io/general/development/tools/phpunit
 
 Currently tests can be run individually, using (for example)
 
-    vendor/bin/phpunit blocks/newgu_spdetails/tests/external/get_grade_status_test.php
+    vendor/bin/phpunit blocks/newgu_spdetails/tests/external/get_grade_test.php
 
 ...or the complete set for the plugin can be executed using
 
@@ -18,7 +18,7 @@ Currently tests can be run individually, using (for example)
 ## Test configuration
 
 Web service tests, extend the class *newgu_spdetails_advanced_testcase*. This creates some basic structure for
-tests to use. Including...
+the tests to use. Including...
 
 * Courses - MyGrades, GCAT and regular Gradebook types
 * The 22-point scale - both Schedule A and Schedule B

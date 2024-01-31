@@ -133,6 +133,57 @@
     }
 
     /**
+     * Reusing the code from local_gugrades/api::get_dashboard_get_courses
+     * @param int $courseid
+     * @return bool $gugradesenabled
+     */
+    public static function is_mygrades_type(int $courseid) {
+        global $DB;
+        
+        $gugradesenabled = false;
+        $sqlname = $DB->sql_compare_text('name');
+        $sql = "SELECT * FROM {local_gugrades_config}
+            WHERE courseid = :courseid
+            AND $sqlname = :name
+            AND value = :value";
+        $params = [
+            'courseid' => $courseid, 
+            'name' => 'enabledashboard', 
+            'value' => 1
+        ];
+        if ($DB->record_exists_sql($sql, $params)) {
+            $gugradesenabled = true;
+        }
+
+        return $gugradesenabled;
+    }
+
+    /**
+     * Reusing the code from local_gugrades/api::get_dashboard_get_courses
+     * @param int $courseid
+     * @return bool $gcatenabled
+     */
+    public static function is_gcat_type($courseid) {
+        global $DB;
+
+        $gcatenabled = false;
+        $sqlshortname = $DB->sql_compare_text('shortname');
+        $sql = "SELECT * FROM {customfield_data} cd
+            JOIN {customfield_field} cf ON cf.id = cd.fieldid
+            WHERE cd.instanceid = :courseid
+            AND cd.intvalue = 1
+            AND $sqlshortname = 'show_on_studentdashboard'";
+        $params = [
+            'courseid' => $courseid
+        ];
+        if ($DB->record_exists_sql($sql, $params)) {
+            $gcatenabled = true;
+        }
+
+        return $gcatenabled;
+    }
+
+    /**
      * Returns the 'weight' in percentage
      * 
      * @param float $aggregationcoef
@@ -170,4 +221,104 @@
 
         return $assessmenttype;
     }
- }
+
+    /**
+     * @param string $cmdodule
+     * @param int $courseid
+     * @param int $instance
+     * @param return int $cmid
+     */
+    public static function get_cmid(string $cmodule, int $courseid, int $instance)
+    {
+        // cmodule is module name e.g. quiz, forums etc.
+        global $DB;
+
+        $arr_module = $DB->get_record('modules', array('name' => $cmodule));
+        $moduleid = $arr_module->id;
+
+        $arr_coursemodule = $DB->get_record('course_modules', array('course' => $courseid, 'module' => $moduleid, 'instance' => $instance));
+
+        $cmid = $arr_coursemodule->id;
+
+        return $cmid;
+
+    }
+
+    /**
+     * This method returns all courses a user is currently enrolled in.
+     * Courses can be filtered by course type and user type.
+     *
+     * @param int $userid
+     * @param string $coursetype
+     * @param string $usertype
+     * @return array|void
+     * @throws dml_exception
+     */
+    public static function return_enrolledcourses(int $userid, string $coursetype, string $usertype = "student")
+    {
+
+        $currentdate = time();
+        $coursetypewhere = "";
+
+        global $DB;
+
+        $fields = "c.id, c.fullname as coursename";
+        $fieldwhere = "c.visible = 1 AND c.visibleold = 1";
+
+        if ($coursetype == "past") {
+            $coursetypewhere = " AND ( c.enddate + (86400 * 30) <=" . $currentdate . " AND c.enddate!=0 )";
+        }
+
+        if ($coursetype == "current") {
+            $coursetypewhere = " AND ( c.enddate + (86400 * 30) >" . $currentdate . " OR c.enddate=0 )";
+        }
+
+        if ($coursetype == "all") {
+            $coursetypewhere = "";
+        }
+
+        $enrolmentselect = "SELECT DISTINCT e.courseid FROM {enrol} e
+                            JOIN {user_enrolments} ue
+                            ON (ue.enrolid = e.id AND ue.userid = ?)";
+
+        $enrolmentjoin = "JOIN ($enrolmentselect) en ON (en.courseid = c.id)";
+
+        $sql = "SELECT $fields FROM {course} c $enrolmentjoin
+                WHERE $fieldwhere $coursetypewhere";
+
+        $param = [$userid];
+
+        $results = $DB->get_records_sql($sql, $param);
+
+        if ($results) {
+            $studentcourses = [];
+            $staffcourses = [];
+            foreach ($results as $courseid => $courseobject) {
+
+                $coursename = $courseobject->coursename;
+
+                if (\block_newgu_spdetails\api::return_isstudent($courseid, $userid)) {
+                    array_push($studentcourses, $courseid);
+
+                } else {
+                    $cntstaff = \block_newgu_spdetails\api::checkrole($userid, $courseid);
+                    if ($cntstaff != 0) {
+                        array_push($staffcourses, ["courseid" => $courseid, "coursename" => $coursename]);
+                    }
+                }
+            }
+
+            if ($usertype == "student") {
+                return $studentcourses;
+            }
+
+            if ($usertype == "staff") {
+                return $staffcourses;
+            }
+
+        } else {
+            return [];
+        }
+    }
+
+}
