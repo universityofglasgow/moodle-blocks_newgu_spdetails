@@ -32,6 +32,8 @@ class grade {
      * 
      * @param int $courseid
      * @param int $itemid
+     * @param string $modulename
+     * @param int $iteminstance
      * @param int $userid
      * @param int $gradetype
      * @param int $scaleid
@@ -39,9 +41,11 @@ class grade {
      * @param string $coursetype
      * @return object
      */
-    public static function get_grade_status_and_feedback(int $courseid, int $itemid, int $userid, int $gradetype, int $scaleid, int $grademax, string $coursetype) {
+    public static function get_grade_status_and_feedback(int $courseid, int $itemid, string $modulename, int $iteminstance, int $userid, int $gradetype, int $scaleid = null, int $grademax, string $coursetype) {
         
-        $gradestatus = new stdClass();
+        global $DB;
+
+        $gradestatus = new \stdClass();
         $gradestatus->assessmenturl = '';
         $gradestatus->duedate = 0;
         $gradestatus->cutoffdate = 0;
@@ -299,21 +303,14 @@ class grade {
      * @param int $gradetype
      * @param int $scaleid
      * @param int $grademax
-     * @param string $coursetype
      */
-    public static function get_formatted_grade_from_grade_type(int $grade, int $gradetype, int $scaleid = null, int $grademax, string $coursetype) {
+    public static function get_formatted_grade_from_grade_type(int $grade, int $gradetype, int $scaleid = null, int $grademax) {
         
         $return_grade = null;
         switch($gradetype) {
             // Point Scale
             case GRADE_TYPE_VALUE:
-                switch ($coursetype) {
-                    case "gcatenabled":
-                    break;
-                    case "gradebookenabled":
-                        $return_grade = number_format($grade, 3) . " / " . $grademax;
-                    break;
-                }
+                $return_grade = number_format($grade, 3) . " / " . $grademax;
                 break;
 
             case GRADE_TYPE_SCALE:
@@ -322,15 +319,7 @@ class grade {
                     'scaleid' => $scaleid
                 ];
                 $scale = new \grade_scale($scaleparams, false);
-
-                switch ($coursetype) {
-                    case "gcatenabled":
-                        $return_grade = $grade . " / " . $grademax . " - " . $scale->get_nearest_item($grade);
-                    break;
-                    case "gradebookenabled":
-                        $return_grade = $scale->get_nearest_item($grade);
-                    break;
-                }
+                $return_grade = $scale->get_nearest_item($grade);
                 break;
                 
             // Grade Type has been set to None in the settings...

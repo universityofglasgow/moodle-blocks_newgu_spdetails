@@ -86,10 +86,14 @@
                 <th id="sortby_fullname" data-sortby="fullname" class="td50 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
                 <th class="td10">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
                 <th class="td5">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
+                {{#data.coursedata}}
+                    {{#assessmentitems.length}}
                 <th id="sortby_duedate" data-sortby="duedate" class="td10 th-sortable">{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
                 <th id="sortby_status" data-sortby="status" class="td15 th-sortable">{{#str}} header_status, block_newgu_spdetails {{/str}}</th>
                 <th id="sortby_grade" data-sortby="grade" class="td10 th-sortable">{{#str}} header_grade, block_newgu_spdetails {{/str}}</th>
                 <th class="td10">{{#str}} header_feedback, block_newgu_spdetails {{/str}}</th>
+                    {{/assessmentitems.length}}
+                {{/data.coursedata}}
             </tr>
         </thead>
         <tbody>

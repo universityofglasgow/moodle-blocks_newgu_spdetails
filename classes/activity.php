@@ -23,14 +23,16 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- namespace block_newgu_spdetails;
+namespace block_newgu_spdetails;
 
- class activity {
+define('ITEM_URL', $CFG->wwwroot . '/mod/');
+define('ITEM_SCRIPT', '/view.php?id=');
+class activity {
     
     /**
      * Main method called from the API
      */
-    public static function get_activityitems(int $subcategory, int $userid, string $sortorder) {
+    public static function get_activityitems(int $subcategory, int $userid, string $activetab, string $sortby, string $sortorder) {
 
         /**
          * Return Structure:
@@ -61,6 +63,9 @@
         $coursedata = [];
         
         // What's my parent?
+        // I need the parent of the parent in order to be able to always
+        // step 'up' a level. \local_gugrades\grades::get_activitytree only
+        // gives me the parent id, which breaks our mechanism.
         $subcat = \grade_category::fetch(['id' => $subcategory]);
         $parent = \grade_category::fetch(['id' => $subcat->parent]);
         if ($parent->parent == null) {
@@ -71,6 +76,7 @@
         $activitydata['parent'] = $parentId;
 
         $courseid = $subcat->courseid;
+        
         $course = get_course($courseid);
         $coursedata['coursename'] = $course->shortname;
         $coursedata['subcatfullname'] = $subcat->fullname;
@@ -87,15 +93,72 @@
         
         // We'll need to merge these next two arrays at some point, to allow the sorting to
         // to work on all items, rather than just by category/activity item as it currently does.
-        $coursedata['subcategories'] = \block_newgu_spdetails\course::get_course_sub_categories($subcategory, $course->id, $assessmenttype, $sortorder);
-        $coursedata['assessmentitems'] = self::get_assessment_items($subcategory, $userid, $assessmenttype, $courseid, $sortorder);
+        // @todo - The subcategories call could be moved out of here as it's not really suited to this method...
+        // This should really be a 2d array - an array of subcategories - which contain any items and or further
+        // sub categories
+        // $subcats['sub cat name'][0]['further sub cat']['items']
+        // $subcats['sub cat name'][1]['assessment item']
+        $tmp = \local_gugrades\api::get_activities($course->id, $subcategory);
+        $tmpdata = self::process_get_activities($tmp, $course->id, $assessmenttype, $sortorder);
+        $coursedata['subcategories'] = $tmpdata['subcategories'];
+        $coursedata['assessmentitems'] = $tmpdata['assessmentitems'];
+        //$coursedata['subcategories'] = \block_newgu_spdetails\course::get_course_sub_categories($subcategory, $course->id, $assessmenttype, $sortorder);
+        //$coursedata['assessmentitems'] = self::get_assessment_items($subcategory, $userid, $assessmenttype, $courseid, $activetab, $sortby, $sortorder);
+
         $activitydata['coursedata'] = $coursedata;
 
         return $activitydata;
     }
 
+    public static function process_get_activities($courseobj, $courseid, $assessmenttype, $sortorder) {
+        $data = [];
+        $gradecategories = [];
+        $activityitems = [];
+
+        // We've lost all knowledge at this point of the course type - fetch it again.
+        $gugradesenabled = \block_newgu_spdetails\course::is_mygrades_type($courseid);
+        $gcatenabled = \block_newgu_spdetails\course::is_gcat_type($courseid);
+
+        if ($courseobj->categories) {
+            $categorydata = [];
+            if ($gugradesenabled) {
+                $categorydata = \block_newgu_spdetails\course::process_mygrades_subcategories($courseid, $courseobj->categories, $assessmenttype, $sortorder);
+            }
+
+            if ($gcatenabled) {
+                $categorydata = \block_newgu_spdetails\course::process_gcat_subcategories($courseid, $courseobj->categories, $assessmenttype, $sortorder);
+            }
+
+            if (!$gugradesenabled && !$gcatenabled) {
+                $categorydata = \block_newgu_spdetails\course::process_default_subcategories($courseid, $courseobj->categories);
+            }
+
+            $data['subcategories'] = $categorydata;
+        }
+
+        if ($courseobj->items) {
+            $activitydata = [];
+            if ($gugradesenabled) {
+                $activitydata = \block_newgu_spdetails\activity::process_mygrades_items($courseobj->items);
+            }
+
+            if ($gcatenabled) {
+                $activitydata = \block_newgu_spdetails\activity::process_gcat_items($courseobj->items);
+            }
+
+            if (!$gugradesenabled && !$gcatenabled) {
+                $activitydata = \block_newgu_spdetails\activity::process_default_items($courseobj->items);
+            }
+
+            $activityitems['assessmentitems'] = $activitydata;
+            $data[] = $activityitems;
+        }
+
+        return $data;
+    }
+
     /**
-     * Return the assessment items for this category
+     * Return the assessment items for this grade category (also known as subcategory)
      * 
      * @param int $subcategory
      * @param int $userid
@@ -104,8 +167,8 @@
      * @param int $courseid
      * @return array $assessmentdata
      */
-    public static function get_assessment_items(int $subcategory, int $userid, string $assessmenttype, int $courseid, string $sortorder = "asc") {
-        global $DB, $USER;
+    public static function get_assessment_items(int $subcategory, int $userid, string $assessmenttype, int $courseid, string $activetab, string $sortby, string $sortorder = "asc") {
+        global $DB, $CFG, $USER;
 
         // Do we need to carry out a context check here?
         // Other than Admin or a teacher, is there anyway someone 
@@ -115,15 +178,14 @@
             $hascap = has_capability('block/newgu_spdetails:readotherdashboard', $context);
         }
 
+        // Data structure for the return
+        $assessmentdata = [];
+
         // We've lost all knowledge at this point of the course type - fetch it again.
         $gugradesenabled = \block_newgu_spdetails\course::is_mygrades_type($courseid);
         $gcatenabled = \block_newgu_spdetails\course::is_gcat_type($courseid);
+        $lti_instances_to_exclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
 
-        // This should be the point where we either query grade_items or local_gugrades_grade
-        // Check if our course is MyGrades enabled, if so, run a custom SQL query LEFT JOINing
-        // local_gugrades_grade against grade_items and checking for grade entries there, in 
-        // order to use/fetch grade status info - otherwise, just fall back to the below query
-        // grade_item::fetchall()
         if ($gugradesenabled) {
             //$assessmentitems = \local_gugrades\grades::get_dashboard_grades($userid, $subcategory);
             // Custom SQL for now - \local_gugrades\grades::get_dashboard_grades() doesn't give us what we need....
@@ -134,16 +196,23 @@
             LEFT JOIN mdl_local_gugrades_grade gg ON (gg.gradeitemid = gi.id AND gg.userid = :userid)
             WHERE
             gi.categoryid = :gradecategoryid";
-            $assessmentitems = $DB->get_records_sql($sql, ['gradecategoryid' => $subcategory, 'userid' => $userid]);
-        }
-        
-        if (!$gugradesenabled && ($gcatenabled || !$gcatenabled)) {
-            $assessmentitems = \grade_item::fetch_all(['courseid' => $courseid, 'categoryid' => $subcategory]);
+            $gugradesitems = $DB->get_records_sql($sql, ['gradecategoryid' => $subcategory, 'userid' => $userid]);
+            $assessmentdata = self::process_mygrades_items($gugradesitems, $lti_instances_to_exclude, $sortorder);
         }
 
-        // With the course type now determined, we can use it to derive the "items"
-        // from either the local_gugrades_x tables, or the regular grade_x tables.
-        $assessmentdata = [];
+        if ($gcatenabled) {
+            // Here we are simply deferring to GCAT's API to return assignments and their status and (released?) grade.
+            require_once($CFG->dirroot. '/blocks/gu_spdetails/lib.php');
+            // course fullname isn't referenced in the query, it's known as coursetitle - find and replace for now...
+            $sortby = preg_replace('/(full|short)name/', 'coursetitle, activityname', $sortby);
+            $gcatitems = \assessments_details::retrieve_gradable_activities($activetab, $userid, $sortby, $sortorder, $subcategory);
+            $assessmentdata = self::process_gcat_items($gcatitems, $lti_instances_to_exclude, $sortorder);
+        }
+        
+        if (!$gugradesenabled && !$gcatenabled) {
+            $defaultitems = \grade_item::fetch_all(['courseid' => $courseid, 'categoryid' => $subcategory]);
+            $assessmentdata = self::process_default_items($defaultitems, $lti_instances_to_exclude, $userid, $assessmenttype, $sortorder);
+        }
 
         if ($assessmentitems && count($assessmentitems) > 0) {
             
@@ -168,6 +237,11 @@
 
             foreach($assessmentitems as $assessmentitem) {
                 // First off, exlude the LTI instances that are not required to be shown...
+                // @TODO - this feature doesn't appear to be working as expected.
+                // Check mdl_lti - the typeid column isn't set initially, until an activity has the
+                // lti 'typeid' linked to it. However, this is only updated when an lti is assigned, 
+                // meaning that the lti query from the function will always find the matching record, 
+                // regardless of what has been set in the settings page - i.e. even when exluding an item 
                 if ($assessmentitem->itemmodule == 'lti') {
                     if (is_array($lti_instances_to_exclude) && in_array($assessmentitem->courseid, $lti_instances_to_exclude) ||
                     $assessmentitem->courseid == $lti_instances_to_exclude) {
@@ -176,44 +250,224 @@
                 }
                 
                 $assessmentweight = \block_newgu_spdetails\course::return_weight($assessmentitem->aggregationcoef);
+                $assessmentweight = $assessmentitem->weight;
                 
-                // if ($gugradesenabled) {
-                //     if (in_array($assessmentitem->id, $gradesenabled_assessmentitems) {
-                //         // Call the appropriate \local_gugrades\ methods
-                //        $gradestatus = $gradesenabled_assessmentitems->$assessmentitem->id->object
-                //     } else {
-                //         // All other properties for the assessment need to be set if no corresponding mygrades record was found.
-                //         $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->gradetype, $assessmentitem->scaleid);
-                //     }
-                // }
-                // OR...
                 // $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->gradetype, $assessmentitem->scaleid, $assessmentitem->grademax, $coursetype);
                 
-                $gradestatus = \block_newgu_spdetails\grade::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid);
-                $duedate = \DateTime::createFromFormat('U', $gradestatus['duedate']);
-                $gradefeedback = \block_newgu_spdetails\grade::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->grademax, $assessmentitem->gradetype);
-                $feedback = (($gradefeedback['link']) ? get_string('readfeedback', 'block_newgu_spdetails') : (($assessmentitem->itemmodule != 'quiz') ? $gradefeedback['gradetodisplay'] : ''));
+                //$gradestatus = \block_newgu_spdetails\grade::return_gradestatus($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid);
+                $duedate = \DateTime::createFromFormat('U', $assessmentitem->duedate);
+                //$gradefeedback = \block_newgu_spdetails\grade::get_gradefeedback($assessmentitem->itemmodule, $assessmentitem->iteminstance, $assessmentitem->courseid, $assessmentitem->id, $userid, $assessmentitem->grademax, $assessmentitem->gradetype);
+                //$feedback = (($gradefeedback['link']) ? get_string('readfeedback', 'block_newgu_spdetails') : (($assessmentitem->itemmodule != 'quiz') ? $gradefeedback['gradetodisplay'] : ''));
                 // $coursetype is only really needed/used by the unit tests.
+                // $assessmentdata[] = [
+                //     'id' => $assessmentitem->id,
+                //     'assessmenturl' => $gradestatus['assessmenturl'],
+                //     'itemname' => $assessmentitem->itemname,
+                //     'assessmenttype' => $assessmenttype,
+                //     'assessmentweight' => $assessmentweight,
+                //     'duedate' => $duedate->format('jS F Y'),
+                //     'grade_status' => $gradestatus['status'],
+                //     'status_link' => $gradestatus['link'],
+                //     'status_class' => $gradestatus['status_class'],
+                //     'status_text' => $gradestatus['status_text'],
+                //     'grade' => $gradefeedback['gradetodisplay'],
+                //     'grade_feedback' => $feedback,
+                //     'grade_feedback_link' => $gradefeedback['link'],
+                //     $coursetype => 'true'
+                // ];
+                $blah = (isset($assessmentitem->status->class) ? $assessmentitem->status->statustext : 'unavailable');
                 $assessmentdata[] = [
                     'id' => $assessmentitem->id,
-                    'assessmenturl' => $gradestatus['assessmenturl'],
-                    'itemname' => $assessmentitem->itemname,
-                    'assessmenttype' => $assessmenttype,
+                    'assessmenturl' => $assessmentitem->assessmenturl,
+                    'itemname' => $assessmentitem->assessmentname,
+                    'assessmenttype' => $assessmentitem->assessmenttype,
                     'assessmentweight' => $assessmentweight,
                     'duedate' => $duedate->format('jS F Y'),
-                    'grade_status' => $gradestatus['status'],
-                    'status_link' => $gradestatus['link'],
-                    'status_class' => $gradestatus['status_class'],
-                    'status_text' => $gradestatus['status_text'],
-                    'grade' => $gradefeedback['gradetodisplay'],
-                    'grade_feedback' => $feedback,
-                    'grade_feedback_link' => $gradefeedback['link'],
+                    'grade_status' =>  get_string("status_" . $blah, "block_newgu_spdetails"),
+                    'status_link' => $assessmentitem->assessmenturl,
+                    'status_class' => $assessmentitem->status->class,
+                    'status_text' => $assessmentitem->status->statustext,
+                    'grade' => $assessmentitem->grading->gradetext,
+                    'grade_feedback' => $assessmentitem->feedback->feedbacktext,
                     $coursetype => 'true'
                 ];
             }
         }
 
         return $assessmentdata;
+    }
+
+    /**
+     * Utility function for sorting - as we're not using any fancy libraries
+     * that will do this for us, we need to manually implement this feature.
+     * @param array $itemstosort
+     * @param string $sortorder
+     */
+    public static function sort_items($itemstosort, $sortorder) {
+        switch($sortorder) {
+            case "asc":
+                uasort($itemstosort, function($a, $b) {
+                    return strcmp($a->itemname, $b->itemname);
+                });
+                break;
+
+            case "desc":
+                uasort($itemstosort, function($a, $b) {
+                    return strcmp($b->itemname, $a->itemname);
+                });
+                break;
+        }
+    }
+
+    /**
+     * Process and prepare for display GCAT specific gradable items
+     * 
+     * @param array $gcatitems
+     * @param array $lti_instances_to_exclude
+     * @param string $sortorder
+     */
+    public static function process_gcat_items($gcatitems, $lti_instances_to_exclude, $sortorder) {
+
+        $gcatdata = [];
+
+        if ($gcatitems && count($gcatitems) > 0) {
+            
+            self::sort_items($gcatitems, $sortorder);
+            
+            foreach($gcatitems as $assessmentitem) {
+                
+                if ($assessmentitem->itemmodule == 'lti') {
+                    if (is_array($lti_instances_to_exclude) && in_array($assessmentitem->courseid, $lti_instances_to_exclude) ||
+                    $assessmentitem->courseid == $lti_instances_to_exclude) {
+                        continue;
+                    }
+                }
+                
+                $assessmentweight = $assessmentitem->weight;
+                $duedate = \DateTime::createFromFormat('U', $assessmentitem->duedate);
+                $blah = (isset($assessmentitem->status->class) ? $assessmentitem->status->statustext : 'unavailable');
+                $cmid = $assessmentitem->assessmenturl->get_param('id');
+                $itemurl = ITEM_URL . ITEM_SCRIPT . $cmid;
+
+                $gcatdata[] = [
+                    'id' => $assessmentitem->id,
+                    'assessmenturl' => $itemurl,
+                    'itemname' => $assessmentitem->assessmentname,
+                    'assessmenttype' => $assessmentitem->assessmenttype,
+                    'assessmentweight' => $assessmentweight,
+                    'duedate' => $duedate->format('jS F Y'),
+                    'grade_status' =>  get_string("status_" . $blah, "block_newgu_spdetails"),
+                    'status_link' => $assessmentitem->assessmenturl,
+                    'status_class' => $assessmentitem->status->class,
+                    'status_text' => $assessmentitem->status->statustext,
+                    'grade' => $assessmentitem->grading->gradetext,
+                    'grade_feedback' => $assessmentitem->feedback->feedbacktext,
+                    'gcatenabled' => 'true'
+                ];
+            }
+        }
+
+        return $gcatdata;
+    }
+
+    /**
+     * Process and prepare for display MyGrades specific gradable items
+     * 
+     * @param array $mygradesitems
+     * @param array $lti_instances_to_exclude
+     * @param string $sortorder
+     */
+    public static function process_mygrades_items($mygradesitems, $lti_instances_to_exclude, $sortorder) {
+
+        $mygradesdata = [];
+
+        if ($mygradesitems && count($mygradesitems) > 0) {
+            
+            self::sort_items($mygradesitems, $sortorder);
+            
+            foreach($mygradesitems as $assessmentitem) {
+                
+                if ($assessmentitem->itemmodule == 'lti') {
+                    if (is_array($lti_instances_to_exclude) && in_array($assessmentitem->courseid, $lti_instances_to_exclude) ||
+                    $assessmentitem->courseid == $lti_instances_to_exclude) {
+                        continue;
+                    }
+                }
+                
+                $assessmentweight = $assessmentitem->weight;
+                $duedate = \DateTime::createFromFormat('U', $assessmentitem->duedate);
+                $blah = (isset($assessmentitem->status->class) ? $assessmentitem->status->statustext : 'unavailable');
+
+                $mygradesdata[] = [
+                    'id' => $assessmentitem->id,
+                    'assessmenturl' => $assessmentitem->assessmenturl,
+                    'itemname' => $assessmentitem->assessmentname,
+                    'assessmenttype' => $assessmentitem->assessmenttype,
+                    'assessmentweight' => $assessmentweight,
+                    'duedate' => $duedate->format('jS F Y'),
+                    'grade_status' =>  get_string("status_" . $blah, "block_newgu_spdetails"),
+                    'status_link' => $assessmentitem->assessmenturl,
+                    'status_class' => $assessmentitem->status->class,
+                    'status_text' => $assessmentitem->status->statustext,
+                    'grade' => $assessmentitem->grading->gradetext,
+                    'grade_feedback' => $assessmentitem->feedback->feedbacktext,
+                    'gugradesenabled' => 'true'
+                ];
+            }
+        }
+
+        return $mygradesdata;
+    }
+
+    /**
+     * Process and prepare for display default gradable items
+     * 
+     * @param array $gcatitems
+     * @param array $lti_instances_to_exclude
+     * @param string $sortorder
+     */
+    public static function process_default_items($defaultitems, $lti_instances_to_exclude, $userid, $assessmenttype, $sortorder) {
+        
+        $defaultdata = [];
+
+        if ($defaultitems && count($defaultitems) > 0) {
+            
+            self::sort_items($defaultitems, $sortorder);
+            
+            foreach($defaultitems as $assessmentitem) {
+                
+                if ($assessmentitem->itemmodule == 'lti') {
+                    if (is_array($lti_instances_to_exclude) && in_array($assessmentitem->courseid, $lti_instances_to_exclude) ||
+                    $assessmentitem->courseid == $lti_instances_to_exclude) {
+                        continue;
+                    }
+                }
+
+                $assessmentweight = \block_newgu_spdetails\course::return_weight($assessmentitem->aggregationcoef);
+                $assessmentweight = $assessmentitem->weight;
+                $duedate = \DateTime::createFromFormat('U', $assessmentitem->duedate);
+                $blah = (isset($assessmentitem->status->class) ? $assessmentitem->status->statustext : 'unavailable');
+                $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($assessmentitem->courseid, $assessmentitem->id, $assessmentitem->itemmodule, $assessmentitem->iteminstance, $userid, $assessmentitem->gradetype, $assessmentitem->scaleid, $assessmentitem->grademax, 'gradebookenabled');
+
+                $defaultdata[] = [
+                    'id' => $assessmentitem->id,
+                    'assessmenturl' => $assessmentitem->assessmenturl,
+                    'itemname' => $assessmentitem->itemname,
+                    'assessmenttype' => $assessmenttype,
+                    'assessmentweight' => $assessmentweight,
+                    //'duedate' => $duedate->format('jS F Y'),
+                    'grade_status' =>  get_string("status_" . $blah, "block_newgu_spdetails"),
+                    'status_link' => $gradestatus->status->link,
+                    'status_class' => $gradestatus->status->class,
+                    'status_text' => $gradestatus->status->statustext,
+                    'grade' => $gradestatus->grading->gradetext,
+                    'grade_feedback' => $gradestatus->feedback->feedbacktext,
+                    'gradebookenabled' => 'true'
+                ];
+            }
+        }
+
+        return $defaultdata;
     }
 
     /**
@@ -233,13 +487,13 @@
         $item = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);
         $module = $item->itemmodule;
         if ($item->itemtype == 'manual') {
-            return new \blocks_newgu_spdetails\activities\manual($gradeitemid, $courseid, $groupid);
+            return new \block_newgu_spdetails\activities\manual($gradeitemid, $courseid, $groupid);
         } else {
-            $classname = '\\blocks_newgu_spdetails\\activities\\' . $module . '_activity';
+            $classname = '\\block_newgu_spdetails\\activities\\' . $module . '_activity';
             if (class_exists($classname)) {
                 return new $classname($gradeitemid, $courseid, $groupid);
             } else {
-                return new \blocks_newgu_spdetails\activities\default_activity($gradeitemid, $courseid, $groupid);
+                return new \block_newgu_spdetails\activities\default_activity($gradeitemid, $courseid, $groupid);
             }
         }
     }

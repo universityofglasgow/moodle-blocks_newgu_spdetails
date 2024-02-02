@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace blocks_newgu_spdetails\activities;
+namespace block_newgu_spdetails\activities;
 
 /**
  * Access data in course activities

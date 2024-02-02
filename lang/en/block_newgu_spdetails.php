@@ -84,7 +84,7 @@ $string['gradetype'] = 'Grade';
 $string['noassessmentfound'] = 'No assessment found.';
 $string['header_assessment'] = 'Assessment';
 $string['header_course'] = 'Course';
-$string['header_category'] = 'Category/Component';
+$string['header_category'] = 'Grade Category/Course Component';
 $string['header_type'] = 'Assessment Type';
 $string['header_weight'] = 'Weight';
 $string['header_duedate'] = 'Due Date';
@@ -108,6 +108,7 @@ $string['status_overdue'] = 'overdue';
 $string['status_submissionnotopen'] = 'submissionnotopen';
 $string['status_submitted'] = 'submitted';
 $string['status_tosubmit'] = 'tosubmit';
+$string['status_unavailable'] = 'unavailable';
 
 $string['status_class_graded'] = 'status-graded';
 $string['status_class_overdue'] = 'status-overdue';

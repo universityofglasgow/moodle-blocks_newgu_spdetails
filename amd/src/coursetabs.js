@@ -96,11 +96,12 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
         }).catch((error) => displayException(error));
     }).fail(function(response) {
         if(response) {
-            var errorContainer = document.createElement('div');
+            document.querySelector('.loader').remove();
+            let errorContainer = document.createElement('div');
             errorContainer.classList.add('alert', 'alert-danger');
 
             if(response.hasOwnProperty('message')) {
-                var errorMsg = document.createElement('p');
+                let errorMsg = document.createElement('p');
 
                 errorMsg.innerHTML = response.message;
                 errorContainer.appendChild(errorMsg);
@@ -108,8 +109,8 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             }
 
             if(response.hasOwnProperty('moreinfourl')) {
-                var errorLinkContainer = document.createElement('p');
-                var errorLink = document.createElement('a');
+                let errorLinkContainer = document.createElement('p');
+                let errorLink = document.createElement('a');
 
                 errorLink.setAttribute('href', response.moreinfourl);
                 errorLink.setAttribute('target', '_blank');

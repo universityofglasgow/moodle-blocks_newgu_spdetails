@@ -45,6 +45,7 @@
         }
 
         foreach($courses as $course) {
+            
             // Fetch the categories and subcategories...
             $coursedata['coursename'] = $course->shortname;
             $courseurl = new \moodle_url('/course/view.php', ['id' => $course->id]);
@@ -97,30 +98,48 @@
      * @param string $sortorder
      * @param return array $subcatdata
      */
-    public static function get_course_sub_categories(int $subcategory, int $courseid, string $assessmenttype, string $sortorder = null) {
-        $subcategories = \grade_category::fetch_all(['parent' => $subcategory, 'hidden' => 0]);
-        $subcatdata = [];
-        if ($subcategories && count($subcategories) > 0) {
-            
-            // Owing to the fact that we can't sort using the grade_category::fetch_all method....
-            switch($sortorder) {
-                case "asc":
-                    uasort($subcategories, function($a, $b) {
-                        return strcmp($a->fullname, $b->fullname);
-                    });
-                    break;
+    public static function get_course_sub_categories(int $gradecategory, int $courseid, string $assessmenttype, string $sortorder = null) {
+    
+        
+        $gugradesenabled = \block_newgu_spdetails\course::is_mygrades_type($courseid);
+        $gcatenabled = \block_newgu_spdetails\course::is_gcat_type($courseid);
 
-                case "desc":
-                    uasort($subcategories, function($a, $b) {
-                        return strcmp($b->fullname, $a->fullname);
-                    });
-                    break;
-            }
-            
+        $subcatdata = [];
+        
+        // Allow the relevant course type to call its API
+        if ($gugradesenabled) {
+            $subcatdata = self::process_mygrades_subcategories($courseid, $gradecategory, $assessmenttype, $sortorder);
+        }
+
+        if ($gcatenabled) {
+            $subcatdata = self::process_gcat_subcategories($courseid, $gradecategory, $assessmenttype, $sortorder);
+        }
+
+        if (!$gugradesenabled && !$gcatenabled) {
+            $subcatdata = self::process_default_subcategories($courseid, $gradecategory, $assessmenttype);
+        }
+        
+        return $subcatdata;
+    }
+
+    /**
+     * Process and prepare for display MyGrades specific sub categories
+     * 
+     * @param int $courseid
+     * @param int $gradecategoryid
+     * @param string $assessmenttype
+     * @param string $sortorder
+     * return array
+     */
+    public static function process_default_subcategories() {
+        $default_subcatdata = [];
+        $subcategories = \grade_category::fetch_all(['courseid' => $courseid, 'parent' => $gradecategory, 'hidden' => 0]);
+        if ($subcategories && count($subcategories) > 0) {
+    
             foreach($subcategories as $subcategory) {
                 $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
                 $subcatweight = self::return_weight($item->aggregationcoef);
-                $subcatdata[] = [
+                $default_subcatdata[] = [
                     'id' => $subcategory->id,
                     'name' => $subcategory->fullname,
                     'assessmenttype' => $assessmenttype,
@@ -128,8 +147,77 @@
                 ];
             }
         }
+
+        return $default_subcatdata;
+    }
+
+    /**
+     * Process and prepare for display MyGrades specific sub categories
+     * 
+     * @param int $courseid
+     * @param int $gradecategoryid
+     * @param string $assessmenttype
+     * @param string $sortorder
+     * return array
+     */
+    public static function process_mygrades_subcategories($courseid, $categories, $assessmenttype, $sortorder) {
         
-        return $subcatdata;
+        $mygrades_subcatdata = [];
+        $tmp = [];
+        
+        foreach($categories as $obj) {
+            $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $obj->category->id, 'itemtype' => 'category']);
+            $subcatweight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
+            // We need to work out the grade aggregate for any graded items w/in this sub category...
+            // Is there an API call for this?
+            $subcat = new \stdClass();
+            $subcat->id = $obj->category->id;
+            $subcat->name = $obj->category->fullname;
+            $subcat->assessmenttype = $assessmenttype;
+            $subcat->subcatweight = $subcatweight;
+
+            $tmp[] = $subcat;
+        }
+
+        $mygrades_subcatdata = self::sort_items($tmp, $sortorder);
+
+        return $mygrades_subcatdata;
+    }
+
+    /**
+     * Process and prepare for display GCAT specific sub categories
+     * @param int $courseid
+     * @param int $gradecategoryid
+     * @param string $assessmenttype
+     * @param string $sortorder
+     * return array 
+     */
+    public static function process_gcat_subcategories($courseid, $gradecategoryid, $assessmenttype, $sortorder) {
+
+    }
+
+    /**
+     * Utility function for sorting - as we're not using any fancy libraries
+     * that will do this for us, we need to manually implement this feature.
+     * @param array $categoriestosort
+     * @param string $sortorder
+     */
+    public static function sort_items($categoriestosort, $sortorder) {
+        switch($sortorder) {
+            case "asc":
+                uasort($categoriestosort, function($a, $b) {
+                    return strcmp($a->name, $b->name);
+                });
+                break;
+
+            case "desc":
+                uasort($categoriestosort, function($a, $b) {
+                    return strcmp($b->name, $a->name);
+                });
+                break;
+        }
+
+        return $categoriestosort;
     }
 
     /**
