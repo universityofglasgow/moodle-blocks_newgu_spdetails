@@ -62,7 +62,7 @@ class assign_activity extends base {
      * @param object $cm course module
      * @return object
      */
-    private function get_assign($cm) {
+    public function get_assign($cm) {
         global $DB;
 
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
@@ -115,6 +115,97 @@ class assign_activity extends base {
      */
     public function get_itemtype() {
         return 'assign';
+    }
+
+    public function get_assessmenturl() {
+        return $this->itemurl . $this->get_itemtype() . $this->itemscript . $this->cm->id;
+    }
+
+    public function get_status($userid) {
+        
+        global $DB;
+
+        $statusobj = new \stdClass();
+        $statusobj->assessmenturl = $this->get_assessmenturl();
+        $assigninstance = $this->assign->get_instance();
+        $allowsubmissionsfromdate = $assigninstance->allowsubmissionsfromdate;
+        $statusobj->duedate = $assigninstance->duedate;
+        $statusobj->cutoffdate = $assigninstance->cutoffdate;
+        $statusobj->gradingduedate = $assigninstance->gradingduedate;
+
+        $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);
+        if (!empty($overrides)) {
+            $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;
+            $statusobj->duedate = $overrides->duedate;
+            $statusobj->cutoffdate = $overrides->cutoffdate;
+        }
+
+        $userflags = $DB->get_record('assign_user_flags', ['assignment' => $assigninstance->id, 'userid' => $userid]);
+        if (!empty($userflags)) {
+            if ($userflags->extensionduedate > 0) {
+                $statusobj->duedate = $userflags->extensionduedate;
+            }
+        }
+
+        if ($allowsubmissionsfromdate > time()) {
+            $statusobj->status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
+            $statusobj->statustext = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
+            $statusobj->gradetodisplay = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        }
+
+        if ($statusobj->status == '') {
+            $assignsubmission = $DB->get_record('assign_submission', ['assignment' => $assigninstance->id, 'userid' => $userid]);
+            $statusobj->link = $statusobj->assessmenturl;
+            
+            if (!empty($assignsubmission)) {
+                $statusobj->status = $assignsubmission->status;
+
+                if ($statusobj->status == 'new') {
+                    $statusobj->status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->statustext = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->statusclass = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->gradetodisplay = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                    if ($statusobj->gradingduedate > time()) {
+                        $statusobj->gradetodisplay = get_string('status_text_dueby', 'block_newgu_spdetails', date("d/m/Y", $gradestatus->gradingduedate));
+                    }
+                    
+                    if (time() > $statusobj->duedate + (86400 * 30) && $statusobj->duedate != 0) {
+                        $statusobj->status = get_string('status_overdue', 'block_newgu_spdetails');
+                        $statusobj->statusclass = get_string('status_class_overdue', 'block_newgu_spdetails');
+                        $statusobj->statustext = get_string('status_text_overdue', 'block_newgu_spdetails');
+                        $statusobj->gradetodisplay = get_string('status_text_overdue', 'block_newgu_spdetails');
+                    }
+                }
+
+                if ($statusobj->status == get_string('status_submitted', 'block_newgu_spdetails')) {
+                    $statusobj->statusclass = get_string('status_class_submitted', 'block_newgu_spdetails');
+                    $statusobj->statustext = get_string('status_text_submitted', 'block_newgu_spdetails');
+                    $statusobj->link = '';
+                }
+
+            } else {
+                $statusobj->status = get_string('status_tosubmit', 'block_newgu_spdetails');
+                $statusobj->statustext = get_string('status_text_tosubmit', 'block_newgu_spdetails');
+                $statusobj->gradetodisplay = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+
+                if (time() > $statusobj->duedate && $statusobj->duedate != 0) {
+                    $statusobj->status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->statustext = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->gradetodisplay = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                    if ($statusobj->gradingduedate > time()) {
+                        $statusobj->gradetodisplay = get_string('status_text_dueby', 'block_newgu_spdetails', date("d/m/Y", $gradestatus->gradingduedate));
+                    }
+                }
+
+                if (time() > $statusobj->duedate + (86400 * 30) && $statusobj->duedate != 0) {
+                    $statusobj->status = get_string('status_overdue', 'block_newgu_spdetails');
+                    $statusobj->statusclass = get_string('status_class_overdue', 'block_newgu_spdetails');
+                    $statusobj->statustext = get_string('status_text_overdue', 'block_newgu_spdetails');
+                }
+            }
+        }
+
+        return $statusobj;
     }
 
 }

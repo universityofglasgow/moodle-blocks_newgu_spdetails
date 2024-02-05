@@ -101,6 +101,7 @@ $string['previous'] = 'Previous';
 
 $string['feedback_tobeconfirmed'] = 'To be confirmed';
 
+$string['status_provisional'] = 'provisional';
 $string['status_graded'] = 'graded';
 $string['status_notsubmitted'] = 'notsubmitted';
 $string['status_notopen'] = 'notopen';
@@ -110,6 +111,7 @@ $string['status_submitted'] = 'submitted';
 $string['status_tosubmit'] = 'tosubmit';
 $string['status_unavailable'] = 'unavailable';
 
+$string['status_class_provisional'] = 'status-provisional';
 $string['status_class_graded'] = 'status-graded';
 $string['status_class_overdue'] = 'status-overdue';
 $string['status_class_tosubmit'] = 'status-tosubmit';

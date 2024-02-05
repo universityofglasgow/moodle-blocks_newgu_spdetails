@@ -56,13 +56,23 @@ abstract class base {
     protected string $itemtype;
 
     /**
+     * @var string $itemurl
+     */
+    protected string $itemurl;
+    
+    /**
+     * @var string $itemscript
+     */
+    protected string $itemscript;
+
+    /**
      * Constructor, set grade itemid
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
      */
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
-        global $DB;
+        global $CFG, $DB;
 
         $this->gradeitemid = $gradeitemid;
         $this->courseid = $courseid;
@@ -71,6 +81,10 @@ abstract class base {
         // Get grade item.
         $this->gradeitem = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);
         $this->itemtype = $this->gradeitem->itemtype;
+
+        // The URL seems to be consistent between activities
+        $this->itemurl = $CFG->wwwroot . '/mod/';
+        $this->itemscript = '/view.php?id=';
     }
 
     /**

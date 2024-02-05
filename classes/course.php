@@ -116,39 +116,10 @@
         }
 
         if (!$gugradesenabled && !$gcatenabled) {
-            $subcatdata = self::process_default_subcategories($courseid, $gradecategory, $assessmenttype);
+            $subcatdata = self::process_default_subcategories($courseid, $gradecategory, $assessmenttype, $sortorder);
         }
         
         return $subcatdata;
-    }
-
-    /**
-     * Process and prepare for display MyGrades specific sub categories
-     * 
-     * @param int $courseid
-     * @param int $gradecategoryid
-     * @param string $assessmenttype
-     * @param string $sortorder
-     * return array
-     */
-    public static function process_default_subcategories() {
-        $default_subcatdata = [];
-        $subcategories = \grade_category::fetch_all(['courseid' => $courseid, 'parent' => $gradecategory, 'hidden' => 0]);
-        if ($subcategories && count($subcategories) > 0) {
-    
-            foreach($subcategories as $subcategory) {
-                $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
-                $subcatweight = self::return_weight($item->aggregationcoef);
-                $default_subcatdata[] = [
-                    'id' => $subcategory->id,
-                    'name' => $subcategory->fullname,
-                    'assessmenttype' => $assessmenttype,
-                    'subcatweight' => $subcatweight
-                ];
-            }
-        }
-
-        return $default_subcatdata;
     }
 
     /**
@@ -179,7 +150,16 @@
             $tmp[] = $subcat;
         }
 
-        $mygrades_subcatdata = self::sort_items($tmp, $sortorder);
+        // @todo - This needs redone. $categories comes in as an array of 
+        // objects, whose category property is also an object - making 
+        // sorting a tad awkward. The items property that comes in also, 
+        // is an array of objects containing the necessary property/key 
+        // which ^can^ get sorted and returned in the correct order needed 
+        // by the mustache engine.
+        $tmp2 = self::sort_items($tmp, $sortorder);
+        foreach($tmp2 as $sortedarray) {
+            $mygrades_subcatdata[] = $sortedarray;
+        }
 
         return $mygrades_subcatdata;
     }
@@ -197,27 +177,56 @@
     }
 
     /**
+     * Process and prepare for display MyGrades specific sub categories
+     * 
+     * @param int $courseid
+     * @param int $gradecategoryid
+     * @param string $assessmenttype
+     * @param string $sortorder
+     * return array
+     */
+    public static function process_default_subcategories($courseid, $categories, $assessmenttype, $sortorder) {
+        $default_subcatdata = [];
+        $subcategories = \grade_category::fetch_all(['courseid' => $courseid, 'parent' => $gradecategory, 'hidden' => 0]);
+        if ($subcategories && count($subcategories) > 0) {
+    
+            foreach($subcategories as $subcategory) {
+                $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
+                $subcatweight = self::return_weight($item->aggregationcoef);
+                $default_subcatdata[] = [
+                    'id' => $subcategory->id,
+                    'name' => $subcategory->fullname,
+                    'assessmenttype' => $assessmenttype,
+                    'subcatweight' => $subcatweight
+                ];
+            }
+        }
+
+        return $default_subcatdata;
+    }
+
+    /**
      * Utility function for sorting - as we're not using any fancy libraries
      * that will do this for us, we need to manually implement this feature.
-     * @param array $categoriestosort
+     * @param array $itemstosort
      * @param string $sortorder
      */
-    public static function sort_items($categoriestosort, $sortorder) {
+    public static function sort_items($itemstosort, $sortorder) {
         switch($sortorder) {
             case "asc":
-                uasort($categoriestosort, function($a, $b) {
+                uasort($itemstosort, function($a, $b) {
                     return strcmp($a->name, $b->name);
                 });
                 break;
 
             case "desc":
-                uasort($categoriestosort, function($a, $b) {
+                uasort($itemstosort, function($a, $b) {
                     return strcmp($b->name, $a->name);
                 });
                 break;
         }
 
-        return $categoriestosort;
+        return $itemstosort;
     }
 
     /**
@@ -225,7 +234,7 @@
      * @param int $courseid
      * @return bool $gugradesenabled
      */
-    public static function is_mygrades_type(int $courseid) {
+    public static function is_type_mygrades(int $courseid) {
         global $DB;
         
         $gugradesenabled = false;
@@ -251,7 +260,7 @@
      * @param int $courseid
      * @return bool $gcatenabled
      */
-    public static function is_gcat_type($courseid) {
+    public static function is_type_gcat($courseid) {
         global $DB;
 
         $gcatenabled = false;
