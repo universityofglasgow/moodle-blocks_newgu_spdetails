@@ -66,6 +66,11 @@ abstract class base {
     protected string $itemscript;
 
     /**
+     * @var object $feedback
+     */
+    protected object $feedback;
+
+    /**
      * Constructor, set grade itemid
      * @param int $gradeitemid Grade item id
      * @param int $courseid
@@ -82,18 +87,9 @@ abstract class base {
         $this->gradeitem = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);
         $this->itemtype = $this->gradeitem->itemtype;
 
-        // The URL seems to be consistent between activities
+        // The URL format seems to be consistent between activities.
         $this->itemurl = $CFG->wwwroot . '/mod/';
         $this->itemscript = '/view.php?id=';
-    }
-
-    /**
-     * Should the student names be hidden to normal users?
-     * Probabl mostly applies to Assignment
-     * @return boolean
-     */
-    public function is_names_hidden() {
-        return false;
     }
 
     /**
@@ -101,17 +97,23 @@ abstract class base {
      * This is currently just the same as a manual grade
      * (this is pulling 'finalgrade' instead of 'rawgrade'. Not sure if this is correct/complete)
      * @param int $userid
+     * @return object|bool
      */
-    public function get_first_grade(int $userid) {
+    public function get_first_grade(int $userid):object|bool {
         global $DB;
+        $gradeobj = new \stdClass();
+        $gradeobj->finalgrade = null;
+        $gradeobj->rawgrade = null;
 
         if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
             if ($grade->finalgrade) {
-                return $grade->finalgrade;
+                $gradeobj->finalgrade = $grade->finalgrade;
+                return $gradeobj;
             }
 
             if ($grade->rawgrade) {
-                return $grade->rawgrade;
+                $gradeobj->rawgrade = $grade->rawgrade;
+                return $gradeobj;
             }
         }
 
@@ -122,14 +124,64 @@ abstract class base {
      * Get item type
      * @return string
      */
-    public function get_itemtype() {}
+    public function get_itemtype(): string {
+        return $this->gradeitem->itemtype;
+    }
 
     /**
      * Get item name
      * @return string
      */
-    public function get_itemname() {
+    public function get_itemname(): string {
         return $this->gradeitem->itemname;
+    }
+
+    /**
+     * @param int $userid
+     * @return object
+     */
+    abstract public function get_status($userid): object;
+
+    /**
+     * Return the feedback for a given graded activity
+     * 
+     * We need to make this part of the object - currently
+     * being called as a static method.
+     * 
+     * @param object $gradestatusobj
+     * @return object $feedbackobj
+     */
+    public function get_feedback(object $gradestatusobj): object {
+        $feedbackobj = new \stdClass();
+        $feedbackobj->grade_feedback = '';
+        $feedbackobj->grade_feedback_link = '';
+
+        switch($gradestatusobj->grade_status) {
+            case get_string('status_tosubmit', 'block_newgu_spdetails'):
+            case get_string('status_notopen', 'block_newgu_spdetails'):
+            case get_string('status_submissionnotopen', 'block_newgu_spdetails'):
+            case get_string('status_notsubmitted', 'block_newgu_spdetails') :
+                $feedbackobj->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                break;
+                
+            case get_string('status_overdue', 'block_newgu_spdetails'):
+                $feedbackobj->grade_feedback = get_string('status_text_overdue', 'block_newgu_spdetails');
+                break;
+
+            case get_string('status_notsubmitted', 'block_newgu_spdetails'):
+                $feedbackobj->grade_feedback = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                if ($gradestatusobj->due_date > time()) {
+                    $feedbackobj->grade_feedback = get_string('status_text_dueby', 'block_newgu_spdetails', $gradestatusobj->due_date);
+                }
+                break;
+
+            case get_string('status_graded', 'block_newgu_spdetails'):
+                $feedbackobj->grade_feedback = get_string('status_text_graded', 'block_newgu_spdetails');
+                $feedbackobj->grade_feedback_link = $gradestatusobj->assessment_url . '#page-footer';
+                break;
+        }
+
+        return $feedbackobj;
     }
 
 }

@@ -34,36 +34,26 @@ $string['headingataglance'] = 'Your assessments at a glance';
 $string['blocktitle'] = 'MyGrades - Your assessments at a glance';
 $string['overview_cardheader'] = 'Assessments overview';
 $string['due_cardheader'] = 'Assessments due in the next:';
-
 $string['tobesubmitted'] = 'To be submitted / attended';
 $string['submitted'] = ' submitted';
 $string['overdue'] = 'Overdue';
 $string['marked'] = ' marked';
-
 $string['notsubmitted'] = 'Not Submitted';
 $string['graded'] = 'Graded';
 $string['submissionnotopen'] = 'Submission not open';
 $string['individualcomponents'] = 'Individual components';
-
-
 $string['assessmenttype'] = 'Assessment Type';
 $string['weight'] = 'Weight';
 $string['duedate'] = 'Due Date';
 $string['yourgrade'] = 'Your grade';
-
 $string['currentlyenrolledin'] = 'Currently enrolled in';
 $string['pastcourses'] = 'Past Courses';
-
 $string['navtitle'] = 'Assessments';
-
 $string['noassessments'] = 'No assessments';
-
 $string['coursecode'] = 'Course Code';
-
 $string['startdate'] = 'Start Date';
 $string['enddate'] = 'End Date';
 $string['viewsubmission'] = 'View Submission';
-
 $string['readfeedback'] = 'View Feedback';
 $string['summative'] = 'Summative';
 $string['formative'] = 'Formative';
@@ -97,42 +87,40 @@ $string['header_courseenddate'] = 'Course End Date';
 $string['label_course'] = 'Course: ';
 $string['label_componentname'] = 'Component: ';
 $string['label_weight'] = 'Weight towards course: ';
+$string['label_grade'] = 'Overall grade: ';
 $string['previous'] = 'Previous';
-
 $string['feedback_tobeconfirmed'] = 'To be confirmed';
 
+$string['status_notopen'] = 'notopen';
+$string['status_submissionnotopen'] = 'submissionnotopen';
+$string['status_tosubmit'] = 'tosubmit';
+$string['status_submitted'] = 'submitted';
+$string['status_overdue'] = 'overdue';
+$string['status_notsubmitted'] = 'notsubmitted';
+$string['status_unavailable'] = 'unavailable';
 $string['status_provisional'] = 'provisional';
 $string['status_graded'] = 'graded';
-$string['status_notsubmitted'] = 'notsubmitted';
-$string['status_notopen'] = 'notopen';
-$string['status_overdue'] = 'overdue';
-$string['status_submissionnotopen'] = 'submissionnotopen';
-$string['status_submitted'] = 'submitted';
-$string['status_tosubmit'] = 'tosubmit';
-$string['status_unavailable'] = 'unavailable';
 
-$string['status_class_provisional'] = 'status-provisional';
-$string['status_class_graded'] = 'status-graded';
-$string['status_class_overdue'] = 'status-overdue';
 $string['status_class_tosubmit'] = 'status-tosubmit';
 $string['status_class_submit'] = 'status-submit';
 $string['status_class_submitted'] = 'status-submitted';
-$string['status_class_notsubmitted'] = 'status-notsubmitted';
 $string['status_class_overdue'] = 'status-overdue';
+$string['status_class_notsubmitted'] = 'status-notsubmitted';
+$string['status_class_provisional'] = 'status-provisional';
+$string['status_class_graded'] = 'status-graded';
 
-$string['status_text_graded'] = 'Graded';
-$string['status_text_provisional'] = '(Provisional)';
-$string['status_text_notsubmitted'] = 'Not submitted';
-$string['status_text_overdue'] = 'Overdue';
+$string['status_text_hidden'] = 'Hidden';
 $string['status_text_submissionnotopen'] = 'Submission not open';
 $string['status_text_tosubmit'] = 'To submit';
 $string['status_text_submit'] = 'Submit';
 $string['status_text_submitted'] = 'Submitted';
-$string['status_text_tobeconfirmed'] = 'To be confirmed';
 $string['status_text_dueby'] = 'Due {$a}';
+$string['status_text_overdue'] = 'Overdue';
+$string['status_text_notsubmitted'] = 'Not submitted';
+$string['status_text_tobeconfirmed'] = 'To be confirmed';
+$string['status_text_provisional'] = 'Provisional';
+$string['status_text_graded'] = 'Graded';
 $string['status_text_viewfeedback'] = '<a href="{$a}">View Feedback</a>';
-
-$string['status_unavailable'] = 'submissionunavailable';
 
 $string['tab_current'] = 'Currently enrolled in';
 $string['tab_past'] = 'Past courses';

@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/mod/workshop/locallib.php');
 
 /**
- * Specific implementation for workshop
+ * Specific implementation for a workshop activity
  */
 class workshop_activity extends base {
 
@@ -73,11 +73,45 @@ class workshop_activity extends base {
     }
 
     /**
+     * Is this a Proxy or Adapter method/pattern??
+     * Seeing as get_first_grade is specific to Assignments,
+     * what is the better way to describe this.
+     */
+    public function get_grade(int $userid): object|bool {
+        return false;
+    }
+
+    /**
      * Get item type
      * @return string
      */
-    public function get_itemtype() {
+    public function get_itemtype(): string {
         return 'workshop';
+    }
+
+    /**
+     * Return the Moodle URL to the item
+     * @return string
+     */
+    public function get_assessmenturl(): string {
+        return $this->itemurl . $this->get_itemtype() . $this->itemscript . $this->cm->id;
+    }
+
+    /**
+     * @param int $userid
+     * @return object
+     */
+    public function get_status($userid): object {
+        $obj = new \stdClass();
+        $obj->due_date = time();
+        return $obj;
+    }
+
+    /**
+     * @param object $gradestatusobj
+     */
+    public function get_feedback($gradestatusobj): object {
+        return parent::get_feedback($gradestatusobj);
     }
 
 }

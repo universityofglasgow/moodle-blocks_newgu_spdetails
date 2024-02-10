@@ -41,61 +41,63 @@ class grade {
      * @param string $coursetype
      * @return object
      */
-    public static function get_grade_status_and_feedback(int $courseid, int $itemid, string $modulename, int $iteminstance, int $userid, int $gradetype, int $scaleid = null, int $grademax, string $coursetype) {
+    public static function get_grade_status_and_feedback(int $courseid, int $itemid, string $modulename, int $iteminstance, int $userid, int $gradetype, int $scaleid = null, int $grademax, string $coursetype): object {
         
         global $DB;
 
         $gradestatus = new \stdClass();
-        $gradestatus->assessmenturl = '';
-        $gradestatus->duedate = 0;
-        $gradestatus->cutoffdate = 0;
-        $gradestatus->gradingduedate = 0;
-        $gradestatus->status = '';
-        $gradestatus->statustext = '';
-        $gradestatus->statusclass = '';
-        $gradestatus->link = '';
-        $gradestatus->gradetodisplay = '';
-        $gradestatus->gradefeedback = '';
-
-        $url = $CFG->wwwroot . '/mod/';
-        $script = '/view.php?id=';
-        $rawgrade = null;
-        $finalgrade = null;
+        $gradestatus->assessment_url = '';
+        $gradestatus->due_date = 0;
+        $gradestatus->cut_off_date = 0;
+        $gradestatus->grade_status = '';
+        $gradestatus->status_text = '';
+        $gradestatus->status_class = '';
+        $gradestatus->status_link = '';
+        $gradestatus->grade_to_display = '';
+        $gradestatus->grade_feedback = '';
 
         $activity = \block_newgu_spdetails\activity::activity_factory($itemid, $courseid, 0);
-        $activitygrade = $activity->get_first_grade($userid);
-        if ($activitygrade->finalgrade > 0) {
+        $activitygrade = $activity->get_grade($userid);
+        if ($activitygrade && property_exists($activitygrade, 'finalgrade') && $activitygrade->finalgrade > 0) {
             $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->finalgrade, $gradetype, $scaleid, $grademax, $coursetype);
-            $gradestatus->status = get_string('status_graded', 'block_newgu_spdetails');
-            $gradestatus->statustext = get_string('status_text_graded', 'block_newgu_spdetails');
-            $gradestatus->statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
-            $gradestatus->link = $url . $modulename . $script . $cmid . '#page-footer';
-            $gradestatus->assessmenturl = $url . $modulename . $script . $cmid;
-            $gradestatus->gradetodisplay = $grade;
-            $gradestatus->feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails', $url . $activity->assign->modulename . $script . $cmid);
+            $gradestatus->grade_status = get_string('status_graded', 'block_newgu_spdetails');
+            $gradestatus->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
+            $gradestatus->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
+            $gradestatus->status_link = $activity->get_assessmenturl();
+            $gradestatus->assessment_url = $activity->get_assessmenturl();
+            $gradestatus->grade_to_display = $grade;
+            $gradestatus->feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails', $activity->get_assessmenturl() . '#page-footer');
         
             return $gradestatus;
         }
         
         // It's not been mentioned/specced w/regards provisional grades - do we treat rawgrades as such?
-        if ($activitygrade->rawgrade > 0) {
-           $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype, $activitygrade->rawscaleid);
+        if ($activitygrade && property_exists($activitygrade, 'rawgrade') && $activitygrade->rawgrade > 0) {
+            $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype, $activitygrade->rawscaleid);
+            $gradestatus->grade_status = get_string('status_provisional', 'block_newgu_spdetails');
+            $gradestatus->status_text = get_string('status_text_provisional', 'block_newgu_spdetails');
+            $gradestatus->status_class = get_string('status_class_provisional', 'block_newgu_spdetails');
+            $gradestatus->assessment_url = $activity->get_assessmenturl();
+            $gradestatus->grade_to_display = $grade . '(' . get_string('status_class_provisional', 'block_newgu_spdetails') . ')';
+            $gradestatus->feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails', $activity->get_assessmenturl() . '#page-footer');
+        
+            return $gradestatus;
         }
         
-        //What should we do here if only a 'grade' has been returned?
-        if ($activitygrade->grade > 0) {
-           
-        }
-        
-        // We don't have any grade record then, lets work backwards to determine the status and feedback.
+        // We either don't have a grade record, or the grade may not have been 
+        // released, lets work backwards to determine the status and feedback.
         $statusobj = $activity->get_status($userid);
-        $gradestatus->status = $statusobj->status;
-        $gradestatus->statustext = $statusobj->statustext;
-        $gradestatus->statustext = $statusobj->statusclass;
-        $gradestatus->link = $statusobj->link;
-        $gradestatus->assessmenturl = $statusobj->assessmenturl;
-        $gradestatus->gradetodisplay = $statusobj->gradetodisplay;
-        $gradestatus->feedback = $statusobj->feedback;
+        $feedbackobj = $activity->get_feedback($statusobj);
+        $gradestatus->due_date = $statusobj->due_date;
+        $gradestatus->cut_off_date = $statusobj->cut_off_date;
+        $gradestatus->grade_status = $statusobj->grade_status;
+        $gradestatus->status_text = $statusobj->status_text;
+        $gradestatus->status_class = $statusobj->status_class;
+        $gradestatus->status_link = $statusobj->status_link;
+        $gradestatus->assessment_url = $statusobj->assessment_url;
+        $gradestatus->grade_to_display = $statusobj->grade_to_display;
+        $gradestatus->grade_feedback = $feedbackobj->grade_feedback;
+        $gradestatus->grade_feedback_link = $feedbackobj->grade_feedback_link;
 
 
         // $gradeqry = $DB->get_record_sql(
@@ -323,7 +325,7 @@ class grade {
             case GRADE_TYPE_SCALE:
                 // Using the scaleid, derive the scale values...
                 $scaleparams = [
-                    'scaleid' => $scaleid
+                    'id' => $scaleid
                 ];
                 $scale = new \grade_scale($scaleparams, false);
                 $return_grade = $scale->get_nearest_item($grade);
@@ -336,6 +338,10 @@ class grade {
         }
 
         return $return_grade;
+    }
+
+    public static function get_overall_grade($gradableitems) {
+
     }
 
     /**

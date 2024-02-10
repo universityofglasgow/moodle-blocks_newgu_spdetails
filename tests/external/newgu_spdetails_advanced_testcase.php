@@ -445,9 +445,12 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $this->getDataGenerator()->enrol_user($student1->id, $course_past->id, $this->get_roleid());
         $this->course_past = $course_past;
 
-        $gradecategory_past = $this->getDataGenerator()->create_grade_category(['courseid' => $course_past->id]);
+        $gradecategory_past = $this->getDataGenerator()->create_grade_category([
+            'fullname' => 'Summative Category - Past', 
+            'courseid' => $course_past->id
+        ]);
         $summativecategory_past = $this->getDataGenerator()->create_grade_category([
-            'fullname' => 'Summative category - past', 
+            'fullname' => 'Average of assignments - past', 
             'courseid' => $course_past->id, 
             'parent' => $gradecategory_past->id
         ]);
@@ -460,13 +463,12 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $course_past->gugradesenabled = false;
         $course_past->gcatenabled = false;
 
-        $assignment_past = $this->getDataGenerator()->create_module('assign', ['name' => 'Past Assessment 1', 'grade' => 50, 'course' => $course_past->id]);
-        // $quiz_past = $this->getDataGenerator()->create_module('quiz', ['course' => $course_past->id]);
-        // $survey_past = $this->getDataGenerator()->create_module('survey', ['course' => $course_past->id]);
-        // $wiki_past = $this->getDataGenerator()->create_module('wiki', ['course' => $course_past->id]);
-        // $workshop_past = $this->getDataGenerator()->create_module('workshop', ['course' => $course_past->id]);
-        // $forum_past = $this->getDataGenerator()->create_module('forum', ['course' => $course_past->id, 'grade_forum' => 100]);
-
+        $assignment_past = $this->getDataGenerator()->create_module('assign', [
+            'name' => 'Past Assessment 1', 
+            'grade' => 50, 
+            'course' => $course_past->id
+        ]);
+        
         $assessmentitem1_past = $this->getDataGenerator()->create_grade_item([
             'itemtype' => 'mod',
             'itemmodule' => 'assign',
@@ -480,6 +482,12 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
 
         // Add a past assignment grade.
         $assignmentgrade1_past = $this->add_assignment_grade($assignment_past->id, $student1->id, 95.5);
+
+        // $quiz_past = $this->getDataGenerator()->create_module('quiz', ['course' => $course_past->id]);
+        // $survey_past = $this->getDataGenerator()->create_module('survey', ['course' => $course_past->id]);
+        // $wiki_past = $this->getDataGenerator()->create_module('wiki', ['course' => $course_past->id]);
+        // $workshop_past = $this->getDataGenerator()->create_module('workshop', ['course' => $course_past->id]);
+        // $forum_past = $this->getDataGenerator()->create_module('forum', ['course' => $course_past->id, 'grade_forum' => 100]);
 
         // $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
 

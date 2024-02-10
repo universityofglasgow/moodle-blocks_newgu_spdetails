@@ -131,12 +131,12 @@
      * @param string $sortorder
      * return array
      */
-    public static function process_mygrades_subcategories($courseid, $categories, $assessmenttype, $sortorder) {
+    public static function process_mygrades_subcategories($courseid, $mygradecategories, $assessmenttype, $sortorder) {
         
         $mygrades_subcatdata = [];
         $tmp = [];
         
-        foreach($categories as $obj) {
+        foreach($mygradecategories as $obj) {
             $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $obj->category->id, 'itemtype' => 'category']);
             $subcatweight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
             // We need to work out the grade aggregate for any graded items w/in this sub category...
@@ -144,13 +144,13 @@
             $subcat = new \stdClass();
             $subcat->id = $obj->category->id;
             $subcat->name = $obj->category->fullname;
-            $subcat->assessmenttype = $assessmenttype;
+            $subcat->assessment_type = $assessmenttype;
             $subcat->subcatweight = $subcatweight;
 
             $tmp[] = $subcat;
         }
 
-        // @todo - This needs redone. $categories comes in as an array of 
+        // @todo - This needs redone. $mygradecategories comes in as an array of 
         // objects, whose category property is also an object - making 
         // sorting a tad awkward. The items property that comes in also, 
         // is an array of objects containing the necessary property/key 
@@ -165,15 +165,55 @@
     }
 
     /**
-     * Process and prepare for display GCAT specific sub categories
+     * Process and prepare for display GCAT specific sub categories.
+     * 
+     * There doesn't appear to be anything API wise we can use, so we're
+     * having to do some manual legwork to get what we need here.
      * @param int $courseid
-     * @param int $gradecategoryid
+     * @param int $gcatcategories
      * @param string $assessmenttype
      * @param string $sortorder
      * return array 
      */
-    public static function process_gcat_subcategories($courseid, $gradecategoryid, $assessmenttype, $sortorder) {
+    public static function process_gcat_subcategories($courseid, $gcatcategories, $assessmenttype, $sortorder) {
+        global $CFG, $USER;
+        $gcat_subcatdata = [];
+        $tmp = [];
+        require_once($CFG->dirroot. '/blocks/gu_spdetails/lib.php');
 
+        foreach($gcatcategories as $gcatcategory) {
+            $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $gcatcategory->category->id, 'itemtype' => 'category']);
+            $subcatweight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
+            // We need to work out the grade aggregate for any graded items w/in this sub category...
+            // Is there an API call for this?
+            $subcat = new \stdClass();
+            $subcat->id = $gcatcategory->category->id;
+            $subcat->name = $gcatcategory->category->fullname;
+            $subcat->assessment_type = $assessmenttype;
+            $subcat->subcatweight = $subcatweight;
+
+            // We have an array of 'items' at this point - which we can use to work out the overall grade
+            // for each (sub)category - which should then give us an overall grade for all sub categories 
+            // of our parent - I think...
+            if ($gcatcategory->items) {
+
+            }
+
+            $tmp[] = $subcat;
+        }
+
+        // @todo - This needs redone. $mygradecategories comes in as an array of 
+        // objects, whose category property is also an object - making 
+        // sorting a tad awkward. The items property that comes in also, 
+        // is an array of objects containing the necessary property/key 
+        // which ^can^ get sorted and returned in the correct order needed 
+        // by the mustache engine.
+        $tmp2 = self::sort_items($tmp, $sortorder);
+        foreach($tmp2 as $sortedarray) {
+            $gcat_subcatdata[] = $sortedarray;
+        }
+
+        return $gcat_subcatdata;
     }
 
     /**

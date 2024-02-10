@@ -45,9 +45,9 @@ class api extends \external_api
      * @param string $sortby
      * @param string $sortorder
      * @param int $subcategory
-     * @return array
+     * @return array $data
      */
-    public static function retrieve_assessments(string $activetab, int $page, string $sortby, string $sortorder, int $subcategory = null) {
+    public static function retrieve_assessments(string $activetab, int $page, string $sortby, string $sortorder, int $subcategory = null): array {
         global $USER, $OUTPUT, $PAGE;
         $PAGE->set_context(context_system::instance());
 
@@ -89,10 +89,10 @@ class api extends \external_api
      * @param string $sortorder
      * @param int $subcategory
      * 
-     * @return array $items
+     * @return array $gradableactivities
      * @throws dml_exception
      */
-    public static function retrieve_gradable_activities(string $activetab = null, int $userid, string $sortby = null, string $sortorder, int $subcategory = null) {
+    public static function retrieve_gradable_activities(string $activetab, int $userid, string $sortby = null, string $sortorder, int $subcategory = null): array {
         $gradableactivities = [];
 
         // Start with getting the top level categories for all courses.
@@ -158,7 +158,7 @@ class api extends \external_api
                 foreach($assignments as $assignment) {
                     if (!in_array($assignment->id, $assignmentsubmissions)) {
                         if ($assignment->allowsubmissionsfromdate < $now) {
-                            if ($assignment->cuttoffdate == 0 || $assignment->cutoffddate > $now) {
+                            if ($assignment->cutoffdate == 0 || $assignment->cutofddate > $now) {
                                 $assignmentdata[] = $assignment;
                             }
                         }

@@ -77,6 +77,10 @@
             <span class="subcategory-details-label">{{#str}} label_weight, block_newgu_spdetails {{/str}}</span>
             <span id="subcategory-details-weight" class="subcategory-details-value">{{#data.coursedata}}{{weight}}{{/data.coursedata}}</span>
         </div>
+        <div>
+            <span class="subcategory-details-label">{{#str}} label_grade, block_newgu_spdetails {{/str}}</span>
+            <span id="subcategory-details-grade" class="subcategory-details-grade-value"></span>
+        </div>
     </div>
 </div>
 <div id="current_subassessments" class="assessments-details-sort-container">
@@ -101,16 +105,16 @@
             {{#subcategories}}
             <tr data-id="{{id}}">
                 <td class="td50 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder-open"></i><strong>{{name}}</strong></a></td>
-                <td class="td15 subcategory-row">{{assessmenttype}}</td>
+                <td class="td15 subcategory-row">{{assessment_type}}</td>
                 <td class="td5 subcategory-row">{{subcatweight}}</td>
             </tr>
             {{/subcategories}}
             {{#assessmentitems}}
             <tr data-assessmentid="{{id}}">
-                <td class="td50"><a href="{{assessmenturl}}">{{itemname}}</a></td>
-                <td class="td10">{{assessmenttype}}</td>
-                <td class="td5">{{assessmentweight}}</td>
-                <td class="td15">{{duedate}}</td>
+                <td class="td50"><a href="{{assessment_url}}">{{item_name}}</a></td>
+                <td class="td10">{{assessment_type}}</td>
+                <td class="td5">{{assessment_weight}}</td>
+                <td class="td15">{{due_date}}</td>
                 <td class="td15">
                 {{#grade_status}}
                     {{#status_link}}
@@ -124,13 +128,13 @@
                 </td>
                 <td class="td10">{{grade}}</td>
                 <td class="td10">
-                    {{#grade_feedback_link}}
-                        <a href="{{grade_feedback_link}}">
-                    {{/grade_feedback_link}}
-                    {{grade_feedback}}
-                    {{#grade_feedback_link}}
-                        </a>
-                    {{/grade_feedback_link}}
+                {{#grade_feedback_link}}
+                    <a href="{{grade_feedback_link}}">
+                {{/grade_feedback_link}}
+                {{grade_feedback}}
+                {{#grade_feedback_link}}
+                    </a>
+                {{/grade_feedback_link}}
                 </td>
             </tr>
             {{/assessmentitems}}

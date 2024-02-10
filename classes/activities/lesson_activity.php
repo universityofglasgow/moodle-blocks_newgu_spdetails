@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Concrete implementation for mod_quiz
+ * Concrete implementation for mod_lesson
  * @package    block_newgu_spdetails
  * @copyright  2024
- * @author     Greg Pedder
+ * @author     Howard Miller/Greg Pedder
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,12 +26,12 @@ namespace block_newgu_spdetails\activities;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/lesson/locallib.php');
 
 /**
- * Specific implementation for a quiz activity
+ * Specific implementation for a lesson activity
  */
-class quiz_activity extends base {
+class lesson_activity extends base {
 
     /**
      * @var object $cm
@@ -39,10 +39,10 @@ class quiz_activity extends base {
     private $cm;
 
     /**
-     * @var object $quiz
+     * @var object $lesson
      */
-    private $quiz;
-    
+    private $lesson;
+
     /**
      * Constructor, set grade itemid
      * @param int $gradeitemid Grade item id
@@ -54,22 +54,22 @@ class quiz_activity extends base {
 
         // Get the assignment object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->quiz = $this->get_quiz($this->cm);
+        $this->lesson = $this->get_lesson($this->cm);
     }
 
     /**
-     * Get quiz object
+     * Get assignment object
      * @param object $cm course module
      * @return object
      */
-    private function get_quiz($cm) {
+    public function get_lesson($cm) {
         global $DB;
 
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $coursemodulecontext = \context_module::instance($cm->id);
-        $quiz = new \quiz($coursemodulecontext, $cm, $course);
+        $lesson = new \lesson($coursemodulecontext, $cm, $course);
 
-        return $quiz;
+        return $lesson;
     }
 
     /**
@@ -78,7 +78,7 @@ class quiz_activity extends base {
      * what is the better way to describe this.
      */
     public function get_grade(int $userid): object|bool {
-        return 'THIS NEEDS FINISHED';
+        return false;
     }
 
     /**
@@ -86,7 +86,7 @@ class quiz_activity extends base {
      * @return string
      */
     public function get_itemtype(): string {
-        return 'quiz';
+        return 'lesson';
     }
 
     /**
@@ -102,9 +102,9 @@ class quiz_activity extends base {
      * @return object
      */
     public function get_status($userid): object {
-        
-        global $DB;
-
+        $obj = new \stdClass();
+        $obj->due_date = time();
+        return $obj;
     }
 
     /**

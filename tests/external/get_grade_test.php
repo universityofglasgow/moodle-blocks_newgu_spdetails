@@ -37,11 +37,8 @@
     /**
      * Test that for a given assessment, the correct grade status is returned.
      */
-    public function test_get_grade_and_gradestatus() {
+    public function test_get_grade_status_feedback() {
 
     }
-
-    public function test_return_gradefeedback() {
-
-    }
+    
 }

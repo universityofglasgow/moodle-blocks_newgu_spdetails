@@ -42,7 +42,7 @@ class get_gradable_activities_test extends \blocks_newgu_spdetails\external\newg
         $userid = $this->student1->id;
         $sortorder = 'asc';
         $summativecategoryid = $this->summativecategory->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $summativecategoryid);
+        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $summativecategoryid);
 
         $this->assertIsArray($returned);
         $this->assertArrayHasKey('coursedata',$returned);
@@ -56,7 +56,7 @@ class get_gradable_activities_test extends \blocks_newgu_spdetails\external\newg
         $userid = $this->student1->id;
         $sortorder = 'asc';
         $summativecategory_pastid = $this->summativecategory_past->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $summativecategory_pastid);
+        $returned = $this->lib->retrieve_gradable_activities('past', $userid, 'duedate', $sortorder, $summativecategory_pastid);
 
         $this->assertIsArray($returned);
         $this->assertArrayHasKey('coursedata',$returned);
@@ -72,17 +72,17 @@ class get_gradable_activities_test extends \blocks_newgu_spdetails\external\newg
 
         /** MyGrades course type */
         $gugradessubcategoryid = $this->gugrades_subcategory->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $gugradessubcategoryid);
+        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gugradessubcategoryid);
         $this->assertEquals($this->gugradescourse->gugradesenabled, $returned['coursedata']['assessmentitems'][0]['gugradesenabled']);
 
         /** GCAT course type */
         $gcatsubcategoryid = $this->summative_subcategory->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $gcatsubcategoryid);
+        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gcatsubcategoryid);
         $this->assertEquals($this->gcatcourse->gcatenabled, $returned['coursedata']['assessmentitems'][0]['gcatenabled']);
 
         /** Gradebook course type */
         $gradebookcategoryid = $this->gradebookcategory->id;
-        $returned = $this->lib->retrieve_gradable_activities(null, $userid, null, $sortorder, $gradebookcategoryid);
+        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gradebookcategoryid);
         $this->assertEquals(true, $returned['coursedata']['assessmentitems'][0]['gradebookenabled']);
     }
 

@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Concrete implementation for mod_assign
+ * Concrete implementation for mod_peerwork
  * @package    block_newgu_spdetails
  * @copyright  2024
- * @author     Howard Miller/Greg Pedder
+ * @author     Greg Pedder
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,12 +26,12 @@ namespace block_newgu_spdetails\activities;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/assign/locallib.php');
+require_once($CFG->dirroot . '/mod/peerwork/locallib.php');
 
 /**
- * Specific implementation for assignment
+ * Specific implementation for a peerwork activity
  */
-class assign_activity extends base {
+class peerwork_activity extends base {
 
     /**
      * @var object $cm
@@ -39,9 +39,9 @@ class assign_activity extends base {
     private $cm;
 
     /**
-     * @var object $assign
+     * @var object $peerwork
      */
-    private $assign;
+    private $peerwork;
 
     /**
      * Constructor, set grade itemid
@@ -54,7 +54,7 @@ class assign_activity extends base {
 
         // Get the assignment object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->assign = $this->get_assign($this->cm);
+        $this->peerwork = $this->get_peerwork($this->cm);
     }
 
     /**
@@ -62,37 +62,21 @@ class assign_activity extends base {
      * @param object $cm course module
      * @return object
      */
-    public function get_assign($cm) {
+    public function get_peerwork($cm): object {
         global $DB;
 
-        $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
-        $coursemodulecontext = \context_module::instance($cm->id);
-        $assign = new \assign($coursemodulecontext, $cm, $course);
+        $peerwork = $DB->get_record('peerwork', ['id' => $cm->instance], '*', MUST_EXIST);;
 
-        return $assign;
-    }
-
-    /**
-     * Is this a Proxy or Adapter method/pattern??
-     * Seeing as get_first_grade is specific to Assignments,
-     * what is the better way to describe this.
-     */
-    public function get_grade(int $userid): object|bool {
-        return $this->get_first_grade($userid);
+        return $peerwork;
     }
 
     /**
      * Implement get_first_grade
      * @param int $userid
-     * @return object|bool
+     * @return int|bool
      */
-    public function get_first_grade(int $userid): object|bool {
+    public function get_grade(int $userid): int|bool {
         global $DB;
-
-        $activitygrade = new \stdClass();
-        $activitygrade->finalgrade = null;
-        $activitygrade->rawgrade = null;
-        $activitygrade->grade = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
@@ -102,25 +86,13 @@ class assign_activity extends base {
             }
 
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
-                $activitygrade->finalgrade = $grade->finalgrade;
-                return $activitygrade;
+                return $grade->finalgrade;
             }
 
             // We want access to other properties, hence the return...
             if ($grade->rawgrade != null && $grade->rawgrade > 0) {
-                $activitygrade->rawgrade = $grade->rawgrade;
-                return $activitygrade;
+                return $grade;
             }
-        }
-
-        // This just pulls the grade from assign. Not sure it's that simple
-        // False, means do not create grade if it does not exist
-        // This is the grade object from mdl_assign_grades (check negative values).
-        $assigngrade = $this->assign->get_user_grade($userid, false);
-
-        if ($assigngrade !== false) {
-            $activitygrade->grade = $assigngrade->grade;
-            return $activitygrade;
         }
 
         return false;
@@ -131,7 +103,7 @@ class assign_activity extends base {
      * @return string
      */
     public function get_itemtype(): string {
-        return 'assign';
+        return 'peerwork';
     }
 
     /**
@@ -144,7 +116,7 @@ class assign_activity extends base {
 
     /**
      * @param int $userid
-     * @return object $statusobj
+     * @return object
      */
     public function get_status($userid): object {
         
@@ -152,26 +124,9 @@ class assign_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $assigninstance = $this->assign->get_instance();
-        $allowsubmissionsfromdate = $assigninstance->allowsubmissionsfromdate;
-        $statusobj->grade_status = '';
-        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-        $statusobj->due_date = $assigninstance->duedate;
-        $statusobj->cut_off_date = $assigninstance->cutoffdate;
-
-        $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);
-        if (!empty($overrides)) {
-            $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;
-            $statusobj->due_date = $overrides->duedate;
-            $statusobj->cut_off_date = $overrides->cutoffdate;
-        }
-
-        $userflags = $DB->get_record('assign_user_flags', ['assignment' => $assigninstance->id, 'userid' => $userid]);
-        if (!empty($userflags)) {
-            if ($userflags->extensionduedate > 0) {
-                $statusobj->due_date = $userflags->extensionduedate;
-            }
-        }
+        $statusobj->due_date = $this->peerwork->duedate;
+        $allowsubmissionsfromdate = $this->peerwork->fromdate;
+        $statusobj->allowlatesubmissions = $this->peerwork->allowlatesubmissions;
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
@@ -180,33 +135,29 @@ class assign_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $assignsubmission = $DB->get_record('assign_submission', ['assignment' => $assigninstance->id, 'userid' => $userid]);
             $statusobj->status_link = $statusobj->assessment_url;
-            
-            if (!empty($assignsubmission)) {
-                $statusobj->grade_status = $assignsubmission->status;
+            $peerworksubmission = $DB->get_record('peerwork_submission', ['peerworkid' => $this->peerwork->id, 'userid' => $userid]);
 
-                // There is a bug in class assign->get_user_grade() where get_user_submission() is called 
-                // and an assignment entry is created regardless -i.e. "true" is passed instead of an arg.
-                // This will always result in the assign_submission entry with a status of "new".
-                if ($statusobj->grade_status == 'new') {
-                    $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                    
-                    if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
-                        $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
-                        $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
-                        $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
-                        $statusobj->grade_to_display = get_string('status_text_overdue', 'block_newgu_spdetails');
-                    }
-                }
+            $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+            $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+            $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
-                if ($statusobj->grade_status == get_string('status_submitted', 'block_newgu_spdetails')) {
+            if (!empty($peerworksubmission)) {
+                $statusobj->grade_status = $peerworksubmission->releasedby;
+
+                if ($statusobj->grade_status == null) {
                     $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
+                    $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
+                }
+
+                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
+                    $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
+                    $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
+                    $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                    $statusobj->grade_to_display = get_string('status_text_overdue', 'block_newgu_spdetails');
                 }
 
             } else {
@@ -232,13 +183,13 @@ class assign_activity extends base {
         }
 
         return $statusobj;
+
     }
 
     /**
      * @param object $gradestatusobj
-     * @return object
      */
-    public function get_feedback(object $gradestatusobj): object {
+    public function get_feedback($gradestatusobj): object {
         return parent::get_feedback($gradestatusobj);
     }
 
