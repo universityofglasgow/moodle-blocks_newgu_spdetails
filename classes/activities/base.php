@@ -171,7 +171,7 @@ abstract class base {
         $feedbackobj->grade_feedback_link = '';
 
         switch($gradestatusobj->grade_status) {
-            case get_string('status_tosubmit', 'block_newgu_spdetails'):
+            case get_string('status_submit', 'block_newgu_spdetails'):
             case get_string('status_notopen', 'block_newgu_spdetails'):
             case get_string('status_submissionnotopen', 'block_newgu_spdetails'):
             case get_string('status_notsubmitted', 'block_newgu_spdetails') :

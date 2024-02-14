@@ -25,7 +25,7 @@
 
 namespace block_newgu_spdetails;
 
-define('ITEM_URL', $CFG->wwwroot . '/mod/');
+define('ITEM_URL', $CFG->wwwroot . '/');
 define('ITEM_SCRIPT', '/view.php?id=');
 class activity {
     
@@ -349,8 +349,8 @@ class activity {
                         }
                     }
 
-                    $assessmentweight = \block_newgu_spdetails\course::return_weight($mygradesitem->aggregationcoef);
-
+                    $assessment_weight = \block_newgu_spdetails\course::return_weight($mygradesitem->aggregationcoef);
+                    $due_date = '';
                     $grade = '';
                     $grade_status = '';
                     $status_class = '';
@@ -367,6 +367,8 @@ class activity {
                     ];
                     if ($usergrades = $DB->get_records('local_gugrades_grade', $params)) {
                         // @todo - swap all of this for the relevant mygrades API calls - if/when one exists.
+                        $assessment_url = ITEM_URL . $mygradesitem->itemtype . '/' . $mygradesitem->itemtype . ITEM_SCRIPT . $cm->id;
+                        $due_date = $mygradesitem->duedate;
                         switch($usergrades->gradetype) {
                             case 'RELEASED':
                                 $grade = $usergrades->displaygrade;
@@ -374,7 +376,7 @@ class activity {
                                 $status_class = get_string('status_class_graded', 'block_newgu_spdetail');
                                 $status_text = get_string('status_text_graded', 'block_newgu_spdetail');
                                 $grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetail');
-                                $grade_feedback_link = '';
+                                $grade_feedback_link = $assessment_url . '#page-footer';
                                 break;
 
                             case 'PROVISIONAL':
@@ -406,8 +408,7 @@ class activity {
                         );
                         
                         $assessment_url = $gradestatobj->assessment_url;
-                        $itemduedate = \DateTime::createFromFormat('U', $gradestatobj->due_date);
-                        $due_date = $itemduedate->format('jS F Y');
+                        $due_date = $gradestatobj->due_date;
                         $grade_status = $gradestatobj->grade_status;
                         $status_link = $gradestatobj->status_link;
                         $status_class = $gradestatobj->status_class;
@@ -568,8 +569,7 @@ class activity {
                         );
                         
                     $assessmenturl = $gradestatobj->assessment_url;
-                    $itemduedate = \DateTime::createFromFormat('U', $gradestatobj->due_date);
-                    $duedate = $itemduedate->format('jS F Y');
+                    $duedate = $gradestatobj->due_date;
                     $grade_status = $gradestatobj->grade_status;
                     $status_link = $gradestatobj->status_link;
                     $status_class = $gradestatobj->status_class;

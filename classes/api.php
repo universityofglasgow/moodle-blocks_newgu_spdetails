@@ -261,7 +261,7 @@ class api extends \external_api
                 if ($status == get_string("status_notsubmitted", "block_newgu_spdetails")) {
                     $total_tosubmit++;
                 }
-                if ($status == get_string("status_submitted", "block_newgu_spdetails")) {
+                if ($status == get_string("status_submitted", "block_newgu_spdetails") || $status == get_string("status_graded", "block_newgu_spdetails")) {
                     $total_submissions++;
                     if ($finalgrade != Null) {
                         $marked++;

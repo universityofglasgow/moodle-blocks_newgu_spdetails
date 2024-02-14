@@ -64,6 +64,7 @@ const initCourseTabs = () => {
     if (activeCategoryId) {
         Log.debug('activeCategoryId:', activeCategoryId);
         subcatId = activeCategoryId;
+        isPageClicked = true;
     }
 
     // Load the assessments for the "current" tab to begin with...

@@ -156,7 +156,6 @@ class kalvidassign_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $statusobj->status_link = $statusobj->assessment_url;
             $kalvidassignsubmission = $DB->get_record('kalvidassign_submission', ['vidassignid' => $this->kalvidassign[2]->id, 'userid' => $userid]);
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
@@ -178,17 +177,22 @@ class kalvidassign_activity extends base {
                     $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                    $statusobj->status_link = $statusobj->assessment_url;
                     $statusobj->grade_to_display = get_string('status_text_overdue', 'block_newgu_spdetails');
                 }
 
             } else {
-                $statusobj->grade_status = get_string('status_tosubmit', 'block_newgu_spdetails');
-                $statusobj->status_text = get_string('status_text_tosubmit', 'block_newgu_spdetails');
+                $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
+                $statusobj->status_link = $statusobj->assessment_url;
                 $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
                 if (time() > $statusobj->due_date && $statusobj->due_date != 0) {
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->status_class = '';
+                    $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
                         $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date("d/m/Y", $gradestatus->due_date));

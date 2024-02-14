@@ -151,6 +151,24 @@ class assign_activity extends base {
     }
 
     /**
+     * Return a formatted date
+     * @param int $unformatteddate
+     * @return string
+     */
+    public function get_formattedduedate(int $unformatteddate = null): string {
+        $dateinstance = $this->assign->get_instance();
+        $rawdate = $dateinstance->duedate;
+        if ($unformatteddate) {
+            $rawdate = $unformatteddate;
+        }
+
+        $dateobj = \DateTime::createFromFormat('U', $rawdate);
+        $due_date = $dateobj->format('jS F Y');
+        
+        return $due_date;
+    }
+
+    /**
      * @param int $userid
      * @return object $statusobj
      */
@@ -165,13 +183,12 @@ class assign_activity extends base {
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $assigninstance->duedate;
-        $statusobj->cut_off_date = $assigninstance->cutoffdate;
 
+        // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);
         if (!empty($overrides)) {
             $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;
             $statusobj->due_date = $overrides->duedate;
-            $statusobj->cut_off_date = $overrides->cutoffdate;
         }
 
         $userflags = $DB->get_record('assign_user_flags', ['assignment' => $assigninstance->id, 'userid' => $userid]);
@@ -181,6 +198,7 @@ class assign_activity extends base {
             }
         }
 
+        // "Allow submissions from" date is in the future...
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
@@ -189,24 +207,32 @@ class assign_activity extends base {
 
         if ($statusobj->grade_status == '') {
             $assignsubmission = $DB->get_record('assign_submission', ['assignment' => $assigninstance->id, 'userid' => $userid]);
-            $statusobj->status_link = $statusobj->assessment_url;
             
             if (!empty($assignsubmission)) {
                 $statusobj->grade_status = $assignsubmission->status;
 
                 // There is a bug in class assign->get_user_grade() where get_user_submission() is called 
                 // and an assignment entry is created regardless -i.e. "true" is passed instead of an arg.
-                // This will always result in the assign_submission entry with a status of "new".
+                // This will always result in an assign_submission entry with a status of "new".
                 if ($statusobj->grade_status == 'new') {
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+
+                    if ($statusobj->due_date != 0 && $statusobj->due_date > time()) {
+                        $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+                        $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+                        $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
+                        $statusobj->status_link = $statusobj->assessment_url;
+                        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                    }
                     
                     if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
                         $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                         $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
                         $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                        $statusobj->status_link = $statusobj->assessment_url;
                         $statusobj->grade_to_display = get_string('status_text_overdue', 'block_newgu_spdetails');
                     }
                 }
@@ -218,13 +244,15 @@ class assign_activity extends base {
                 }
 
             } else {
-                $statusobj->grade_status = get_string('status_tosubmit', 'block_newgu_spdetails');
-                $statusobj->status_text = get_string('status_text_tosubmit', 'block_newgu_spdetails');
+                $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+                $statusobj->status_link = $statusobj->assessment_url;
                 $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
                 if (time() > $statusobj->due_date && $statusobj->due_date != 0) {
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
                         $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date("d/m/Y", $gradestatus->due_date));
@@ -235,8 +263,16 @@ class assign_activity extends base {
                     $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                    $statusobj->status_link = $statusobj->assessment_url;
                 }
             }
+        }
+
+        // Formatting this here as the integer format for the date is no longer needed for testing against.
+        if ($statusobj->due_date != 0) {
+            $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+        } else {
+            $statusobj->due_date = '';
         }
 
         return $statusobj;

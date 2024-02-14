@@ -93,7 +93,7 @@ $string['feedback_tobeconfirmed'] = 'To be confirmed';
 
 $string['status_notopen'] = 'notopen';
 $string['status_submissionnotopen'] = 'submissionnotopen';
-$string['status_tosubmit'] = 'tosubmit';
+$string['status_submit'] = 'submit';
 $string['status_submitted'] = 'submitted';
 $string['status_overdue'] = 'overdue';
 $string['status_notsubmitted'] = 'notsubmitted';
@@ -101,7 +101,6 @@ $string['status_unavailable'] = 'unavailable';
 $string['status_provisional'] = 'provisional';
 $string['status_graded'] = 'graded';
 
-$string['status_class_tosubmit'] = 'status-tosubmit';
 $string['status_class_submit'] = 'status-submit';
 $string['status_class_submitted'] = 'status-submitted';
 $string['status_class_overdue'] = 'status-overdue';
@@ -120,7 +119,7 @@ $string['status_text_notsubmitted'] = 'Not submitted';
 $string['status_text_tobeconfirmed'] = 'To be confirmed';
 $string['status_text_provisional'] = 'Provisional';
 $string['status_text_graded'] = 'Graded';
-$string['status_text_viewfeedback'] = '<a href="{$a}">View Feedback</a>';
+$string['status_text_viewfeedback'] = 'View Feedback';
 
 $string['tab_current'] = 'Currently enrolled in';
 $string['tab_past'] = 'Past courses';

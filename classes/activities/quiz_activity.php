@@ -26,7 +26,8 @@ namespace block_newgu_spdetails\activities;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
+require_once($CFG->dirroot . '/mod/quiz/lib.php');
 
 /**
  * Specific implementation for a quiz activity
@@ -77,6 +78,33 @@ class quiz_activity extends base {
      * @return object|bool
      */
     public function get_grade(int $userid): object|bool {
+        global $DB;
+
+        // If the grade is overridden in the Gradebook then we can
+        // revert to the base - i.e., get the grade from the Gradebook.
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
+            if ($grade->overridden) {
+                return parent::get_first_grade($userid);
+            }
+
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                return $grade->finalgrade;
+            }
+
+            // We want access to other properties, hence the return...
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                return $grade;
+            }
+        }
+
+        // This just pulls the grade from quiz_grades. Not sure it's that simple.
+        $quizgrade = quiz_get_user_grades($this->quiz, $userid);
+
+        if (count($quizgrade) > 0) {
+            $activitygrade->grade = $quizgrade->rawgrade;
+            return $activitygrade;
+        }
+
         return false;
     }
 
@@ -105,13 +133,49 @@ class quiz_activity extends base {
     }
 
     /**
+     * Return a formatted date
+     * @return string
+     */
+    public function get_formattedduedate(): string {
+        
+        
+        return '';
+    }
+
+    /**
      * @param int $userid
      * @return object
      */
     public function get_status($userid): object {
-        $obj = new \stdClass();
-        $obj->due_date = time();
-        return $obj;
+        
+        global $DB;
+
+        $statusobj = new \stdClass();
+        $statusobj->assessment_url = '';
+        $statusobj->due_date = $this->get_formattedduedate();
+        $statusobj->grade_status = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+
+        // Check if any overrides have been set up first of all...
+        $overrides = $DB->get_record('quiz_overrides', ['quiz' => $this->quiz->id, 'userid' => $userid]);
+        if (!empty($overrides)) {
+            $allowsubmissionsfromdate = $overrides->timeopen;
+            $statusobj->due_date = $overrides->timeclose;
+        }
+
+        $quizattempts = $DB->count_records("quiz_attempts", ["quiz" => $this->quiz->id, "userid" => $userid, "state" => "finished"]);
+        if ($quizattempts > 0) {
+            $statusobj->grade_status = get_string("status_submitted", "block_newgu_spdetails");
+            $statusobj->status_text = get_string("status_text_submitted", "block_newgu_spdetails");
+            $statusobj->status_class = get_string("status_class_submitted", "block_newgu_spdetails");
+        } else {
+            $statusobj->grade_status = get_string("status_tosubmit", "block_newgu_spdetails");
+            $statusobj->status_text = get_string("status_text_submit", "block_newgu_spdetails");
+            $statusobj->status_class = get_string("status_class_submit", "block_newgu_spdetails");
+            $statusobj->assessment_url = $this->get_assessmenturl();
+        }
+
+        return $statusobj;
     }
 
     /**
