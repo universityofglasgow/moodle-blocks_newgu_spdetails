@@ -54,7 +54,7 @@ class lti_activity extends base {
 
         // Get the lti object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->lti = $this->get_lti($this->cm);
+        //$this->lti = $this->get_lti($this->cm);
     }
 
     /**
@@ -85,8 +85,16 @@ class lti_activity extends base {
      * Get item type
      * @return string
      */
-    public function get_itemtype() {
-        return 'lti';
+    public function get_itemtype(): string {
+        return $this->itemtype;
+    }
+
+    /**
+     * Get item module
+     * @return string
+     */
+    public function get_itemmodule(): string {
+        return $this->itemmodule;
     }
 
     /**
@@ -94,7 +102,7 @@ class lti_activity extends base {
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->itemscript . $this->cm->id;
+        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
     }
 
     /**

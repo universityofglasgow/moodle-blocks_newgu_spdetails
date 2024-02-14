@@ -103,7 +103,15 @@ class peerwork_activity extends base {
      * @return string
      */
     public function get_itemtype(): string {
-        return 'peerwork';
+        return $this->itemtype;
+    }
+
+    /**
+     * Get item module
+     * @return string
+     */
+    public function get_itemmodule(): string {
+        return $this->itemmodule;
     }
 
     /**
@@ -111,7 +119,7 @@ class peerwork_activity extends base {
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->itemscript . $this->cm->id;
+        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
     }
 
     /**

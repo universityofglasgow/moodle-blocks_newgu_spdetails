@@ -51,14 +51,19 @@ abstract class base {
     protected int $groupid;
 
     /**
+     * @var string $itemurl
+     */
+    protected string $itemurl;
+
+    /**
      * @var string $itemtype
      */
     protected string $itemtype;
 
     /**
-     * @var string $itemurl
+     * @var string $itemmodule
      */
-    protected string $itemurl;
+    protected string $itemmodule;
     
     /**
      * @var string $itemscript
@@ -88,7 +93,8 @@ abstract class base {
         $this->itemtype = $this->gradeitem->itemtype;
 
         // The URL format seems to be consistent between activities.
-        $this->itemurl = $CFG->wwwroot . '/mod/';
+        $this->itemurl = $CFG->wwwroot . '/';
+        $this->itemmodule = '/' . $this->gradeitem->itemmodule;
         $this->itemscript = '/view.php?id=';
     }
 
@@ -126,6 +132,14 @@ abstract class base {
      */
     public function get_itemtype(): string {
         return $this->gradeitem->itemtype;
+    }
+
+    /**
+     * Get item module
+     * @return string
+     */
+    public function get_itemmodule(): string {
+        return $this->gradeitem->itemmodule;
     }
 
     /**

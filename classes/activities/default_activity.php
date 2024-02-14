@@ -26,57 +26,14 @@ namespace block_newgu_spdetails\activities;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/default/locallib.php');
-
 /**
- * Implement other grade types
+ * Implement a default activity type
  */
 class default_activity extends base {
 
-
     /**
-     * @var object $cm
-     */
-    private $cm;
-
-    /**
-     * @var object $assign
-     */
-    private $default;
-
-    /**
-     * Constructor, set grade itemid
-     * @param int $gradeitemid Grade item id
-     * @param int $courseid
-     * @param int $groupid
-     */
-    public function __construct(int $gradeitemid, int $courseid, int $groupid) {
-        parent::__construct($gradeitemid, $courseid, $groupid);
-
-        // Get the assignment object.
-        $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->default = $this->get_default($this->cm);
-    }
-
-    /**
-     * Get assignment object
-     * @param object $cm course module
-     * @return object
-     */
-    public function get_default($cm) {
-        global $DB;
-
-        $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
-        $coursemodulecontext = \context_module::instance($cm->id);
-        $default = new \default($coursemodulecontext, $cm, $course);
-
-        return $default;
-    }
-
-    /**
-     * Is this a Proxy or Adapter method/pattern??
-     * Seeing as get_first_grade is specific to Assignments,
-     * what is the better way to describe this.
+     * Get the grade
+     * @return object|bool
      */
     public function get_grade(int $userid): object|bool {
         return false;
@@ -87,7 +44,15 @@ class default_activity extends base {
      * @return string
      */
     public function get_itemtype(): string {
-        return 'default';
+        return $this->itemtype;
+    }
+
+    /**
+     * Get item module
+     * @return string
+     */
+    public function get_itemmodule(): string {
+        return $this->itemmodule;
     }
 
     /**
@@ -95,7 +60,7 @@ class default_activity extends base {
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->itemscript . $this->cm->id;
+        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
     }
 
     /**

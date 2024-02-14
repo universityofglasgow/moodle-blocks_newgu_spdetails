@@ -33,8 +33,16 @@ class manual extends base {
      * Get item type
      * @return string
      */
-    public function get_itemtype() {
-        return  'manual';
+    public function get_itemtype(): string {
+        return $this->itemtype;
+    }
+
+    /**
+     * Get item module
+     * @return string
+     */
+    public function get_itemmodule(): string {
+        return $this->itemmodule;
     }
 
     /**
@@ -42,7 +50,7 @@ class manual extends base {
      * @return string
      */
     public function get_assessmenturl(): string {
-        return 'THIS NEEDS A URL';
+        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
     }
 
     /**

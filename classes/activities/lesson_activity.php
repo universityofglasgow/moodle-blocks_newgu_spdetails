@@ -86,7 +86,15 @@ class lesson_activity extends base {
      * @return string
      */
     public function get_itemtype(): string {
-        return 'lesson';
+        return $this->itemtype;
+    }
+
+    /**
+     * Get item module
+     * @return string
+     */
+    public function get_itemmodule(): string {
+        return $this->itemmodule;
     }
 
     /**
@@ -94,7 +102,7 @@ class lesson_activity extends base {
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->itemscript . $this->cm->id;
+        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
     }
 
     /**

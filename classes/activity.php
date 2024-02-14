@@ -130,9 +130,6 @@ class activity {
         $gugradesenabled = \block_newgu_spdetails\course::is_type_mygrades($courseid);
         $gcatenabled = \block_newgu_spdetails\course::is_type_gcat($courseid);
 
-        // Temp fix for working out which LTI activities to exclude...
-        $lti_instances_to_exclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
-
         if ($activityitems->categories) {
             $categorydata = [];
             if ($gugradesenabled) {
@@ -151,15 +148,16 @@ class activity {
         }
 
         if ($activityitems->items) {
+            // Temp fix for working out which LTI activities to exclude...
+            $lti_instances_to_exclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
+            
             $activitydata = [];
-            // @todo - honour hidden grades - if "showgrades" is enabled for a course/activity
-            // show grade, status and feedback, otherwise - hide it from the user.
             if ($gugradesenabled) {
                 $activitydata = \block_newgu_spdetails\activity::process_mygrades_items($activityitems->items, $lti_instances_to_exclude, $assessmenttype, $sortorder);
             }
 
             if ($gcatenabled) {
-                // Disregard the items we have and use the GCAT API instead...
+                // We need to disregard the items we have and use the GCAT API instead...
                 $activitydata = \block_newgu_spdetails\activity::process_gcat_items($subcategory, $lti_instances_to_exclude, $userid, $activetab, $assessmenttype, $sortby, $sortorder);
             }
 
@@ -435,28 +433,6 @@ class activity {
                         'grade_feedback_link' => $grade_feedback_link,
                         'gugradesenabled' => 'true'
                     ];
-                    
-                    /**
-                    $assessmentweight = $assessmentitem->weight;
-                    $duedate = \DateTime::createFromFormat('U', $assessmentitem->duedate);
-                    $blah = (isset($assessmentitem->status->class) ? $assessmentitem->status->statustext : 'unavailable');
-
-                    $mygradesdata[] = [
-                        'id' => $assessmentitem->id,
-                        'assessmenturl' => $assessmentitem->assessmenturl,
-                        'itemname' => $assessmentitem->assessmentname,
-                        'assessmenttype' => $assessmentitem->assessmenttype,
-                        'assessmentweight' => $assessmentweight,
-                        'duedate' => $duedate->format('jS F Y'),
-                        'grade_status' =>  get_string("status_" . $blah, "block_newgu_spdetails"),
-                        'status_link' => $assessmentitem->assessmenturl,
-                        'status_class' => $assessmentitem->status->class,
-                        'status_text' => $assessmentitem->status->statustext,
-                        'grade' => $assessmentitem->grading->gradetext,
-                        'grade_feedback' => $assessmentitem->feedback->feedbacktext,
-                        'gugradesenabled' => 'true'
-                    ];
-                    **/
                 }
             }
         }
@@ -604,7 +580,7 @@ class activity {
 
                     $defaultdata[] = [
                         'id' => $defaultitem->id,
-                        'itemname' => $defaultitem->itemname,
+                        'item_name' => $defaultitem->itemname,
                         'assessment_url' => $assessmenturl,
                         'assessment_type' => $assessmenttype,
                         'assessment_weight' => $assessmentweight,

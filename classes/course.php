@@ -202,7 +202,7 @@
             $tmp[] = $subcat;
         }
 
-        // @todo - This needs redone. $mygradecategories comes in as an array of 
+        // @todo - This needs redone. $gcatcategories comes in as an array of 
         // objects, whose category property is also an object - making 
         // sorting a tad awkward. The items property that comes in also, 
         // is an array of objects containing the necessary property/key 
@@ -225,21 +225,31 @@
      * @param string $sortorder
      * return array
      */
-    public static function process_default_subcategories($courseid, $categories, $assessmenttype, $sortorder) {
+    public static function process_default_subcategories($courseid, $subcategories, $assessmenttype, $sortorder) {
         $default_subcatdata = [];
-        $subcategories = \grade_category::fetch_all(['courseid' => $courseid, 'parent' => $gradecategory, 'hidden' => 0]);
-        if ($subcategories && count($subcategories) > 0) {
-    
-            foreach($subcategories as $subcategory) {
-                $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $subcategory->id, 'itemtype' => 'category']);
-                $subcatweight = self::return_weight($item->aggregationcoef);
-                $default_subcatdata[] = [
-                    'id' => $subcategory->id,
-                    'name' => $subcategory->fullname,
-                    'assessmenttype' => $assessmenttype,
-                    'subcatweight' => $subcatweight
-                ];
-            }
+        $tmp = [];
+        
+        foreach($subcategories as $obj) {
+            $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $obj->category->id, 'itemtype' => 'category']);
+            $subcatweight = self::return_weight($item->aggregationcoef);
+            $subcat = new \stdClass();
+            $subcat->id = $obj->category->id;
+            $subcat->name = $obj->category->fullname;
+            $subcat->assessment_type = $assessmenttype;
+            $subcat->subcatweight = $subcatweight;
+
+            $tmp[] = $subcat;
+        }
+
+        // @todo - This needs redone. $subcategories comes in as an array of 
+        // objects, whose category property is also an object - making 
+        // sorting a tad awkward. The items property that comes in also, 
+        // is an array of objects containing the necessary property/key 
+        // which ^can^ get sorted and returned in the correct order needed 
+        // by the mustache engine.
+        $tmp2 = self::sort_items($tmp, $sortorder);
+        foreach($tmp2 as $sortedarray) {
+            $default_subcatdata[] = $sortedarray;
         }
 
         return $default_subcatdata;

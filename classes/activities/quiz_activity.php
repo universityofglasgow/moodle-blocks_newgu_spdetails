@@ -73,12 +73,11 @@ class quiz_activity extends base {
     }
 
     /**
-     * Is this a Proxy or Adapter method/pattern??
-     * Seeing as get_first_grade is specific to Assignments,
-     * what is the better way to describe this.
+     * Get the grade
+     * @return object|bool
      */
     public function get_grade(int $userid): object|bool {
-        return 'THIS NEEDS FINISHED';
+        return false;
     }
 
     /**
@@ -86,7 +85,15 @@ class quiz_activity extends base {
      * @return string
      */
     public function get_itemtype(): string {
-        return 'quiz';
+        return $this->itemtype;
+    }
+
+    /**
+     * Get item module
+     * @return string
+     */
+    public function get_itemmodule(): string {
+        return $this->itemmodule;
     }
 
     /**
@@ -94,7 +101,7 @@ class quiz_activity extends base {
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->itemscript . $this->cm->id;
+        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
     }
 
     /**
@@ -102,9 +109,9 @@ class quiz_activity extends base {
      * @return object
      */
     public function get_status($userid): object {
-        
-        global $DB;
-
+        $obj = new \stdClass();
+        $obj->due_date = time();
+        return $obj;
     }
 
     /**
