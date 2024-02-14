@@ -36,9 +36,38 @@ const initCourseTabs = () => {
     let sortby = 'shortname';
     let sortorder = 'asc';
     let isPageClicked = false;
+    let subcatId = null;
+    let activeTab = sessionStorage.getItem('activeTab');
+    let activeCategoryId = sessionStorage.getItem('activeCategoryId');
+
+    // Account for returning to the page, or reloading.
+    if (activeTab) {
+        Log.debug('activetab:', activetab);
+        activetab = activeTab;
+        let currentTab = document.querySelector('#current_tab');
+        let pastTab = document.querySelector('#past_tab');
+
+        switch(activetab) {
+            case 'current':
+                currentTab.classList.add('active');
+                pastTab.classList.remove('active');
+                break;
+            case 'past':
+                currentTab.classList.remove('active');
+                pastTab.classList.add('active');
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (activeCategoryId) {
+        Log.debug('activeCategoryId:', activeCategoryId);
+        subcatId = activeCategoryId;
+    }
 
     // Load the assessments for the "current" tab to begin with...
-    loadAssessments(activetab, page, sortby, sortorder, isPageClicked);
+    loadAssessments(activetab, page, sortby, sortorder, isPageClicked, subcatId);
 
     const triggerTabList = document.querySelectorAll('#courses-Tab button');
 
@@ -93,6 +122,16 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             subCategoryReturnHandler(coursedata.parent);
             sortingEventHandler(sortColumns, activetab, page, subcategory);
             sortingStatus(sortby, sortorder);
+
+            // So we can allow returning to the last item correctly...
+            sessionStorage.setItem('activeTab', activetab);
+            if (subcategory) {
+                sessionStorage.setItem('activeCategoryId', subcategory);
+                document.querySelector('#courseNav-container').classList.add('hidden-container');
+            } else {
+                sessionStorage.removeItem('activeCategoryId');
+                document.querySelector('#courseNav-container').classList.remove('hidden-container');
+            }
         }).catch((error) => displayException(error));
     }).fail(function(response) {
         if(response) {
