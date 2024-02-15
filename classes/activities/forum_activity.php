@@ -129,6 +129,22 @@ class forum_activity extends base {
     }
 
     /**
+     * Return a formatted date
+     * @param int $unformatteddate
+     * @return string
+     */
+    public function get_formattedduedate(int $unformatteddate = null): string {
+        
+        $due_date = '';
+        if ($unformatteddate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+            $due_date = $dateobj->format('jS F Y');
+        }
+        
+        return $due_date;
+    }
+
+    /**
      * @param int $userid
      * @return object
      */
@@ -139,7 +155,7 @@ class forum_activity extends base {
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-        $statusobj->due_date = $this->forum->duedate;
+        $statusobj->due_date = $this->get_formattedduedate($this->forum->duedate);
         $forumsubmissions = $DB->count_records("forum_discussion_subs", ["forum" => $this->cm->instance, "userid" => $userid]);
         if ($forumsubmissions > 0) {
             $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');

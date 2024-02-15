@@ -77,7 +77,7 @@
                 }
             } else {
                 // Our course appears to contain no sub categories :-( ...
-                $gradecat = \grade_category::fetch(['courseid' => $course->id]);
+                $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
                 $item = \grade_item::fetch(['courseid' => $course->id, 'itemtype' => 'course']);
                 $assessmenttype = self::return_assessmenttype($course->fullname, $item->aggregationcoef);
                 $subcatweight = self::return_weight($item->aggregationcoef);
