@@ -155,7 +155,7 @@ class activity {
             
             $activitydata = [];
             if ($gugradesenabled) {
-                $activitydata = \block_newgu_spdetails\activity::process_mygrades_items($activityitems->items, $lti_instances_to_exclude, $assessmenttype, $sortorder);
+                $activitydata = \block_newgu_spdetails\activity::process_mygrades_items($activityitems->items, $activetab, $lti_instances_to_exclude, $assessmenttype, $sortorder);
             }
 
             if ($gcatenabled) {
@@ -164,7 +164,7 @@ class activity {
             }
 
             if (!$gugradesenabled && !$gcatenabled) {
-                $activitydata = \block_newgu_spdetails\activity::process_default_items($activityitems->items, $lti_instances_to_exclude, $assessmenttype, $sortorder);
+                $activitydata = \block_newgu_spdetails\activity::process_default_items($activityitems->items, $activetab, $lti_instances_to_exclude, $assessmenttype, $sortorder);
             }
 
             $data['assessmentitems'] = $activitydata;
@@ -318,26 +318,27 @@ class activity {
      * Process and prepare for display MyGrades specific gradable items.
      * 
      * Agreement between HM/TW/GP that we're only displaying items that
-     * are visible - so if an assessment has been graded a then the item
+     * are visible - so if an assessment has been graded and then the item
      * hidden - this will not display. No further checks for hidden grades
      * are being done - based on how Moodle currenly does things.
      * 
      * @param array $mygradesitems
+     * @param string $activetab
      * @param array|string $lti_instances_to_exclude
      * @param string $assessmenttype
      * @param string $sortorder
      * @return array $mygradesdata
      */
-    public static function process_mygrades_items(array $mygradesitems, array|string $lti_instances_to_exclude, string $assessmenttype, string $sortorder): array {
+    public static function process_mygrades_items(array $mygradesitems, string $activetab, array|string $lti_instances_to_exclude, string $assessmenttype, string $sortorder): array {
 
         global $DB, $USER;
         $mygradesdata = [];
 
         if ($mygradesitems && count($mygradesitems) > 0) {
             
-            self::sort_items($mygradesitems, $sortorder);
+            $tmp = self::sort_items($mygradesitems, $sortorder);
             
-            foreach($mygradesitems as $mygradesitem) {
+            foreach($tmp as $mygradesitem) {
                 
                 // Is the item hidden from this user...
                 $cm = get_coursemodule_from_instance($mygradesitem->itemmodule, $mygradesitem->iteminstance, $mygradesitem->courseid, false, MUST_EXIST);
@@ -459,9 +460,9 @@ class activity {
 
         if ($gcatitems && count($gcatitems) > 0) {
             
-            self::sort_items($gcatitems, $sortorder);
+            $tmp = self::sort_items($gcatitems, $sortorder);
             
-            foreach($gcatitems as $gcatitem) {
+            foreach($tmp as $gcatitem) {
                 
                 // GCAT seems to take care of checking if the module and item is visible to the user
                 // in the API call above. We're assuming that we only have items returned that the
@@ -516,16 +517,16 @@ class activity {
      * @param string $sortorder
      * @return array $defaultdata
      */
-    public static function process_default_items(array $defaultitems, array|string $lti_instances_to_exclude, string $assessmenttype, string $sortorder): array {
+    public static function process_default_items(array $defaultitems, string $activetab, array|string $lti_instances_to_exclude, string $assessmenttype, string $sortorder): array {
         
         global $USER;
         $defaultdata = [];
 
         if ($defaultitems && count($defaultitems) > 0) {
             
-            self::sort_items($defaultitems, $sortorder);
+            $tmp = self::sort_items($defaultitems, $sortorder);
             
-            foreach($defaultitems as $defaultitem) {
+            foreach($tmp as $defaultitem) {
                 
                 // Is the item hidden from this user...
                 $cm = get_coursemodule_from_instance($defaultitem->itemmodule, $defaultitem->iteminstance, $defaultitem->courseid, false, MUST_EXIST);
@@ -641,10 +642,18 @@ class activity {
 
             case "desc":
                 uasort($itemstosort, function($a, $b) {
+                    
+                    // Account for GCAT uniqueness :-(
+                    if (property_exists($a, 'assessmentname')) {
+                        return strcmp($b->assessmentname, $a->assessmentname);
+                    }
+
                     return strcmp($b->itemname, $a->itemname);
                 });
                 break;
         }
+
+        return $itemstosort;
     }
 
 }
