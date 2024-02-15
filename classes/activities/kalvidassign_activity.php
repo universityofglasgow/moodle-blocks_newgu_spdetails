@@ -70,7 +70,7 @@ class kalvidassign_activity extends base {
     }
 
     /**
-     * Get the grade
+     * Return the grade either from Gradebook, or via the assignment submission table.
      * @return object|bool
      */
     public function get_grade(int $userid): object|bool {
@@ -79,7 +79,6 @@ class kalvidassign_activity extends base {
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
         $activitygrade->rawgrade = null;
-        $activitygrade->grade = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
@@ -88,12 +87,12 @@ class kalvidassign_activity extends base {
                 return parent::get_first_grade($userid);
             }
 
+            // We want access to other properties, hence the return type...
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $activitygrade->finalgrade = $grade->finalgrade;
                 return $activitygrade;
             }
 
-            // We want access to other properties, hence the return...
             if ($grade->rawgrade != null && $grade->rawgrade > 0) {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;

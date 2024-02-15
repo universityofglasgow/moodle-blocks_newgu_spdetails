@@ -27,7 +27,6 @@ namespace block_newgu_spdetails\activities;
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
 
 /**
  * Specific implementation for a quiz activity
@@ -55,30 +54,37 @@ class quiz_activity extends base {
 
         // Get the assignment object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->quiz = $this->get_quiz($this->cm);
+        $this->quiz = $this->get_quiz($gradeitemid, $this->cm);
     }
 
     /**
      * Get quiz object
+     * @param object $gradeitemid
      * @param object $cm course module
      * @return object
      */
-    private function get_quiz($cm) {
+    private function get_quiz($gradeitemid, $cm) {
         global $DB;
 
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $coursemodulecontext = \context_module::instance($cm->id);
-        $quiz = new \quiz($coursemodulecontext, $cm, $course);
+        $gradeitem = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);
+        $quizrecord = $DB->get_record('quiz', ['id' => $gradeitem->iteminstance], '*', MUST_EXIST);
+        $quiz = new \quiz($quizrecord, $cm, $course, $coursemodulecontext);
 
         return $quiz;
     }
 
     /**
-     * Get the grade
+     * Return the grade either from Gradebook, or via the quiz submission table.
      * @return object|bool
      */
     public function get_grade(int $userid): object|bool {
         global $DB;
+
+        $activitygrade = new \stdClass();
+        $activitygrade->finalgrade = null;
+        $activitygrade->rawgrade = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
@@ -88,12 +94,14 @@ class quiz_activity extends base {
             }
 
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
-                return $grade->finalgrade;
+                $activitygrade->finalgrade = $grade->finalgrade;
+                return $activitygrade;
             }
 
             // We want access to other properties, hence the return...
             if ($grade->rawgrade != null && $grade->rawgrade > 0) {
-                return $grade;
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
             }
         }
 
@@ -134,12 +142,18 @@ class quiz_activity extends base {
 
     /**
      * Return a formatted date
+     * @param int $unformatteddate
      * @return string
      */
-    public function get_formattedduedate(): string {
+    public function get_formattedduedate(int $unformatteddate = null): string {
         
+        $due_date = '';
+        if ($unformatteddate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+            $due_date = $dateobj->format('jS F Y');
+        }
         
-        return '';
+        return $due_date;
     }
 
     /**
@@ -151,28 +165,48 @@ class quiz_activity extends base {
         global $DB;
 
         $statusobj = new \stdClass();
-        $statusobj->assessment_url = '';
-        $statusobj->due_date = $this->get_formattedduedate();
+        $statusobj->assessment_url = $this->get_assessmenturl();
+        $quizinstance = $this->quiz->get_quiz();
+        $allowsubmissionsfromdate = $quizinstance->timeopen;
+        $statusobj->due_date = $this->get_formattedduedate($quizinstance->timeclose);
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
         // Check if any overrides have been set up first of all...
-        $overrides = $DB->get_record('quiz_overrides', ['quiz' => $this->quiz->id, 'userid' => $userid]);
+        $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizinstance->id, 'userid' => $userid]);
         if (!empty($overrides)) {
             $allowsubmissionsfromdate = $overrides->timeopen;
-            $statusobj->due_date = $overrides->timeclose;
+            $statusobj->due_date = $this->get_formattedduedate($overrides->timeclose);
         }
 
-        $quizattempts = $DB->count_records("quiz_attempts", ["quiz" => $this->quiz->id, "userid" => $userid, "state" => "finished"]);
-        if ($quizattempts > 0) {
-            $statusobj->grade_status = get_string("status_submitted", "block_newgu_spdetails");
-            $statusobj->status_text = get_string("status_text_submitted", "block_newgu_spdetails");
-            $statusobj->status_class = get_string("status_class_submitted", "block_newgu_spdetails");
-        } else {
-            $statusobj->grade_status = get_string("status_tosubmit", "block_newgu_spdetails");
-            $statusobj->status_text = get_string("status_text_submit", "block_newgu_spdetails");
-            $statusobj->status_class = get_string("status_class_submit", "block_newgu_spdetails");
-            $statusobj->assessment_url = $this->get_assessmenturl();
+        if ($allowsubmissionsfromdate > time()) {
+            $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
+            $statusobj->status_text = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
+            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        }
+
+        if ($statusobj->grade_status == '') {
+            $quizattempts = $DB->count_records("quiz_attempts", ["quiz" => $quizinstance->id, "userid" => $userid, "state" => "finished"]);
+            if ($quizattempts > 0) {
+                $statusobj->grade_status = get_string("status_submitted", "block_newgu_spdetails");
+                $statusobj->status_text = get_string("status_text_submitted", "block_newgu_spdetails");
+                $statusobj->status_class = get_string("status_class_submitted", "block_newgu_spdetails");
+                $statusobj->assessment_url = '';
+
+                if ($quizgrades = $DB->count_records("quiz_grades", ["quiz" => $quizinstance->id, "userid" => $userid])) {
+                    $statusobj->grade_status = get_string("status_graded", "block_newgu_spdetails");
+                    $statusobj->status_text = get_string("status_text_graded", "block_newgu_spdetails");
+                    $statusobj->status_class = get_string("status_class_graded", "block_newgu_spdetails");
+                    $statusobj->grade_to_display = $quizgrades->grade;
+                    $statusobj->assessment_url = '';
+                }
+
+            } else {
+                $statusobj->grade_status = get_string("status_submit", "block_newgu_spdetails");
+                $statusobj->status_text = get_string("status_text_submit", "block_newgu_spdetails");
+                $statusobj->status_class = get_string("status_class_submit", "block_newgu_spdetails");
+                $statusobj->status_link = $statusobj->assessment_url;
+            }
         }
 
         return $statusobj;

@@ -58,7 +58,7 @@ class peerwork_activity extends base {
     }
 
     /**
-     * Get assignment object
+     * Get peerwork object
      * @param object $cm course module
      * @return object
      */
@@ -71,12 +71,16 @@ class peerwork_activity extends base {
     }
 
     /**
-     * Implement get_first_grade
+     * Return the grade directly from Gradebook
      * @param int $userid
-     * @return int|bool
+     * @return object|bool
      */
-    public function get_grade(int $userid): int|bool {
+    public function get_grade(int $userid): object|bool {
         global $DB;
+
+        $activitygrade = new \stdClass();
+        $activitygrade->finalgrade = null;
+        $activitygrade->rawgrade = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
@@ -86,12 +90,14 @@ class peerwork_activity extends base {
             }
 
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
-                return $grade->finalgrade;
+                $activitygrade->finalgrade = $grade->finalgrade;
+                return $activitygrade;
             }
 
             // We want access to other properties, hence the return...
             if ($grade->rawgrade != null && $grade->rawgrade > 0) {
-                return $grade;
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
             }
         }
 

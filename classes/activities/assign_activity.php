@@ -92,7 +92,6 @@ class assign_activity extends base {
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
         $activitygrade->rawgrade = null;
-        $activitygrade->grade = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.

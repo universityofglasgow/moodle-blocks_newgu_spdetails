@@ -39,6 +39,72 @@ class forum_activity extends base {
     private $cm;
 
     /**
+     * @var object $forum
+     */
+    private $forum;
+
+    /**
+     * Constructor, set grade itemid
+     * @param int $gradeitemid Grade item id
+     * @param int $courseid
+     * @param int $groupid
+     */
+    public function __construct(int $gradeitemid, int $courseid, int $groupid) {
+        parent::__construct($gradeitemid, $courseid, $groupid);
+
+        // Get the forum object.
+        $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
+        $this->forum = $this->get_forum($this->cm);
+    }
+
+    /**
+     * Get forum object
+     * @param object $cm course module
+     * @return object
+     */
+    public function get_forum($cm) {
+        global $DB;
+
+        $forum = $DB->get_record('forum', ['id' => $cm->instance], '*', MUST_EXIST);
+
+        return $forum;
+    }
+
+    /**
+     * Return the grade directly from Gradebook
+     * @param int $userid
+     * @return object|bool
+     */
+    public function get_grade(int $userid): object|bool {
+        global $DB;
+
+        $activitygrade = new \stdClass();
+        $activitygrade->finalgrade = null;
+        $activitygrade->rawgrade = null;
+
+        // If the grade is overridden in the Gradebook then we can
+        // revert to the base - i.e., get the grade from the Gradebook.
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
+            if ($grade->overridden) {
+                return parent::get_first_grade($userid);
+            }
+
+            // We want access to other properties, hence the return type...
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                $activitygrade->finalgrade = $grade->finalgrade;
+                return $activitygrade;
+            }
+
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get item type
      * @return string
      */
@@ -67,14 +133,46 @@ class forum_activity extends base {
      * @return object
      */
     public function get_status($userid): object {
-        return 'THIS NEEDS FINISHED';
+        global $DB;
+
+        $statusobj = new \stdClass();
+        $statusobj->assessment_url = $this->get_assessmenturl();
+        $statusobj->grade_status = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->due_date = $this->forum->duedate;
+        $forumsubmissions = $DB->count_records("forum_discussion_subs", ["forum" => $this->cm->instance, "userid" => $userid]);
+        if ($forumsubmissions > 0) {
+            $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
+            $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
+            $statusobj->status_link = '';
+        } else {
+            $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+            $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+            $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
+            $statusobj->status_link = $statusobj->assessment_url;
+            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        }
+
+        //         if ($forumsubmissions > 0) {
+        //             $status = get_string("status_submitted", "block_newgu_spdetails");;
+        //             $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
+        //             $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
+        //         } else {
+        //             $status = get_string("status_tosubmit", "block_newgu_spdetails");;
+        //             $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
+        //             $statustext = get_string("status_text_submit", "block_newgu_spdetails");
+        //             $link = $CFG->wwwroot . "/mod/forum/view.php?id=" . $cmid;
+        //         }
+
+        return $statusobj;
     }
 
     /**
      * @param object $gradestatusobj
+     * @return object
      */
-    public function get_feedback($gradestatusobj): object {
-        return 'THIS NEEDS FINISHED';
+    public function get_feedback(object $gradestatusobj): object {
+        return parent::get_feedback($gradestatusobj);
     }
 
 }

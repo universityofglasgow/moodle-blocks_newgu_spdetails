@@ -32,10 +32,36 @@ defined('MOODLE_INTERNAL') || die();
 class default_activity extends base {
 
     /**
-     * Get the grade
+     * Return the grade directly from Gradebook
+     * @param int $userid
      * @return object|bool
      */
     public function get_grade(int $userid): object|bool {
+        global $DB;
+
+        $activitygrade = new \stdClass();
+        $activitygrade->finalgrade = null;
+        $activitygrade->rawgrade = null;
+
+        // If the grade is overridden in the Gradebook then we can
+        // revert to the base - i.e., get the grade from the Gradebook.
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
+            if ($grade->overridden) {
+                return parent::get_first_grade($userid);
+            }
+
+            // We want access to other properties, hence the return type...
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                $activitygrade->finalgrade = $grade->finalgrade;
+                return $activitygrade;
+            }
+
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
+            }
+        }
+
         return false;
     }
 

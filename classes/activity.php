@@ -90,7 +90,9 @@ class activity {
         
         // The assessment type is derived from the parent - which works only 
         // as long as the parent name contains 'Formative' or 'Summative'...
-        $item = \grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory, 'itemtype' => 'category']);
+        if (!$item = \grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory, 'itemtype' => 'category'])) {
+            $item = \grade_item::fetch(['courseid' => $course->id,'iteminstance' => $subcategory, 'itemtype' => 'course']);    
+        }
         $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($subcat->fullname, $item->aggregationcoef);
 
         // The weight for this grade (sub)category is derived from the aggregation 
@@ -180,6 +182,7 @@ class activity {
      * @param string $sortorder
      * @param int $courseid
      * @return array $assessmentdata
+     * @deprecated - remove as no longer needed
      */
     public static function get_assessment_items(int $subcategory, int $userid, string $assessmenttype, int $courseid, string $activetab, string $sortby, string $sortorder = "asc") :array {
         global $DB, $CFG, $USER;
@@ -367,35 +370,25 @@ class activity {
                     ];
                     if ($usergrades = $DB->get_records('local_gugrades_grade', $params)) {
                         // @todo - swap all of this for the relevant mygrades API calls - if/when one exists.
-                        $assessment_url = ITEM_URL . $mygradesitem->itemtype . '/' . $mygradesitem->itemtype . ITEM_SCRIPT . $cm->id;
-                        $due_date = $mygradesitem->duedate;
-                        switch($usergrades->gradetype) {
-                            case 'RELEASED':
-                                $grade = $usergrades->displaygrade;
-                                $grade_status = get_string('status_graded', 'block_newgu_spdetail');
-                                $status_class = get_string('status_class_graded', 'block_newgu_spdetail');
-                                $status_text = get_string('status_text_graded', 'block_newgu_spdetail');
-                                $grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetail');
-                                $grade_feedback_link = $assessment_url . '#page-footer';
-                                break;
-
-                            case 'PROVISIONAL':
-                                $grade = $usergrades->rawgrade;
-                                $grade_status = get_string('status_provisional', 'block_newgu_spdetail');
-                                $status_class = get_string('status_class_provisional', 'block_newgu_spdetail');
-                                $status_text = get_string('status_text_provisional', 'block_newgu_spdetail');
-                                $grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetail');
-                                break;
-
-                                default:
-                                $grade_status = get_string('status_provisional', 'block_newgu_spdetail');
-                                $status_class = get_string('status_class_provisional', 'block_newgu_spdetail');
-                                $status_text = get_string('status_text_provisional', 'block_newgu_spdetail');
-                                $grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetail');
-                                break;
+                        $assessment_url = $cm->url->out();
+                        $dateobj = \DateTime::createFromFormat('U', $cm->customdata['duedate']);
+                        $due_date = $dateobj->format('jS F Y');
+                        
+                        foreach ($usergrades as $usergrade) {
+                            switch($usergrade->gradetype) {
+                                case 'RELEASED':
+                                    $grade = $usergrade->displaygrade;
+                                    $grade_status = get_string('status_graded', 'block_newgu_spdetails');
+                                    $status_text = get_string('status_text_graded', 'block_newgu_spdetails');
+                                    $status_class = get_string('status_class_graded', 'block_newgu_spdetails');
+                                    $grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
+                                    $grade_feedback_link = $assessment_url . '#page-footer';
+                                    break;
+                            }
                         }
                     } else {
-                        // MyGrades data hasn't been released yet, revert to getting this from the grade_items table...
+                        // MyGrades data hasn't been released yet, revert to getting data from Gradebook,
+                        // but don't include Grade, Status or Feedback data - this should remain empty.
                         $gradestatobj = \block_newgu_spdetails\grade::get_grade_status_and_feedback($mygradesitem->courseid, 
                             $mygradesitem->id, 
                             $mygradesitem->itemmodule, 
@@ -409,13 +402,13 @@ class activity {
                         
                         $assessment_url = $gradestatobj->assessment_url;
                         $due_date = $gradestatobj->due_date;
-                        $grade_status = $gradestatobj->grade_status;
-                        $status_link = $gradestatobj->status_link;
-                        $status_class = $gradestatobj->status_class;
-                        $status_text = $gradestatobj->status_text;
-                        $grade = $gradestatobj->grade_to_display;
-                        $grade_feedback = $gradestatobj->grade_feedback;
-                        $grade_feedback_link = $gradestatobj->grade_feedback_link;
+                        // $grade_status = $gradestatobj->grade_status;
+                        // $status_link = $gradestatobj->status_link;
+                        // $status_class = $gradestatobj->status_class;
+                        // $status_text = $gradestatobj->status_text;
+                        // $grade = $gradestatobj->grade_to_display;
+                        // $grade_feedback = $gradestatobj->grade_feedback;
+                        // $grade_feedback_link = $gradestatobj->grade_feedback_link;
                     }
 
                     $mygradesdata[] = [
@@ -594,27 +587,6 @@ class activity {
                         'grade_feedback_link' => $grade_feedback_link,
                         'gradebookenabled' => 'true'
                     ];
-
-                    // $assessmentweight = $assessmentitem->weight;
-                    // $duedate = \DateTime::createFromFormat('U', $assessmentitem->duedate);
-                    // $blah = (isset($assessmentitem->status->class) ? $assessmentitem->status->statustext : 'unavailable');
-                    // $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($assessmentitem->courseid, $assessmentitem->id, $assessmentitem->itemmodule, $assessmentitem->iteminstance, $userid, $assessmentitem->gradetype, $assessmentitem->scaleid, $assessmentitem->grademax, 'gradebookenabled');
-
-                    // $defaultdata[] = [
-                    //     'id' => $assessmentitem->id,
-                    //     'assessmenturl' => $assessmentitem->assessmenturl,
-                    //     'itemname' => $assessmentitem->itemname,
-                    //     'assessmenttype' => $assessmenttype,
-                    //     'assessmentweight' => $assessmentweight,
-                    //     'duedate' => $duedate->format('jS F Y'),
-                    //     'grade_status' =>  get_string("status_" . $blah, "block_newgu_spdetails"),
-                    //     'status_link' => $gradestatus->status->link,
-                    //     'status_class' => $gradestatus->status->class,
-                    //     'status_text' => $gradestatus->status->statustext,
-                    //     'grade' => $gradestatus->grading->gradetext,
-                    //     'grade_feedback' => $gradestatus->feedback->feedbacktext,
-                    //     'gradebookenabled' => 'true'
-                    // ];
                 }
             }
         }
@@ -624,9 +596,9 @@ class activity {
 
     /**
      * "Borrowed" from local_gugrades...
-     * Factory to get correct class for assignment type
-     * These are found in blocks_newgu_spdetails/classes/activities
-     * Pick manual for manual grades, xxx_activity for activity xxx (if exists) or default_activity
+     * Factory to get the correct class based on the assignment type.
+     * These are found in blocks_newgu_spdetails/classes/activities/
+     * Pick xxx_activity for activity xxx (if exists) or default_activity
      * for everything else.
      * 
      * @param int $gradeitemid
@@ -639,15 +611,11 @@ class activity {
 
         $item = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);
         $module = $item->itemmodule;
-        if ($item->itemtype == 'manual') {
-            return new \block_newgu_spdetails\activities\manual($gradeitemid, $courseid, $groupid);
+        $classname = '\\block_newgu_spdetails\\activities\\' . $module . '_activity';
+        if (class_exists($classname)) {
+            return new $classname($gradeitemid, $courseid, $groupid);
         } else {
-            $classname = '\\block_newgu_spdetails\\activities\\' . $module . '_activity';
-            if (class_exists($classname)) {
-                return new $classname($gradeitemid, $courseid, $groupid);
-            } else {
-                return new \block_newgu_spdetails\activities\default_activity($gradeitemid, $courseid, $groupid);
-            }
+            return new \block_newgu_spdetails\activities\default_activity($gradeitemid, $courseid, $groupid);
         }
     }
 

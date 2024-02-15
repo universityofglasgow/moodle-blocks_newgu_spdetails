@@ -73,11 +73,36 @@ class lti_activity extends base {
     }
 
     /**
-     * Is this a Proxy or Adapter method/pattern??
-     * Seeing as get_first_grade is specific to Assignments,
-     * what is the better way to describe this.
+     * Return the grade directly from Gradebook
+     * @param int $userid
+     * @return object|bool
      */
     public function get_grade(int $userid): object|bool {
+        global $DB;
+
+        $activitygrade = new \stdClass();
+        $activitygrade->finalgrade = null;
+        $activitygrade->rawgrade = null;
+
+        // If the grade is overridden in the Gradebook then we can
+        // revert to the base - i.e., get the grade from the Gradebook.
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
+            if ($grade->overridden) {
+                return parent::get_first_grade($userid);
+            }
+
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                $activitygrade->finalgrade = $grade->finalgrade;
+                return $activitygrade;
+            }
+
+            // We want access to other properties, hence the return...
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
+            }
+        }
+
         return false;
     }
 
