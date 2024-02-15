@@ -81,12 +81,16 @@
                 $item = \grade_item::fetch(['courseid' => $course->id, 'itemtype' => 'course']);
                 $assessmenttype = self::return_assessmenttype($course->fullname, $item->aggregationcoef);
                 $subcatweight = self::return_weight($item->aggregationcoef);
-                $subcatdata[] = [
-                    'id' => $gradecat->id,
-                    'name' => $course->fullname,
-                    'assessmenttype' => $assessmenttype,
-                    'subcatweight' => $subcatweight
-                ];
+                if (count($gradecat) > 0) {
+                    foreach($gradecat as $gradecategory) {
+                        $subcatdata[] = [
+                            'id' => $gradecategory->id,
+                            'name' => $course->fullname,
+                            'assessmenttype' => $assessmenttype,
+                            'subcatweight' => $subcatweight
+                        ];
+                    }
+                }
             }
 
             $coursedata['subcategories'] = $subcatdata;
