@@ -412,7 +412,7 @@ class activity {
                         // $grade_feedback_link = $gradestatobj->grade_feedback_link;
                     }
 
-                    $mygradesdata[] = [
+                    $tmp = [
                         'id' => $mygradesitem->id,
                         'item_name' => $mygradesitem->itemname,
                         'assessment_url' => $assessment_url,
@@ -428,6 +428,12 @@ class activity {
                         'grade_feedback_link' => $grade_feedback_link,
                         'gugradesenabled' => 'true'
                     ];
+
+                    if ($activetab == 'past') {
+                        unset($tmp['grade_status']);
+                    }
+
+                    $mygradesdata[] = $tmp;
                 }
             }
         }
@@ -481,7 +487,7 @@ class activity {
                 $assessment_url = $gcatitem->assessmenturl->out(true);
                 $status_link = (($gcatitem->status->hasstatusurl) ? $gcatitem->assessmenturl->out(true) : '');
 
-                $gcatdata[] = [
+                $tmp = [
                     'id' => $gcatitem->id,
                     'assessment_url' => $assessment_url,
                     'item_name' => $gcatitem->assessmentname,
@@ -497,6 +503,12 @@ class activity {
                     'grade_feedback_link' => (property_exists($gcatitem->feedback, 'feedbackurl') ? $gcatitem->feedback->feedbackurl : ''),
                     'gcatenabled' => 'true'
                 ];
+
+                if ($activetab == 'past') {
+                    unset($tmp['grade_status']);
+                }
+
+                $gcatdata[] = $tmp;
             }
         }
 
@@ -572,7 +584,7 @@ class activity {
                     $grade_feedback = $gradestatobj->grade_feedback;
                     $grade_feedback_link = $gradestatobj->grade_feedback_link;
 
-                    $defaultdata[] = [
+                    $tmp = [
                         'id' => $defaultitem->id,
                         'item_name' => $defaultitem->itemname,
                         'assessment_url' => $assessmenturl,
@@ -588,6 +600,12 @@ class activity {
                         'grade_feedback_link' => $grade_feedback_link,
                         'gradebookenabled' => 'true'
                     ];
+
+                    if ($activetab == 'past') {
+                        unset($tmp['grade_status']);
+                    }
+
+                    $defaultdata[] = $tmp;
                 }
             }
         }

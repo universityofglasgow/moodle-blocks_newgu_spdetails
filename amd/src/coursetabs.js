@@ -117,6 +117,7 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             if (isPageClicked == true) {
                 containerBlock.scrollIntoView({ behavior: "smooth"});
             }
+            hideStatusColumn(activetab);
             let subCategories = document.querySelectorAll('.subcategory-row');
             let sortColumns = document.querySelectorAll('.th-sortable');
             subCategoryEventHandler(subCategories);
@@ -163,6 +164,14 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             containerBlock.prepend(errorContainer);
         }
     });
+};
+
+const hideStatusColumn = (activetab) => {
+    if (activetab == 'past') {
+        if (document.querySelector('#sortby_status')) {
+            document.querySelector('#sortby_status').classList.add('hidden');
+        }
+    }
 };
 
 const subCategoryEventHandler = (rows) => {
