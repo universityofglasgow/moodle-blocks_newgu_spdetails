@@ -136,6 +136,19 @@ class kalvidassign_activity extends base {
     }
 
     /**
+     * Return a formatted date
+     * @param int $unformatteddate
+     * @return string
+     */
+    public function get_formattedduedate(int $unformatteddate = null): string {
+
+        $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+        $due_date = $dateobj->format('jS F Y');
+        
+        return $due_date;
+    }
+
+    /**
      * @param int $userid
      * @return object
      */
@@ -204,6 +217,13 @@ class kalvidassign_activity extends base {
                     $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
                 }
             }
+        }
+
+        // Formatting this here as the integer format for the date is no longer needed for testing against.
+        if ($statusobj->due_date != 0) {
+            $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+        } else {
+            $statusobj->due_date = '';
         }
 
         return $statusobj;

@@ -90,6 +90,19 @@ class default_activity extends base {
     }
 
     /**
+     * Return a formatted date
+     * @param int $unformatteddate
+     * @return string
+     */
+    public function get_formattedduedate(int $unformatteddate = null): string {
+
+        $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+        $due_date = $dateobj->format('jS F Y');
+        
+        return $due_date;
+    }
+
+    /**
      * @param int $userid
      * @return object
      */

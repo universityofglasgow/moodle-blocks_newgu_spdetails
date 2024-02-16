@@ -131,13 +131,41 @@ class lti_activity extends base {
     }
 
     /**
+     * Return a formatted date
+     * @param int $unformatteddate
+     * @return string
+     */
+    public function get_formattedduedate(int $unformatteddate = null): string {
+        
+        $due_date = '';
+        if ($unformatteddate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+            $due_date = $dateobj->format('jS F Y');
+        }
+        
+        return $due_date;
+    }
+
+    /**
      * @param int $userid
      * @return object
      */
     public function get_status($userid): object {
-        $obj = new \stdClass();
-        $obj->due_date = time();
-        return $obj;
+        global $DB;
+
+        $statusobj = new \stdClass();
+        $statusobj->assessment_url = $this->get_assessmenturl();
+        $statusobj->due_date = time();
+
+        
+        // Formatting this here as the integer format for the date is no longer needed for testing against.
+        if ($statusobj->due_date != 0) {
+            $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+        } else {
+            $statusobj->due_date = '';
+        }
+
+        return $statusobj;
     }
 
     /**
