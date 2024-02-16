@@ -60,13 +60,14 @@ class grade {
         $activitygrade = $activity->get_grade($userid);
 
         if ($activitygrade) {
+            $gradestatus->assessment_url = $activity->get_assessmenturl();
+            $gradestatus->due_date = $activity->get_formattedduedate();
+
             if (property_exists($activitygrade, 'finalgrade') && $activitygrade->finalgrade > 0) {
                 $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->finalgrade, $gradetype, $scaleid, $grademax, $coursetype);
-                $gradestatus->due_date = $activity->get_formattedduedate();
                 $gradestatus->grade_status = get_string('status_graded', 'block_newgu_spdetails');
                 $gradestatus->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                 $gradestatus->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
-                $gradestatus->assessment_url = $activity->get_assessmenturl();
                 $gradestatus->grade_to_display = $grade;
                 $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                 $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
@@ -75,11 +76,9 @@ class grade {
             // It's not been mentioned/specced w/regards provisional grades - do we treat rawgrades as such?
             if (property_exists($activitygrade, 'rawgrade') && $activitygrade->rawgrade > 0) {
                 $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype, $activitygrade->rawscaleid);
-                $gradestatus->due_date = $activity->get_formattedduedate();
                 $gradestatus->grade_status = get_string('status_provisional', 'block_newgu_spdetails');
                 $gradestatus->status_text = get_string('status_text_provisional', 'block_newgu_spdetails');
                 $gradestatus->status_class = get_string('status_class_provisional', 'block_newgu_spdetails');
-                $gradestatus->assessment_url = $activity->get_assessmenturl();
                 $gradestatus->grade_to_display = $grade . '(' . get_string('status_class_provisional', 'block_newgu_spdetails') . ')';
                 $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                 $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
