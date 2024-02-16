@@ -449,8 +449,8 @@ class grade {
                         }
 
                     } else {
-                        $status = get_string("status_tosubmit", "block_newgu_spdetails");
-                        $statustext = get_string("status_text_tosubmit", "block_newgu_spdetails");
+                        $status = get_string("status_submit", "block_newgu_spdetails");
+                        $statustext = get_string("status_text_submit", "block_newgu_spdetails");
 
                         if (time() > $duedate && $duedate != 0) {
                             $status = get_string("status_notsubmitted", "block_newgu_spdetails");
@@ -475,7 +475,7 @@ class grade {
                     $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
                 } else {
-                    $status = get_string("status_tosubmit", "block_newgu_spdetails");;
+                    $status = get_string("status_submit", "block_newgu_spdetails");;
                     $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submit", "block_newgu_spdetails");
                     $link = $CFG->wwwroot . "/mod/forum/view.php?id=" . $cmid;
@@ -491,7 +491,7 @@ class grade {
                     $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
                 } else {
-                    $status = get_string("status_tosubmit", "block_newgu_spdetails");
+                    $status = get_string("status_submit", "block_newgu_spdetails");
                     $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submit", "block_newgu_spdetails");
                     $link = $CFG->wwwroot . "/mod/quiz/view.php?id=" . $cmid;
@@ -508,7 +508,7 @@ class grade {
                     $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
                 } else {
-                    $status = get_string("status_tosubmit", "block_newgu_spdetails");
+                    $status = get_string("status_submit", "block_newgu_spdetails");
                     $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submit", "block_newgu_spdetails");
                     if ($arr_workshop->submissionstart == 0) {
@@ -652,7 +652,7 @@ class grade {
         
         }
         
-        if ($status == "tosubmit") {
+        if ($status == "submit") {
             $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
             $link = "";
         }
