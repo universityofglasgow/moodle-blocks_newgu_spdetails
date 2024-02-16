@@ -158,7 +158,7 @@ class api extends \external_api
                 foreach($assignments as $assignment) {
                     if (!in_array($assignment->id, $assignmentsubmissions)) {
                         if ($assignment->allowsubmissionsfromdate < $now) {
-                            if ($assignment->cutoffdate == 0 || $assignment->cutofddate > $now) {
+                            if ($assignment->cutoffdate == 0 || $assignment->cutoffdate > $now) {
                                 $assignmentdata[] = $assignment;
                             }
                         }
