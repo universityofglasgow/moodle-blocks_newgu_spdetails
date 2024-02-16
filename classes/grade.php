@@ -47,7 +47,7 @@ class grade {
 
         $gradestatus = new \stdClass();
         $gradestatus->assessment_url = '';
-        $gradestatus->due_date = 0;
+        $gradestatus->due_date = '';
         $gradestatus->grade_status = '';
         $gradestatus->status_text = '';
         $gradestatus->status_class = '';
