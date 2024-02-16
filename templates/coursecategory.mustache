@@ -52,6 +52,12 @@
     }
 }}
 <div id="course_data" class="assessments-details-sort-container">
+    {{^data.coursedata}}
+    <div class="alert alert-warning" role="alert">
+    {{#str}} nocoursesfound, block_newgu_spdetails {{/str}}
+    </div>
+    {{/data.coursedata}}
+    {{#data.coursedata.length}}
     <table class="table table-responsive assessments-details-table">
         <thead>
             <tr>
@@ -86,4 +92,5 @@
         {{/data.coursedata}}
         </tbody>
     </table>
+    {{/data.coursedata.length}}
 </div>

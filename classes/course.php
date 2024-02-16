@@ -78,17 +78,19 @@
             } else {
                 // Our course appears to contain no sub categories :-( ...
                 $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
-                $item = \grade_item::fetch(['courseid' => $course->id, 'itemtype' => 'course']);
-                $assessmenttype = self::return_assessmenttype($course->fullname, $item->aggregationcoef);
-                $subcatweight = self::return_weight($item->aggregationcoef);
-                if (count($gradecat) > 0) {
-                    foreach($gradecat as $gradecategory) {
-                        $subcatdata[] = [
-                            'id' => $gradecategory->id,
-                            'name' => $course->fullname,
-                            'assessmenttype' => $assessmenttype,
-                            'subcatweight' => $subcatweight
-                        ];
+                if ($gradecat) {
+                    $item = \grade_item::fetch(['courseid' => $course->id, 'itemtype' => 'course']);
+                    $assessmenttype = self::return_assessmenttype($course->fullname, $item->aggregationcoef);
+                    $subcatweight = self::return_weight($item->aggregationcoef);
+                    if (count($gradecat) > 0) {
+                        foreach($gradecat as $gradecategory) {
+                            $subcatdata[] = [
+                                'id' => $gradecategory->id,
+                                'name' => $course->fullname,
+                                'assessmenttype' => $assessmenttype,
+                                'subcatweight' => $subcatweight
+                            ];
+                        }
                     }
                 }
             }

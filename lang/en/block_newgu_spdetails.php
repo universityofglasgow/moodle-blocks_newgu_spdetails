@@ -71,6 +71,7 @@ $string['staffdashboard'] = 'Staff Dashboard';
 $string['unauthorised'] = 'Unauthorised access';
 $string['noduedate'] = 'No Due Date';
 $string['gradetype'] = 'Grade';
+$string['nocoursesfound'] = 'There were no courses found.';
 $string['noassessmentfound'] = 'No assessment found.';
 $string['header_assessment'] = 'Assessment';
 $string['header_course'] = 'Course';
