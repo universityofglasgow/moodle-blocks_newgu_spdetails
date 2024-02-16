@@ -403,10 +403,10 @@ class activity {
                         
                         $assessment_url = $gradestatobj->assessment_url;
                         $due_date = $gradestatobj->due_date;
-                        // $grade_status = $gradestatobj->grade_status;
-                        // $status_link = $gradestatobj->status_link;
-                        // $status_class = $gradestatobj->status_class;
-                        // $status_text = $gradestatobj->status_text;
+                        $grade_status = $gradestatobj->grade_status;
+                        $status_link = $gradestatobj->status_link;
+                        $status_class = $gradestatobj->status_class;
+                        $status_text = $gradestatobj->status_text;
                         // $grade = $gradestatobj->grade_to_display;
                         // $grade_feedback = $gradestatobj->grade_feedback;
                         // $grade_feedback_link = $gradestatobj->grade_feedback_link;
