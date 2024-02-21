@@ -44,6 +44,11 @@ class forum_activity extends base {
     private $forum;
 
     /**
+     * @var contstant CACHE_KEY
+     */
+    const CACHE_KEY = 'studentid_forumduesoon:';
+
+    /**
      * Constructor, set grade itemid
      * @param int $gradeitemid Grade item id
      * @param int $courseid
@@ -189,6 +194,16 @@ class forum_activity extends base {
      */
     public function get_feedback(object $gradestatusobj): object {
         return parent::get_feedback($gradestatusobj);
+    }
+
+    /**
+     * Return the due date of the forum activity if it hasn't been submitted.
+     * @return array $assignmentdata
+     */
+    public function get_assessmentsdue(): array {
+        $assignmentdata = [];
+        return $assignmentdata;
+
     }
 
 }

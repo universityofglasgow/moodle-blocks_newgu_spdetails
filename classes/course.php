@@ -109,38 +109,6 @@
     }
 
     /**
-     * Return the sub categories belonging to the parent
-     * 
-     * @param int $subcategory
-     * @param int $courseid
-     * @param string $sortorder
-     * @param return array $subcatdata
-     */
-    public static function get_course_sub_categories(int $gradecategory, int $courseid, string $assessmenttype, string $sortorder = null) {
-    
-        
-        $gugradesenabled = \block_newgu_spdetails\course::is_mygrades_type($courseid);
-        $gcatenabled = \block_newgu_spdetails\course::is_gcat_type($courseid);
-
-        $subcatdata = [];
-        
-        // Allow the relevant course type to call its API
-        if ($gugradesenabled) {
-            $subcatdata = self::process_mygrades_subcategories($courseid, $gradecategory, $assessmenttype, $sortorder);
-        }
-
-        if ($gcatenabled) {
-            $subcatdata = self::process_gcat_subcategories($courseid, $gradecategory, $assessmenttype, $sortorder);
-        }
-
-        if (!$gugradesenabled && !$gcatenabled) {
-            $subcatdata = self::process_default_subcategories($courseid, $gradecategory, $assessmenttype, $sortorder);
-        }
-        
-        return $subcatdata;
-    }
-
-    /**
      * Process and prepare for display MyGrades specific sub categories
      * 
      * @param int $courseid
@@ -484,6 +452,101 @@
         } else {
             return [];
         }
+    }
+
+    /**
+     * Return the assessments that are due in the next 24 hours, week and month.
+     * 
+     * @return array
+     */
+    public static function get_assessmentsduesoon() {
+        global $DB, $USER;
+        $sortstring = 'shortname asc';
+        $courses = \local_gugrades\api::dashboard_get_courses($USER->id, true, false, $sortstring);
+
+        $stats = [
+            '24hours' => 0,
+            'week' => 0,
+            'month' => 0
+        ];
+
+        if (!$courses) {
+            return $stats;
+        }
+
+        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        $assignmentdata = [];
+        $lti_instances_to_exclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
+        foreach($courses as $course) {
+            
+            if ($course->firstlevel) {
+                foreach($course->firstlevel as $subcategory) {
+                    $subcategoryId = $subcategory['id'];
+                    $activities = \local_gugrades\api::get_activities($course->id, $subcategoryId);
+
+                    if ($activities) {
+                        $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($subcategoryId, $activities->items, [], $activities->categories);
+
+                        // This is now a flat list of all items associated with this course...
+                        if ($categoryitems) {
+                            foreach($categoryitems->items as $item) {
+                                $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance, $item->courseid, false, MUST_EXIST);
+                                $modinfo = get_fast_modinfo($item->courseid);
+                                $cm = $modinfo->get_cm($cm->id);
+                                if ($cm->uservisible) {
+                                    if ($item->itemmodule == 'lti') {
+                                        if (is_array($lti_instances_to_exclude) && in_array($item->courseid, $lti_instances_to_exclude) ||
+                                        $item->courseid == $lti_instances_to_exclude) {
+                                            continue;
+                                        }
+                                    }
+
+                                    // Get the activity based on its type...
+                                    $activity = \block_newgu_spdetails\activity::activity_factory($item->id, $item->courseid, 0);
+                                    if ($records = $activity->get_assessmentsdue()) {
+                                        $assignmentdata[] = $records[0];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } 
+        }
+
+        if (!$assignmentdata) {
+            return $stats;
+        }
+
+        $next24hours = mktime(date("H"), date("i"), date("s"), date("m"), date("d")+1, date("Y"));
+        $next7days = mktime(date("H"), date("i"), date("s"), date("m"), date("d")+7, date("Y"));
+        $nextmonth = mktime(date("H"), date("i"), date("s"), date("m")+1, date("d"), date("Y"));
+
+        $duein24hours = 0;
+        $duein7days = 0;
+        $dueinnextmonth = 0;
+
+        foreach($assignmentdata as $assignment) {
+            if (($assignment->duedate > $now) && ($assignment->duedate < $next24hours)) {
+                $duein24hours++;
+            }
+
+            if (($assignment->duedate > $now) && ($assignment->duedate > $next24hours) && ($assignment->duedate < $next7days)) {
+                $duein7days++;
+            }
+
+            if (($assignment->duedate > $now) && ($assignment->duedate > $next7days) && ($assignment->duedate < $nextmonth)) {
+                $dueinnextmonth++;
+            }
+        }
+
+        $stats = [
+            '24hours' => $duein24hours,
+            'week' => $duein7days,
+            'month' => $dueinnextmonth
+        ];
+
+        return $stats;
     }
 
 }

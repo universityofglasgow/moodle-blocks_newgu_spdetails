@@ -92,6 +92,7 @@ $string['label_grade'] = 'Overall grade: ';
 $string['previous'] = 'Previous';
 $string['feedback_tobeconfirmed'] = 'To be confirmed';
 
+$string['status_tobeconfirmed'] = 'To be confirmed';
 $string['status_notopen'] = 'notopen';
 $string['status_submissionnotopen'] = 'submissionnotopen';
 $string['status_submit'] = 'submit';

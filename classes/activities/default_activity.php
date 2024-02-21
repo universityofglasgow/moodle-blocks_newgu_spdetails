@@ -119,4 +119,14 @@ class default_activity extends base {
         return parent::get_feedback($gradestatusobj);
     }
 
+    /**
+     * Return the due date of the default activity if it hasn't been submitted.
+     * @return array $assignmentdata
+     */
+    public function get_assessmentsdue(): array {
+        $assignmentdata = [];
+        return $assignmentdata;
+
+    }
+
 }

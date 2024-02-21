@@ -24,9 +24,12 @@
 
 namespace block_newgu_spdetails\activities;
 
+use cache;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
+require_once($CFG->dirroot . '/mod/quiz/lib.php');
 
 /**
  * Specific implementation for a quiz activity
@@ -42,6 +45,11 @@ class quiz_activity extends base {
      * @var object $quiz
      */
     private $quiz;
+
+    /**
+     * @var contstant CACHE_KEY
+     */
+    const CACHE_KEY = 'studentid_quizduesoon:';
     
     /**
      * Constructor, set grade itemid
@@ -217,6 +225,55 @@ class quiz_activity extends base {
      */
     public function get_feedback($gradestatusobj): object {
         return parent::get_feedback($gradestatusobj);
+    }
+
+    /**
+     * Return the due date of the quiz if it hasn't been started.
+     * @return array $assignmentdata
+     */
+    public function get_assessmentsdue(): array {
+        global $USER;
+        
+        // Cache this query as it's going to get called for each assessment in the course otherwise.
+        $cache = cache::make('block_newgu_spdetails', 'quizduequery');
+        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        $currenttime = time();
+        $fiveminutes = $currenttime - 300;
+        $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
+        $quizdata = [];
+
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
+            $quizobj = $this->quiz->get_quiz();
+            $quizattempts = quiz_get_user_attempts($quizobj->id, $USER->id);
+            
+            if (!in_array($quizobj->id, $quizattempts)) {
+                if ($quizobj->timeopen != 0 && $quizobj->timeopen < $now) {
+                    if ($quizobj->timeclose != 0 && $quizobj->timeclose > $now) {
+                        $obj = new \stdClass();
+                        $obj->duedate = $quizobj->timeclose;
+                        $quizdata[] = $obj;
+                    }
+                }
+            }
+
+            $submissionsdata = [
+                "updated" => time(),
+                "quizsubmissions" => $quizdata
+            ];
+
+            $cachedata = [
+                $cachekey => [
+                    $submissionsdata
+                ]
+            ];
+            $cache->set_many($cachedata);
+        } else {
+            $cachedata = $cache->get_many([$cachekey]);
+            $quizdata = $cachedata[$cachekey][0]["quizsubmissions"];
+        }
+
+        return $quizdata;
     }
 
 }

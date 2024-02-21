@@ -49,3 +49,6 @@ $PAGE->requires->js_call_amd('block_newgu_spdetails/main', 'init');
 echo $OUTPUT->header();
 echo $content;
 echo $OUTPUT->footer();
+
+// @todo - add logging to this page - this will be needed for reporting purposes.
+

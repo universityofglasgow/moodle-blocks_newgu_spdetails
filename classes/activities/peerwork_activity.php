@@ -24,6 +24,8 @@
 
 namespace block_newgu_spdetails\activities;
 
+use cache;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/peerwork/locallib.php');
@@ -42,6 +44,11 @@ class peerwork_activity extends base {
      * @var object $peerwork
      */
     private $peerwork;
+
+    /**
+     * @var contstant CACHE_KEY
+     */
+    const CACHE_KEY = 'studentid_peerworkduesoon:';
 
     /**
      * Constructor, set grade itemid
@@ -229,6 +236,59 @@ class peerwork_activity extends base {
      */
     public function get_feedback($gradestatusobj): object {
         return parent::get_feedback($gradestatusobj);
+    }
+
+    /**
+     * Return the due date of the peerwork assignment if it hasn't been submitted.
+     * @return array $assignmentdata
+     */
+    public function get_assessmentsdue(): array {
+        global $DB, $USER;
+
+        // Cache this query as it's going to get called for each assessment in the course otherwise.
+        $cache = cache::make('block_newgu_spdetails', 'peerworkduequery');
+        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        $currenttime = time();
+        $fiveminutes = $currenttime - 300;
+        $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
+        $peerworkdata = [];
+
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
+            $lastmonth = mktime(date("H"), date("i"), date("s"), date("m")-1, date("d"), date("Y"));
+            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            
+            $peerworksubmissions = $DB->get_fieldset_select('peerwork_submission', 'peerworkid', $select,$params);
+            $peerworkassignment = $this->peerwork;
+            
+            if (!in_array($peerworkassignment->id, $peerworksubmissions) && $peerworkassignment->allowlatesubmissions == 0) {
+                if ($peerworkassignment->fromdate < $now) {
+                    if ($peerworkassignment->duedate == 0 || $peerworkassignment->duedate > $now) {
+                        $peerworkdata[] = $peerworkassignment;
+                    }
+                }
+            }
+
+            $submissionsdata = [
+                "updated" => time(),
+                "peerworksubmissions" => $peerworkdata
+            ];
+
+            $cachedata = [
+                $cachekey => [
+                    $submissionsdata
+                ]
+            ];
+            $cache->set_many($cachedata);
+
+        } else {
+            $cachedata = $cache->get_many([$cachekey]);
+            $peerworkdata = $cachedata[$cachekey][0]["peerworksubmissions"];
+        }
+
+
+        return $peerworkdata;
     }
 
 }

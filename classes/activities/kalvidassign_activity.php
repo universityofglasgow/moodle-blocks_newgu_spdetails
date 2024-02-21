@@ -24,6 +24,8 @@
 
 namespace block_newgu_spdetails\activities;
 
+use cache;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/kalvidassign/locallib.php');
@@ -42,6 +44,11 @@ class kalvidassign_activity extends base {
      * @var object $assign
      */
     private $kalvidassign;
+
+    /**
+     * @var contstant CACHE_KEY
+     */
+    const CACHE_KEY = 'studentid_kalvidassignmentsduesoon:';
 
     /**
      * Constructor, set grade itemid
@@ -234,6 +241,61 @@ class kalvidassign_activity extends base {
      */
     public function get_feedback($gradestatusobj): object {
         return parent::get_feedback($gradestatusobj);
+    }
+
+    /**
+     * Return the due date of the assignment if it hasn't been submitted.
+     * @return array $assignmentdata
+     */
+    public function get_assessmentsdue(): array {
+        global $DB, $USER;
+
+        // Cache this query as it's going to get called for each assessment in the course otherwise.
+        $cache = cache::make('block_newgu_spdetails', 'kalvidassignmentsduequery');
+        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        $currenttime = time();
+        $fiveminutes = $currenttime - 300;
+        $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
+        $kalviddata = [];
+
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
+            $lastmonth = mktime(date("H"), date("i"), date("s"), date("m")-1, date("d"), date("Y"));
+            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            
+            $kalvidsubmissions = $DB->get_fieldset_select('kalvidassign_submission', 'vidassignid', $select,$params);
+            // Access the assignment itself.
+            $kalvidassignment = $this->kalvidassign[2];
+            
+            if (!in_array($kalvidassignment->id, $kalvidsubmissions)) {
+                if ($kalvidassignment->timeavailable < $now) {
+                    if ($kalvidassignment->timedue == 0 || $kalvidassignment->timedue > $now) {
+                        $obj = new \stdClass();
+                        $obj->duedate = $kalvidassignment->timedue;
+                        $kalviddata[] = $obj;
+                    }
+                }
+            }
+
+            $submissionsdata = [
+                "updated" => time(),
+                "kalvidassignmentsubmissions" => $kalviddata
+            ];
+
+            $cachedata = [
+                $cachekey => [
+                    $submissionsdata
+                ]
+            ];
+            $cache->set_many($cachedata);
+
+        } else {
+            $cachedata = $cache->get_many([$cachekey]);
+            $kalviddata = $cachedata[$cachekey][0]["kalvidassignmentsubmissions"];
+        }
+        
+        return $kalviddata;
     }
 
 }

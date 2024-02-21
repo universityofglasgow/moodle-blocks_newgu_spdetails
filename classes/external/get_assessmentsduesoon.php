@@ -50,8 +50,9 @@ class get_assessmentsduesoon extends external_api {
     /**
      * Return the assessments due in the next 24 hours, 1 week and 1 month.
      * 
-     * We probably want to cache this on something like a 10 minute basis, 
-     * given how many times this service may be called during the day.
+     * We probably want to cache this on something like a 5 minute basis, 
+     * given that the service gets called each time the user visits the
+     * dashboard.
      * 
      * @return array of assessments, grouped by return time.
      * @throws \invalid_parameter_exception
@@ -61,11 +62,11 @@ class get_assessmentsduesoon extends external_api {
 
         $cache = cache::make('block_newgu_spdetails', 'studentdashboarddata');
         $currenttime = time();
-        $tenminutes = $currenttime - 600;
+        $fiveminutes = $currenttime - 300;
         $cachekey = self::CACHE_KEY . $USER->id;
         $cachedata = $cache->get_many([$cachekey]);
 
-        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['summaryupdated'] < $tenminutes) {
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['summaryupdated'] < $fiveminutes) {
             $assessmentsduesoon = \block_newgu_spdetails\api::get_assessmentsduesoon();
             $twentyfourhours = $assessmentsduesoon['24hours'];
             $week = $assessmentsduesoon['week'];

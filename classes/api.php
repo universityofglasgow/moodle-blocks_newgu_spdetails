@@ -129,75 +129,8 @@ class api extends \external_api
      * @return array
      */
     public static function get_assessmentsduesoon() {
-        global $DB, $USER;
-        $sortstring = 'shortname asc';
-        $courses = \local_gugrades\api::dashboard_get_courses($USER->id, true, false, $sortstring);
-
-        $stats = [
-            '24hours' => 0,
-            'week' => 0,
-            'month' => 0
-        ];
-
-        if (!$courses) {
-            return $stats;
-        }
-
-        // This should probably account for workshop and other submission activities...
-        // As these tables will have an enourmous amount of data, we need to perhaps 
-        // restrict searching for items only to the last month.
-        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
-        $lastmonth = mktime(date("H"), date("i"), date("s"), date("m")-1, date("d"), date("Y"));
-        $assignmentdata = [];
-        $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
-        $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-        $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'id', $select,$params);
         
-        foreach($courses as $course) {
-            if ($assignments = $DB->get_records('assign', ['course' => $course->id], 'id', '*',0,0)) {
-                foreach($assignments as $assignment) {
-                    if (!in_array($assignment->id, $assignmentsubmissions)) {
-                        if ($assignment->allowsubmissionsfromdate < $now) {
-                            if ($assignment->cutoffdate == 0 || $assignment->cutoffdate > $now) {
-                                $assignmentdata[] = $assignment;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!$assignmentdata) {
-            return $stats;
-        }
-
-        $next24hours = mktime(date("H"), date("i"), date("s"), date("m"), date("d")+1, date("Y"));
-        $next7days = mktime(date("H"), date("i"), date("s"), date("m"), date("d")+7, date("Y"));
-        $nextmonth = mktime(date("H"), date("i"), date("s"), date("m")+1, date("d"), date("Y"));
-
-        $duein24hours = 0;
-        $duein7days = 0;
-        $dueinnextmonth = 0;
-
-        foreach($assignmentdata as $assignment) {
-            if (($assignment->duedate > $now) && ($assignment->duedate < $next24hours)) {
-                $duein24hours++;
-            }
-
-            if (($assignment->duedate > $now) && ($assignment->duedate > $next24hours) && ($assignment->duedate < $next7days)) {
-                $duein7days++;
-            }
-
-            if (($assignment->duedate > $now) && ($assignment->duedate > $next7days) && ($assignment->duedate < $nextmonth)) {
-                $dueinnextmonth++;
-            }
-        }
-
-        $stats = [
-            '24hours' => $duein24hours,
-            'week' => $duein7days,
-            'month' => $dueinnextmonth
-        ];
+        $stats = \block_newgu_spdetails\course::get_assessmentsduesoon();
 
         return $stats;
     }
@@ -255,7 +188,7 @@ class api extends \external_api
                 $status = $gradestatus["status"];
                 $finalgrade = $gradestatus["finalgrade"];
 
-                if ($status == get_string("status_tosubmit", "block_newgu_spdetails")) {
+                if ($status == get_string("status_submit", "block_newgu_spdetails")) {
                     $total_tosubmit++;
                 }
                 if ($status == get_string("status_notsubmitted", "block_newgu_spdetails")) {

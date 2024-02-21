@@ -198,4 +198,10 @@ abstract class base {
         return $feedbackobj;
     }
 
+    /**
+     * Return the due date of the assignment if it hasn't been submitted.
+     * @return array $assignmentdata
+     */
+    abstract public function get_assessmentsdue(): array;
+
 }

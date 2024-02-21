@@ -31,5 +31,41 @@ $definitions = [
         'simplekeys' => false,
         'simpledata' => false,
         'ttl' => 7200, // 120 minutes expiry time.
+    ],
+    'assignmentsduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 7200, // 120 minutes expiry time.
+    ],
+    'quizduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 7200, // 120 minutes expiry time.
+    ],
+    'workshopduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 7200, // 120 minutes expiry time.
+    ],
+    'peerworkduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 7200, // 120 minutes expiry time.
+    ],
+    'kalvidassignmentsduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 7200, // 120 minutes expiry time.
+    ],
+    'forumduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 7200, // 120 minutes expiry time.
     ]
 ];

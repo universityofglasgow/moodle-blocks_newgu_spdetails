@@ -24,6 +24,8 @@
 
 namespace block_newgu_spdetails\activities;
 
+use cache;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/workshop/locallib.php');
@@ -42,6 +44,11 @@ class workshop_activity extends base {
      * @var object $workshop
      */
     private $workshop;
+
+    /**
+     * @var contstant CACHE_KEY
+     */
+    const CACHE_KEY = 'studentid_workshopduesoon:';
     
     /**
      * Constructor, set grade itemid
@@ -69,7 +76,7 @@ class workshop_activity extends base {
         $coursemodulecontext = \context_module::instance($cm->id);
         $workshop = new \workshop($coursemodulecontext, $cm, $course);
 
-        return $quiz;
+        return $workshop;
     }
 
     /**
@@ -145,6 +152,16 @@ class workshop_activity extends base {
      */
     public function get_feedback($gradestatusobj): object {
         return parent::get_feedback($gradestatusobj);
+    }
+
+    /**
+     * Return the due date of the workshop assignment if it hasn't been submitted.
+     * @return array $assignmentdata
+     */
+    public function get_assessmentsdue(): array {
+        $assignmentdata = [];
+        return $assignmentdata;
+
     }
 
 }
