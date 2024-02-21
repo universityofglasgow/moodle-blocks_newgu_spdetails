@@ -32,13 +32,25 @@
  require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
  require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
  
- class get_grade_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
+ class get_grade_status_and_feedback_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
     
     /**
      * Test that for a given assessment, the correct grade status is returned.
+     * This is done for each course type.
      */
-    public function test_get_grade_status_feedback() {
+    public function test_get_grade_status_and_feedback() {
+        $userid = $this->student1->id;
+        $sortorder = 'asc';
 
+        // Check these attributes on a MyGrades course
+        $mygradescategoryid = $this->
+
+        // Check these attributes on a GCAT course
+        $summativecategoryid = $this->summativecategory->id;
+        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $summativecategoryid);
+
+        // Check these attributes on a Gradebook course
+        $tmp = 0;
     }
     
 }

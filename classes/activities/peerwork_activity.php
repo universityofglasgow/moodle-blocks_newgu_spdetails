@@ -91,7 +91,7 @@ class peerwork_activity extends base {
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
-        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'locked' => 0, 'userid' => $userid])) {
             if ($grade->overridden) {
                 return parent::get_first_grade($userid);
             }
@@ -159,8 +159,9 @@ class peerwork_activity extends base {
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->due_date = $this->peerwork->duedate;
+        $statusobj->grade_status = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $allowsubmissionsfromdate = $this->peerwork->fromdate;
-        $statusobj->allowlatesubmissions = $this->peerwork->allowlatesubmissions;
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
@@ -216,6 +217,7 @@ class peerwork_activity extends base {
                     $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                    $statusobj->status_link = $statusobj->assessment_url;
                 }
             }
         }
@@ -228,7 +230,6 @@ class peerwork_activity extends base {
         }
 
         return $statusobj;
-
     }
 
     /**
@@ -286,7 +287,6 @@ class peerwork_activity extends base {
             $cachedata = $cache->get_many([$cachekey]);
             $peerworkdata = $cachedata[$cachekey][0]["peerworksubmissions"];
         }
-
 
         return $peerworkdata;
     }

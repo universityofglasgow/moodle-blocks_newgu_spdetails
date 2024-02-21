@@ -89,7 +89,7 @@ class kalvidassign_activity extends base {
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
-        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'locked' => 0, 'userid' => $userid])) {
             if ($grade->overridden) {
                 return parent::get_first_grade($userid);
             }

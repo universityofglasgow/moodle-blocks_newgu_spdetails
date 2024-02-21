@@ -91,6 +91,7 @@ abstract class base {
         // Get grade item.
         $this->gradeitem = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);
         $this->itemtype = $this->gradeitem->itemtype;
+        $this->itemname = $this->gradeitem->itemname;
 
         // The URL format seems to be consistent between activities.
         $this->itemurl = $CFG->wwwroot . '/';
@@ -131,7 +132,7 @@ abstract class base {
      * @return string
      */
     public function get_itemtype(): string {
-        return $this->gradeitem->itemtype;
+        return $this->itemtype;
     }
 
     /**
@@ -139,7 +140,7 @@ abstract class base {
      * @return string
      */
     public function get_itemmodule(): string {
-        return $this->gradeitem->itemmodule;
+        return $this->itemmodule;
     }
 
     /**
@@ -147,7 +148,7 @@ abstract class base {
      * @return string
      */
     public function get_itemname(): string {
-        return $this->gradeitem->itemname;
+        return $this->itemname;
     }
 
     /**
@@ -200,6 +201,7 @@ abstract class base {
 
     /**
      * Return the due date of the assignment if it hasn't been submitted.
+     * This is mainly needed by the charts that are now being used.
      * @return array $assignmentdata
      */
     abstract public function get_assessmentsdue(): array;

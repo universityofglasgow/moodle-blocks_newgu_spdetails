@@ -69,14 +69,14 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
     protected $activityapi;
 
     /**
-     * @var object $gcatcourse
-     */
-    protected $gcatcourse;
-
-    /**
      * @var obejct $gugradescourse
      */
     protected $gugradescourse;
+
+    /**
+     * @var object $gcatcourse
+     */
+    protected $gcatcourse;
 
     /**
      * @var object $gradebookcourse
@@ -235,9 +235,12 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $this->setUser($student1);
 
         // Create some "gradable" activities...
-        $assignment1 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 1', 'grade' => 50, 'course' => $gcatcourse->id]);
-        $assignment2 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 2(i)', 'grade' => 20,  'course' => $gcatcourse->id]);
-        $assignment3 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 2(ii)', 'grade' => 30,  'course' => $gcatcourse->id]);
+        $due_date1 = mktime(date("H"), date("i"), date("s"), date("m")+1, date("d")+1, date("Y"));
+        $due_date2 = mktime(date("H"), date("i"), date("s"), date("m")+1, date("d")+2, date("Y"));
+        $due_date3 = mktime(date("H"), date("i"), date("s"), date("m")+1, date("d")+3, date("Y"));
+        $assignment1 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 1', 'duedate' => $due_date1, 'grade' => 50, 'course' => $gcatcourse->id]);
+        $assignment2 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 2(i)', 'duedate' => $due_date2, 'grade' => 20,  'course' => $gcatcourse->id]);
+        $assignment3 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment 2(ii)', 'duedate' => $due_date3, 'grade' => 30,  'course' => $gcatcourse->id]);
         $groupassignment1 = $this->getDataGenerator()->create_module('assign', ['name' => 'Group Assessment', 'teamsubmission' => 1, 'course' => $gcatcourse->id]);
 
         // Create some "gradable" items. Regular assignments to begin with...
@@ -316,7 +319,8 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $gugrades_formativecategory = $this->getDataGenerator()->create_grade_category(['fullname' => 'Sub-Category B Assignments (Resits - highest grade)', 'courseid' => $gugradescourse->id, 'parent' => $gugrades_summativecategory->parent]);
         
         // Create some "gradable" activities...
-        $assignment5 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment A2', 'grade' => 12, 'course' => $gugradescourse->id]);
+        $due_date4 = mktime(date("H"), date("i"), date("s"), date("m")+1, date("d")+1, date("Y"));
+        $assignment5 = $this->getDataGenerator()->create_module('assign', ['name' => 'Assessment A2', 'duedate' => $due_date4, 'grade' => 12, 'course' => $gugradescourse->id]);
         $assessmentitem5 = $this->getDataGenerator()->create_grade_item([
             'itemtype' => 'mod',
             'itemmodule' => 'assign',
@@ -376,6 +380,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $this->getDataGenerator()->enrol_user($student1->id, $gradebookcourse->id, $this->get_roleid());
         $this->getDataGenerator()->role_assign('student', $student1->id, $gradebookcontext);
 
+        $due_date4 = mktime(date("H"), date("i"), date("s"), date("m")+1, date("d")+1, date("Y"));
         $assignment4 = $this->getDataGenerator()->create_module('assign', [
             'name' => 'SPS5022 Essay - FINAL - Thursday 12th', 
             'grade' => 4, 

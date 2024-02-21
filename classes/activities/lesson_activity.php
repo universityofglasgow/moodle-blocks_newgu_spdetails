@@ -26,6 +26,7 @@ namespace block_newgu_spdetails\activities;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/mod/lesson/lib.php');
 require_once($CFG->dirroot . '/mod/lesson/locallib.php');
 
 /**
@@ -86,7 +87,7 @@ class lesson_activity extends base {
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
-        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'locked' => 0, 'userid' => $userid])) {
             if ($grade->overridden) {
                 return parent::get_first_grade($userid);
             }
@@ -101,6 +102,16 @@ class lesson_activity extends base {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;
             }
+        }
+
+        // This just pulls the grade from lesson. Not sure it's that simple
+        // This is the grade object from mdl_lesson_grades (check negative values).
+        $lessongrade = lesson_get_user_grades($this->lesson, $userid);
+
+        if ($lessongrade !== false) {
+            // Not sure what, if anything, we should do with this value here...
+            $activitygrade->grade = $lessongrade->grade;
+            return $activitygrade;
         }
 
         return false;
@@ -131,13 +142,73 @@ class lesson_activity extends base {
     }
 
     /**
+     * Return a formatted date
+     * @param int $unformatteddate
+     * @return string
+     */
+    public function get_formattedduedate(int $unformatteddate = null): string {
+        
+        $due_date = '';
+        if ($unformatteddate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+            $due_date = $dateobj->format('jS F Y');
+        }
+        
+        return $due_date;
+    }
+
+    /**
      * @param int $userid
      * @return object
      */
     public function get_status($userid): object {
-        $obj = new \stdClass();
-        $obj->due_date = time();
-        return $obj;
+        global $DB;
+
+        $statusobj = new \stdClass();
+        $statusobj->assessment_url = $this->get_assessmenturl();
+        $statusobj->due_date = $this->lesson->deadline;
+        $statusobj->grade_status = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $allowsubmissionsfromdate = $this->lesson->available;
+
+        // Check if any overrides have been set up first of all...
+        $overrides = $DB->get_record('lesson_overrides', ['lessonid' => $this->lesson->id, 'userid' => $userid]);
+        if (!empty($overrides)) {
+            $allowsubmissionsfromdate = $overrides->available;
+            $statusobj->due_date = $overrides->deadline;
+        }
+
+        if ($allowsubmissionsfromdate > time()) {
+            $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
+            $statusobj->status_text = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
+            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        }
+
+        if ($statusobj->grade_status == '') {
+            $lessonattempts = $DB->count_records("lesson_attempts", ["lessonid" => $this->lesson->id, "userid" => $userid, "state" => "finished"]);
+            if ($lessonattempts > 0) {
+                $statusobj->grade_status = get_string("status_submitted", "block_newgu_spdetails");
+                $statusobj->status_text = get_string("status_text_submitted", "block_newgu_spdetails");
+                $statusobj->status_class = get_string("status_class_submitted", "block_newgu_spdetails");
+                $statusobj->assessment_url = '';
+
+                if ($lessongrades = $DB->count_records("lesson_grades", ["lessonid" => $this->lesson->id, "userid" => $userid])) {
+                    $statusobj->grade_status = get_string("status_graded", "block_newgu_spdetails");
+                    $statusobj->status_text = get_string("status_text_graded", "block_newgu_spdetails");
+                    $statusobj->status_class = get_string("status_class_graded", "block_newgu_spdetails");
+                    $statusobj->grade_to_display = $lessongrades->grade;
+                    $statusobj->assessment_url = '';
+                }
+
+            } else {
+                $statusobj->grade_status = get_string("status_submit", "block_newgu_spdetails");
+                $statusobj->status_text = get_string("status_text_submit", "block_newgu_spdetails");
+                $statusobj->status_class = get_string("status_class_submit", "block_newgu_spdetails");
+                $statusobj->status_link = $statusobj->assessment_url;
+            }
+        }
+        
+        return $statusobj;
     }
 
     /**

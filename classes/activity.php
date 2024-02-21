@@ -310,7 +310,7 @@ class activity {
                 // user is therefore able to see.
 
                 // We have no knowledge of the itemmodule here - how do we get that for this check?
-                if ($gcatitem->itemmodule == 'lti') {
+                if (property_exists($gcatitem, 'itemmodule') && $gcatitem->itemmodule == 'lti') {
                     if (is_array($lti_instances_to_exclude) && in_array($gcatitem->courseid, $lti_instances_to_exclude) ||
                     $gcatitem->courseid == $lti_instances_to_exclude) {
                         continue;
@@ -332,7 +332,7 @@ class activity {
                     'id' => $gcatitem->id,
                     'assessment_url' => $assessment_url,
                     'item_icon' => $item_icon,
-                    'icon_alt' => $item_alt,
+                    'icon_alt' => $icon_alt,
                     'item_name' => $gcatitem->assessmentname,
                     'assessment_type' => $gcatitem->assessmenttype,
                     'assessment_weight' => $gcatitem->weight,
@@ -436,7 +436,7 @@ class activity {
                         'id' => $defaultitem->id,
                         'assessment_url' => $assessmenturl,
                         'item_icon' => $item_icon,
-                        'icon_alt' => $item_alt,
+                        'icon_alt' => $icon_alt,
                         'item_name' => $defaultitem->itemname,
                         'assessment_type' => $assessmenttype,
                         'assessment_weight' => $assessmentweight,
