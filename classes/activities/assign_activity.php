@@ -105,7 +105,7 @@ class assign_activity extends base {
         // revert to the base - i.e., get the grade from the Gradebook.
         // We're only wanting grades that are deemed as 'released', i.e.
         // not 'hidden' or 'locked'.
-        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'locked' => 0, 'userid' => $userid])) {
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
             if ($grade->overridden) {
                 return parent::get_first_grade($userid);
             }
@@ -120,17 +120,6 @@ class assign_activity extends base {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;
             }
-        }
-
-        // This just pulls the grade from assign. Not sure it's that simple
-        // False, means do not create grade if it does not exist
-        // This is the grade object from mdl_assign_grades (check negative values).
-        $assigngrade = $this->assign->get_user_grade($userid, false);
-
-        if ($assigngrade !== false) {
-            // Not sure what, if anything, we should do with this value here...
-            $activitygrade->grade = $assigngrade->grade;
-            return $activitygrade;
         }
 
         return false;

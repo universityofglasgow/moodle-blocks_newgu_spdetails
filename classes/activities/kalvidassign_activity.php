@@ -89,7 +89,7 @@ class kalvidassign_activity extends base {
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
-        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'locked' => 0, 'userid' => $userid])) {
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
             if ($grade->overridden) {
                 return parent::get_first_grade($userid);
             }
@@ -104,15 +104,6 @@ class kalvidassign_activity extends base {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;
             }
-        }
-
-        // This just pulls the grade from kalvidassign. Not sure it's that simple.
-        // This is the grade object from mdl_assign_grades (check negative values).
-        $kalvidassigngrade = kalvidassign_get_submission_grade_object($this->gradeitemid, $userid);
-
-        if ($kalvidassigngrade !== false) {
-            $activitygrade->grade = $kalvidassigngrade->rawgrade;
-            return $activitygrade;
         }
 
         return false;

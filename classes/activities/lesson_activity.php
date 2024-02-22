@@ -92,7 +92,7 @@ class lesson_activity extends base {
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
-        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'locked' => 0, 'userid' => $userid])) {
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
             if ($grade->overridden) {
                 return parent::get_first_grade($userid);
             }
@@ -107,16 +107,6 @@ class lesson_activity extends base {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;
             }
-        }
-
-        // This just pulls the grade from lesson. Not sure it's that simple
-        // This is the grade object from mdl_lesson_grades (check negative values).
-        $lessongrade = lesson_get_user_grades($this->lesson, $userid);
-
-        if (count($lessongrade) > 0) {
-            // Not sure what, if anything, we should do with this value here...
-            $activitygrade->grade = $lessongrade->grade;
-            return $activitygrade;
         }
 
         return false;
