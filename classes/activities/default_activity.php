@@ -32,6 +32,25 @@ defined('MOODLE_INTERNAL') || die();
 class default_activity extends base {
 
     /**
+     * @var object $cm
+     */
+    private $cm;
+
+    /**
+     * For this activity, get just the basic course module info.
+     * 
+     * @param int $gradeitemid Grade item id
+     * @param int $courseid
+     * @param int $groupid
+     */
+    public function __construct(int $gradeitemid, int $courseid, int $groupid) {
+        parent::__construct($gradeitemid, $courseid, $groupid);
+
+        // Get the forum object.
+        $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
+    }
+    
+    /**
      * Return the grade directly from Gradebook
      * @param int $userid
      * @return object|bool
@@ -115,9 +134,19 @@ class default_activity extends base {
      * @return object
      */
     public function get_status($userid): object {
-        $obj = new \stdClass();
-        $obj->due_date = time();
-        return $obj;
+        global $DB;
+
+        $statusobj = new \stdClass();
+        $statusobj->assessment_url = $this->get_assessmenturl();
+        $statusobj->grade_status = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->due_date = '';
+        $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+        $statusobj->status_text = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+        $statusobj->status_link = '';
+
+        return $statusobj;
     }
 
     /**

@@ -35,8 +35,8 @@
  class get_grade_status_and_feedback_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
     
     /**
-     * Test that for a given assessment, the correct grade status is returned.
-     * This is done for each course type.
+     * Test that for a given assessment, the correct grade, status and 
+     * feedback is returned. This is done for each course type.
      */
     public function test_get_grade_status_and_feedback() {
         $userid = $this->student1->id;
