@@ -100,12 +100,12 @@ class activity {
         $data = [];
 
         // We've lost all knowledge at this point of the course type - fetch it again.
-        $gugradesenabled = \block_newgu_spdetails\course::is_type_mygrades($courseid);
+        $mygradesenabled = \block_newgu_spdetails\course::is_type_mygrades($courseid);
         $gcatenabled = \block_newgu_spdetails\course::is_type_gcat($courseid);
 
         if ($activityitems->categories) {
             $categorydata = [];
-            if ($gugradesenabled) {
+            if ($mygradesenabled) {
                 $categorydata = \block_newgu_spdetails\course::process_mygrades_subcategories($courseid, $activityitems->categories, $assessmenttype, $sortorder);
             }
 
@@ -113,7 +113,7 @@ class activity {
                 $categorydata = \block_newgu_spdetails\course::process_gcat_subcategories($courseid, $activityitems->categories, $assessmenttype, $sortorder);
             }
 
-            if (!$gugradesenabled && !$gcatenabled) {
+            if (!$mygradesenabled && !$gcatenabled) {
                 $categorydata = \block_newgu_spdetails\course::process_default_subcategories($courseid, $activityitems->categories, $assessmenttype, $sortorder);
             }
 
@@ -125,7 +125,7 @@ class activity {
             $lti_instances_to_exclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
             
             $activitydata = [];
-            if ($gugradesenabled) {
+            if ($mygradesenabled) {
                 $activitydata = \block_newgu_spdetails\activity::process_mygrades_items($activityitems->items, $activetab, $lti_instances_to_exclude, $assessmenttype, $sortorder);
             }
 
@@ -134,7 +134,7 @@ class activity {
                 $activitydata = \block_newgu_spdetails\activity::process_gcat_items($subcategory, $lti_instances_to_exclude, $userid, $activetab, $assessmenttype, $sortby, $sortorder);
             }
 
-            if (!$gugradesenabled && !$gcatenabled) {
+            if (!$mygradesenabled && !$gcatenabled) {
                 $activitydata = \block_newgu_spdetails\activity::process_default_items($activityitems->items, $activetab, $lti_instances_to_exclude, $assessmenttype, $sortorder);
             }
 
@@ -234,7 +234,7 @@ class activity {
                             $mygradesitem->gradetype, 
                             $mygradesitem->scaleid, 
                             $mygradesitem->grademax, 
-                            'gugradesenabled'
+                            'mygradesenabled'
                         );
                         
                         $assessment_url = $gradestatobj->assessment_url;
@@ -261,7 +261,7 @@ class activity {
                         'grade' => $grade,
                         'grade_feedback' => $grade_feedback,
                         'grade_feedback_link' => $grade_feedback_link,
-                        'gugradesenabled' => 'true'
+                        'mygradesenabled' => 'true'
                     ];
 
                     if ($activetab == 'past') {

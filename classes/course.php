@@ -268,12 +268,12 @@
     /**
      * Reusing the code from local_gugrades/api::get_dashboard_get_courses
      * @param int $courseid
-     * @return bool $gugradesenabled
+     * @return bool $mygradesenabled
      */
     public static function is_type_mygrades(int $courseid) {
         global $DB;
         
-        $gugradesenabled = false;
+        $mygradesenabled = false;
         $sqlname = $DB->sql_compare_text('name');
         $sql = "SELECT * FROM {local_gugrades_config}
             WHERE courseid = :courseid
@@ -285,10 +285,10 @@
             'value' => 1
         ];
         if ($DB->record_exists_sql($sql, $params)) {
-            $gugradesenabled = true;
+            $mygradesenabled = true;
         }
 
-        return $gugradesenabled;
+        return $mygradesenabled;
     }
 
     /**
