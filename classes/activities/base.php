@@ -64,6 +64,11 @@ abstract class base {
      * @var string $itemmodule
      */
     protected string $itemmodule;
+
+    /**
+     * @var string $itemname
+     */
+    protected string $itemname;
     
     /**
      * @var string $itemscript

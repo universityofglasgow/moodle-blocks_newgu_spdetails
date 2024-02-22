@@ -26,46 +26,52 @@
 defined('MOODLE_INTERNAL') || die();
 
 $definitions = [
-    'studentdashboarddata' => [
-        'mode' => cache_store::MODE_APPLICATION,
-        'simplekeys' => false,
-        'simpledata' => false,
-        'ttl' => 7200, // 120 minutes expiry time.
-    ],
     'assignmentsduequery' => [
         'mode' => cache_store::MODE_APPLICATION,
         'simplekeys' => false,
         'simpledata' => false,
-        'ttl' => 7200, // 120 minutes expiry time.
-    ],
-    'quizduequery' => [
-        'mode' => cache_store::MODE_APPLICATION,
-        'simplekeys' => false,
-        'simpledata' => false,
-        'ttl' => 7200, // 120 minutes expiry time.
-    ],
-    'workshopduequery' => [
-        'mode' => cache_store::MODE_APPLICATION,
-        'simplekeys' => false,
-        'simpledata' => false,
-        'ttl' => 7200, // 120 minutes expiry time.
-    ],
-    'peerworkduequery' => [
-        'mode' => cache_store::MODE_APPLICATION,
-        'simplekeys' => false,
-        'simpledata' => false,
-        'ttl' => 7200, // 120 minutes expiry time.
-    ],
-    'kalvidassignmentsduequery' => [
-        'mode' => cache_store::MODE_APPLICATION,
-        'simplekeys' => false,
-        'simpledata' => false,
-        'ttl' => 7200, // 120 minutes expiry time.
+        'ttl' => 300, // 5 minutes expiry time.
     ],
     'forumduequery' => [
         'mode' => cache_store::MODE_APPLICATION,
         'simplekeys' => false,
         'simpledata' => false,
-        'ttl' => 7200, // 120 minutes expiry time.
+        'ttl' => 300, // 5 minutes expiry time.
+    ],
+    'kalvidassignmentsduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 300, // 5 minutes expiry time.
+    ],
+    'lessonsduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 300, // 5 minutes expiry time.
+    ],
+    'peerworkduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 300, // 5 minutes expiry time.
+    ],
+    'quizduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 300, // 5 minutes expiry time.
+    ],
+    'studentdashboarddata' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 300, // 5 minutes expiry time.
+    ],
+    'workshopduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 300, // 5 minutes expiry time.
     ]
 ];

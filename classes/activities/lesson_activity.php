@@ -24,6 +24,8 @@
 
 namespace block_newgu_spdetails\activities;
 
+use cache;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/lesson/lib.php');
@@ -45,6 +47,11 @@ class lesson_activity extends base {
     private $lesson;
 
     /**
+     * @var contstant CACHE_KEY
+     */
+    const CACHE_KEY = 'studentid_lessonsduesoon:';
+
+    /**
      * Constructor, set grade itemid
      * @param int $gradeitemid Grade item id
      * @param int $courseid
@@ -53,22 +60,20 @@ class lesson_activity extends base {
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
         parent::__construct($gradeitemid, $courseid, $groupid);
 
-        // Get the assignment object.
+        // Get the lesson object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->lesson = $this->get_lesson($this->cm);
+        $this->lesson = $this->get_lesson();
     }
 
     /**
-     * Get assignment object
-     * @param object $cm course module
+     * Get lesson object
      * @return object
      */
-    public function get_lesson($cm) {
+    public function get_lesson() {
         global $DB;
-
-        $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
-        $coursemodulecontext = \context_module::instance($cm->id);
-        $lesson = new \lesson($coursemodulecontext, $cm, $course);
+        $lessonid = $this->gradeitem->iteminstance;
+        $lessonrecord = $DB->get_record('lesson', ['id' => $lessonid]);
+        $lesson = new \lesson($lessonrecord);
 
         return $lesson;
     }
@@ -108,7 +113,7 @@ class lesson_activity extends base {
         // This is the grade object from mdl_lesson_grades (check negative values).
         $lessongrade = lesson_get_user_grades($this->lesson, $userid);
 
-        if ($lessongrade !== false) {
+        if (count($lessongrade) > 0) {
             // Not sure what, if anything, we should do with this value here...
             $activitygrade->grade = $lessongrade->grade;
             return $activitygrade;
@@ -170,6 +175,7 @@ class lesson_activity extends base {
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $allowsubmissionsfromdate = $this->lesson->available;
+        $statusobj->status_link = '';
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('lesson_overrides', ['lessonid' => $this->lesson->id, 'userid' => $userid]);
@@ -185,19 +191,17 @@ class lesson_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $lessonattempts = $DB->count_records("lesson_attempts", ["lessonid" => $this->lesson->id, "userid" => $userid, "state" => "finished"]);
+            $lessonattempts = $DB->count_records("lesson_attempts", ["lessonid" => $this->lesson->id, "userid" => $userid]);
             if ($lessonattempts > 0) {
                 $statusobj->grade_status = get_string("status_submitted", "block_newgu_spdetails");
                 $statusobj->status_text = get_string("status_text_submitted", "block_newgu_spdetails");
                 $statusobj->status_class = get_string("status_class_submitted", "block_newgu_spdetails");
-                $statusobj->assessment_url = '';
 
-                if ($lessongrades = $DB->count_records("lesson_grades", ["lessonid" => $this->lesson->id, "userid" => $userid])) {
+                if ($lessongrades = $DB->count_records("lesson_grades", ["lessonid" => $this->lesson->id, "userid" => $userid, "completed" => 1])) {
                     $statusobj->grade_status = get_string("status_graded", "block_newgu_spdetails");
                     $statusobj->status_text = get_string("status_text_graded", "block_newgu_spdetails");
                     $statusobj->status_class = get_string("status_class_graded", "block_newgu_spdetails");
                     $statusobj->grade_to_display = $lessongrades->grade;
-                    $statusobj->assessment_url = '';
                 }
 
             } else {
@@ -208,6 +212,13 @@ class lesson_activity extends base {
             }
         }
         
+        // Formatting this here as the integer format for the date is no longer needed for testing against.
+        if ($statusobj->due_date != 0) {
+            $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+        } else {
+            $statusobj->due_date = '';
+        }
+
         return $statusobj;
     }
 
@@ -223,8 +234,47 @@ class lesson_activity extends base {
      * @return array $assignmentdata
      */
     public function get_assessmentsdue(): array {
-        $assignmentdata = [];
-        return $assignmentdata;
+        global $USER;
+        
+        // Cache this query as it's going to get called for each assessment in the course otherwise.
+        $cache = cache::make('block_newgu_spdetails', 'lessonsduequery');
+        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        $currenttime = time();
+        $fiveminutes = $currenttime - 300;
+        $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
+        $lessondata = [];
+
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
+            $lessondeadlines = lesson_get_user_deadline($this->courseid);
+            
+            foreach($lessondeadlines as $lessondeadline) {
+                if ($this->lesson->id == $lessondeadline->id) {
+                    if ($this->lesson->deadline != 0 && $this->lesson->deadline > $now) {                    
+                        $obj = new \stdClass();
+                        $obj->duedate = $this->lesson->deadline;
+                        $lessondata[] = $obj;
+                    }
+                }
+            }
+
+            $submissionsdata = [
+                "updated" => time(),
+                "lessonsubmissions" => $lessondata
+            ];
+
+            $cachedata = [
+                $cachekey => [
+                    $submissionsdata
+                ]
+            ];
+            $cache->set_many($cachedata);
+        } else {
+            $cachedata = $cache->get_many([$cachekey]);
+            $lessondata = $cachedata[$cachekey][0]["lessonsubmissions"];
+        }
+
+        return $lessondata;
 
     }
 

@@ -82,6 +82,14 @@ class default_activity extends base {
     }
 
     /**
+     * Get item name
+     * @return string
+     */
+    public function get_itemname(): string {
+        return $this->itemname;
+    }
+
+    /**
      * Return the Moodle URL to the item
      * @return string
      */
