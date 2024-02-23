@@ -145,77 +145,10 @@ class api extends \external_api
      * @return array
      */
     public static function get_assessmentsummary() {
-        global $DB, $USER;
-
-        $marked = 0;
-        $total_overdue = 0;
-        $total_submissions = 0;
-        $total_tosubmit = 0;
-
-        $currentcourses = \block_newgu_spdetails\course::return_enrolledcourses($USER->id, "current");
-
-        $stats = [
-            'total_submissions' => 0,
-            'total_tosubmit' => 0,
-            'total_overdue' => 0,
-            'marked' => 0
-        ];
-
-        if (!$currentcourses) {
-            return $stats;
-        }
-
         
-        $str_currentcourses = implode(",", $currentcourses);
-        $str_itemsnotvisibletouser = self::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
+        $summary = \block_newgu_spdetails\course::get_assessmentsummary();
 
-        $records = $DB->get_recordset_sql("SELECT id, courseid, itemmodule, iteminstance FROM {grade_items} WHERE courseid IN (" . $str_currentcourses . ") AND id NOT IN (" . $str_itemsnotvisibletouser . ") AND courseid > 1 AND itemtype='mod'");
-
-        if ($records->valid()) {
-            foreach ($records as $key_gi) {
-
-                $modulename = $key_gi->itemmodule;
-                $iteminstance = $key_gi->iteminstance;
-                $courseid = $key_gi->courseid;
-                $itemid = $key_gi->id;
-
-                // security checks first off...
-                $context = context_course::instance($courseid);
-                self::validate_context($context);
-                require_capability('mod/assign:viewownsubmissionsummary', $context, $USER->id);
-
-                $gradestatus = \block_newgu_spdetails\grade::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
-                $status = $gradestatus["status"];
-                $finalgrade = $gradestatus["finalgrade"];
-
-                if ($status == get_string("status_submit", "block_newgu_spdetails")) {
-                    $total_tosubmit++;
-                }
-                if ($status == get_string("status_notsubmitted", "block_newgu_spdetails")) {
-                    $total_tosubmit++;
-                }
-                if ($status == get_string("status_submitted", "block_newgu_spdetails") || $status == get_string("status_graded", "block_newgu_spdetails")) {
-                    $total_submissions++;
-                    if ($finalgrade != Null) {
-                        $marked++;
-                    }
-                }
-                if ($status == get_string("status_overdue", "block_newgu_spdetails")) {
-                    $total_overdue++;
-                }
-            }
-        }
-
-        $records->close();
-
-        $stats = [
-            'total_submissions' => $total_submissions,
-            'total_tosubmit' => $total_tosubmit,
-            'total_overdue' => $total_overdue,
-            'marked' => $marked
-        ];
-
-        return $stats;
+        return $summary;
     }
 
     /**

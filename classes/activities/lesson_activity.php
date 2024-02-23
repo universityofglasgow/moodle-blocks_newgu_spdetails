@@ -165,23 +165,23 @@ class lesson_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $lessonattempts = $DB->count_records("lesson_attempts", ["lessonid" => $this->lesson->id, "userid" => $userid]);
+            $lessonattempts = $DB->count_records('lesson_attempts', ['lessonid' => $this->lesson->id, 'userid' => $userid]);
             if ($lessonattempts > 0) {
-                $statusobj->grade_status = get_string("status_submitted", "block_newgu_spdetails");
-                $statusobj->status_text = get_string("status_text_submitted", "block_newgu_spdetails");
-                $statusobj->status_class = get_string("status_class_submitted", "block_newgu_spdetails");
+                $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
 
-                if ($lessongrades = $DB->count_records("lesson_grades", ["lessonid" => $this->lesson->id, "userid" => $userid, "completed" => 1])) {
-                    $statusobj->grade_status = get_string("status_graded", "block_newgu_spdetails");
-                    $statusobj->status_text = get_string("status_text_graded", "block_newgu_spdetails");
-                    $statusobj->status_class = get_string("status_class_graded", "block_newgu_spdetails");
+                if ($lessongrades = $DB->count_records('lesson_grades', ['lessonid' => $this->lesson->id, 'userid' => $userid, 'completed' => 1])) {
+                    $statusobj->grade_status = get_string('status_graded', 'block_newgu_spdetails');
+                    $statusobj->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
+                    $statusobj->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
                     $statusobj->grade_to_display = $lessongrades->grade;
                 }
 
             } else {
-                $statusobj->grade_status = get_string("status_submit", "block_newgu_spdetails");
-                $statusobj->status_text = get_string("status_text_submit", "block_newgu_spdetails");
-                $statusobj->status_class = get_string("status_class_submit", "block_newgu_spdetails");
+                $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
                 $statusobj->status_link = $statusobj->assessment_url;
             }
         }
@@ -212,7 +212,7 @@ class lesson_activity extends base {
         
         // Cache this query as it's going to get called for each assessment in the course otherwise.
         $cache = cache::make('block_newgu_spdetails', 'lessonsduequery');
-        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
         $currenttime = time();
         $fiveminutes = $currenttime - 300;
         $cachekey = self::CACHE_KEY . $USER->id;
@@ -233,8 +233,8 @@ class lesson_activity extends base {
             }
 
             $submissionsdata = [
-                "updated" => time(),
-                "lessonsubmissions" => $lessondata
+                'updated' => time(),
+                'lessonsubmissions' => $lessondata
             ];
 
             $cachedata = [
@@ -245,7 +245,7 @@ class lesson_activity extends base {
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $lessondata = $cachedata[$cachekey][0]["lessonsubmissions"];
+            $lessondata = $cachedata[$cachekey][0]['lessonsubmissions'];
         }
 
         return $lessondata;

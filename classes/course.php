@@ -457,10 +457,11 @@
     /**
      * Return the assessments that are due in the next 24 hours, week and month.
      * 
-     * @return array
+     * @return array $stats
      */
     public static function get_assessmentsduesoon() {
-        global $DB, $USER;
+        global $USER;
+
         $sortstring = 'shortname asc';
         $courses = \local_gugrades\api::dashboard_get_courses($USER->id, true, false, $sortstring);
 
@@ -544,6 +545,102 @@
             '24hours' => $duein24hours,
             'week' => $duein7days,
             'month' => $dueinnextmonth
+        ];
+
+        return $stats;
+    }
+
+    /**
+     * Return the summary of assessments that have been marked, submitted, are
+     * outstanding or are overdue.
+     * 
+     * @return array $stats
+     */
+    public static function get_assessmentsummary() {
+
+        global $DB, $USER;
+
+        $marked = 0;
+        $total_overdue = 0;
+        $total_submissions = 0;
+        $total_tosubmit = 0;
+
+        $currentcourses = \block_newgu_spdetails\course::return_enrolledcourses($USER->id, "current");
+
+        $stats = [
+            'total_submissions' => 0,
+            'total_tosubmit' => 0,
+            'total_overdue' => 0,
+            'marked' => 0
+        ];
+
+        if (!$currentcourses) {
+            return $stats;
+        }
+
+        
+        $str_currentcourses = implode(",", $currentcourses);
+        $str_itemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
+
+        $records = $DB->get_recordset_sql("SELECT id, courseid, itemmodule, iteminstance, gradetype, scaleid, grademax 
+        FROM {grade_items} 
+        WHERE courseid IN (" . $str_currentcourses . ") 
+        AND id NOT IN (" . $str_itemsnotvisibletouser . ") AND courseid > 1 AND itemtype='mod'");
+
+        if ($records->valid()) {
+            foreach ($records as $key_gi) {
+
+                $modulename = $key_gi->itemmodule;
+                $iteminstance = $key_gi->iteminstance;
+                $courseid = $key_gi->courseid;
+                $itemid = $key_gi->id;
+
+                // Is the item hidden from this user...
+                $cm = get_coursemodule_from_instance($modulename, $iteminstance, $courseid, false, MUST_EXIST);
+                $modinfo = get_fast_modinfo($courseid);
+                $cm = $modinfo->get_cm($cm->id);
+                if ($cm->uservisible) {
+
+                    $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($courseid, 
+                        $itemid, 
+                        $modulename, 
+                        $iteminstance, 
+                        $USER->id, 
+                        $key_gi->gradetype, 
+                        $key_gi->scaleid, 
+                        $key_gi->grademax, 
+                        ''
+                    );
+
+                    $status = $gradestatus->grade_status;
+                    $finalgrade = $gradestatus->grade_to_display;
+
+                    if ($status == get_string("status_submit", "block_newgu_spdetails")) {
+                        $total_tosubmit++;
+                    }
+                    if ($status == get_string("status_notsubmitted", "block_newgu_spdetails")) {
+                        $total_tosubmit++;
+                    }
+                    if ($status == get_string("status_submitted", "block_newgu_spdetails") || $status == get_string("status_graded", "block_newgu_spdetails")) {
+                        $total_submissions++;
+                        if ($finalgrade != get_string('status_text_tobeconfirmed', 'block_newgu_spdetails')) {
+                            $marked++;
+                        }
+                    }
+                    if ($status == get_string("status_overdue", "block_newgu_spdetails")) {
+                        $total_overdue++;
+                    }
+                }
+            }
+        }
+
+        $records->close();
+
+        $stats = [
+            'total_submissions' => $total_submissions,
+            'total_tosubmit' => $total_tosubmit,
+            'total_overdue' => $total_overdue,
+            'marked' => $marked
         ];
 
         return $stats;

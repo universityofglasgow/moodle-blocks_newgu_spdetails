@@ -145,7 +145,7 @@ class forum_activity extends base {
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $this->get_formattedduedate($this->forum->duedate);
-        $forumsubmissions = $DB->count_records("forum_discussion_subs", ["forum" => $this->cm->instance, "userid" => $userid]);
+        $forumsubmissions = $DB->count_records('forum_discussion_subs', ['forum' => $this->cm->instance, 'userid' => $userid]);
         if ($forumsubmissions > 0) {
             $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');

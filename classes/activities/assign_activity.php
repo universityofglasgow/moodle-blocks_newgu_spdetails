@@ -238,7 +238,7 @@ class assign_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date("d/m/Y", $gradestatus->due_date));
+                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date('d/m/Y', $gradestatus->due_date));
                     }
                 }
 
@@ -278,7 +278,7 @@ class assign_activity extends base {
 
         // Cache this query as it's going to get called for each assessment in the course otherwise.
         $cache = cache::make('block_newgu_spdetails', 'assignmentsduequery');
-        $now = mktime(date("H"), date("i"), date("s"), date("m"), date("d"), date("Y"));
+        $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
         $currenttime = time();
         $fiveminutes = $currenttime - 300;
         $cachekey = self::CACHE_KEY . $USER->id;
@@ -286,14 +286,14 @@ class assign_activity extends base {
         $assignmentdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $lastmonth = mktime(date("H"), date("i"), date("s"), date("m")-1, date("d"), date("Y"));
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
             $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
             $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'id', $select,$params);
 
             $submissionsdata = [
-                "updated" => time(),
-                "assignmentsubmissions" => $assignmentsubmissions
+                'updated' => time(),
+                'assignmentsubmissions' => $assignmentsubmissions
             ];
 
             $cachedata = [
@@ -304,7 +304,7 @@ class assign_activity extends base {
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $assignmentsubmissions = $cachedata[$cachekey][0]["assignmentsubmissions"];
+            $assignmentsubmissions = $cachedata[$cachekey][0]['assignmentsubmissions'];
         }
         
         $assignment = $this->assign->get_instance();
