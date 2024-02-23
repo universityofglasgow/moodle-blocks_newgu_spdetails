@@ -578,7 +578,6 @@
             return $stats;
         }
 
-        
         $str_currentcourses = implode(",", $currentcourses);
         $str_itemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
 
@@ -613,21 +612,18 @@
                     );
 
                     $status = $gradestatus->grade_status;
-                    $finalgrade = $gradestatus->grade_to_display;
-
-                    if ($status == get_string("status_submit", "block_newgu_spdetails")) {
+                    if ($status == get_string('status_submit', 'block_newgu_spdetails')) {
                         $total_tosubmit++;
                     }
-                    if ($status == get_string("status_notsubmitted", "block_newgu_spdetails")) {
-                        $total_tosubmit++;
-                    }
-                    if ($status == get_string("status_submitted", "block_newgu_spdetails") || $status == get_string("status_graded", "block_newgu_spdetails")) {
+                    if ($status == get_string('status_submitted', 'block_newgu_spdetails')) {
                         $total_submissions++;
-                        if ($finalgrade != get_string('status_text_tobeconfirmed', 'block_newgu_spdetails')) {
+                    }
+                    if ($status == get_string('status_graded', 'block_newgu_spdetails')) {
+                        if (($gradestatus->grade_to_display != null) && ($gradestatus->grade_to_display != get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'))) {
                             $marked++;
                         }
                     }
-                    if ($status == get_string("status_overdue", "block_newgu_spdetails")) {
+                    if ($status == get_string('status_overdue', 'block_newgu_spdetails')) {
                         $total_overdue++;
                     }
                 }
