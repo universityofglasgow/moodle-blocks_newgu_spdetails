@@ -126,7 +126,8 @@
                     {{/status_link}}
                 </td>
                 {{/grade_status}}
-                <td class="td10">{{grade}}</td>
+                <td class="td10">{{#grade_class}}<span class="{{#str}} status_graded, block_newgu_spdetails {{/str}}">{{/grade_class}}{{grade}}{{#grade_class}}</span>{{/grade_class}}{{#grade_provisional}} ({{#str}} status_text_provisional, block_newgu_spdetails {{/str}}){{/grade_provisional}}
+                </td>
                 <td class="td10">
                 {{#grade_feedback_link}}
                     <a href="{{grade_feedback_link}}">

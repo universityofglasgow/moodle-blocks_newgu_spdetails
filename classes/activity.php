@@ -192,6 +192,8 @@ class activity {
                     $assessment_weight = \block_newgu_spdetails\course::return_weight($mygradesitem->aggregationcoef);
                     $due_date = '';
                     $grade = '';
+                    $grade_class = false;
+                    $grade_provisional = false;
                     $grade_status = '';
                     $status_class = '';
                     $status_text = '';
@@ -215,6 +217,7 @@ class activity {
                             switch($usergrade->gradetype) {
                                 case 'RELEASED':
                                     $grade = $usergrade->displaygrade;
+                                    $grade_class = true;
                                     $grade_status = get_string('status_graded', 'block_newgu_spdetails');
                                     $status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                                     $status_class = get_string('status_class_graded', 'block_newgu_spdetails');
@@ -259,6 +262,8 @@ class activity {
                         'status_class' => $status_class,
                         'status_text' => $status_text,
                         'grade' => $grade,
+                        'grade_class' => $grade_class,
+                        'grade_provisional' => $grade_provisional,
                         'grade_feedback' => $grade_feedback,
                         'grade_feedback_link' => $grade_feedback_link,
                         'mygradesenabled' => 'true'
@@ -327,6 +332,15 @@ class activity {
                 $class = (isset($gcatitem->status->class) ? $gcatitem->status->statustext : 'unavailable');
                 $assessment_url = $gcatitem->assessmenturl->out(true);
                 $status_link = (($gcatitem->status->hasstatusurl) ? $gcatitem->assessmenturl->out(true) : '');
+                $grade = $gcatitem->grading->gradetext;
+                $grade_class = false;
+                $grade_provisional = false;
+                if ($gcatitem->grading->hasgrade) {
+                    $grade_class = true;
+                    if ($gcatitem->grading->isprovisional) {
+                        $grade_provisional = true;
+                    }
+                }
 
                 $tmp = [
                     'id' => $gcatitem->id,
@@ -341,7 +355,9 @@ class activity {
                     'status_link' => $status_link,
                     'status_class' => $gcatitem->status->class,
                     'status_text' => $gcatitem->status->statustext,
-                    'grade' => $gcatitem->grading->gradetext,
+                    'grade' => $grade,
+                    'grade_class' => $grade_class,
+                    'grade_provisional' => $grade_provisional,
                     'grade_feedback' => $gcatitem->feedback->feedbacktext,
                     'grade_feedback_link' => (property_exists($gcatitem->feedback, 'feedbackurl') ? $gcatitem->feedback->feedbackurl : ''),
                     'gcatenabled' => 'true'
@@ -404,6 +420,8 @@ class activity {
                     }
                     $assessmentweight = \block_newgu_spdetails\course::return_weight($defaultitem->aggregationcoef);
                     $grade = '';
+                    $grade_class = false;
+                    $grade_provisional = false;
                     $grade_status = '';
                     $status_class = '';
                     $status_text = '';
@@ -429,6 +447,8 @@ class activity {
                     $status_class = $gradestatobj->status_class;
                     $status_text = $gradestatobj->status_text;
                     $grade = $gradestatobj->grade_to_display;
+                    $grade_class = $gradestatobj->grade_class;
+                    $grade_provisional = $gradestatobj->grade_provisional;
                     $grade_feedback = $gradestatobj->grade_feedback;
                     $grade_feedback_link = $gradestatobj->grade_feedback_link;
 
@@ -446,6 +466,8 @@ class activity {
                         'status_class' => $status_class,
                         'status_text' => $status_text,
                         'grade' => $grade,
+                        'grade_class' => $grade_class,
+                        'grade_provisional' => $grade_provisional,
                         'grade_feedback' => $grade_feedback,
                         'grade_feedback_link' => $grade_feedback_link,
                         'gradebookenabled' => 'true'

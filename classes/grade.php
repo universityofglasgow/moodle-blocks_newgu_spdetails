@@ -23,7 +23,7 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- namespace block_newgu_spdetails;
+namespace block_newgu_spdetails;
 
 class grade {
     /**
@@ -53,6 +53,8 @@ class grade {
         $gradestatus->status_class = '';
         $gradestatus->status_link = '';
         $gradestatus->grade_to_display = '';
+        $gradestatus->grade_class = false;
+        $gradestatus->grade_provisional = false;
         $gradestatus->grade_feedback = '';
         $gradestatus->grade_feedback_link = '';
 
@@ -69,6 +71,7 @@ class grade {
                 $gradestatus->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                 $gradestatus->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
                 $gradestatus->grade_to_display = $grade;
+                $gradestatus->grade_class = true;
                 $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                 $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
             }
@@ -79,7 +82,8 @@ class grade {
                 $gradestatus->grade_status = get_string('status_provisional', 'block_newgu_spdetails');
                 $gradestatus->status_text = get_string('status_text_provisional', 'block_newgu_spdetails');
                 $gradestatus->status_class = get_string('status_class_provisional', 'block_newgu_spdetails');
-                $gradestatus->grade_to_display = $grade . '(' . get_string('status_class_provisional', 'block_newgu_spdetails') . ')';
+                $gradestatus->grade_to_display = $grade;
+                $gradestatus->grade_provisional = true;
                 $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                 $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
             }
