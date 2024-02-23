@@ -115,27 +115,11 @@ class workshop_activity extends base {
     }
 
     /**
-     * Get item type
-     * @return string
-     */
-    public function get_itemtype(): string {
-        return $this->itemtype;
-    }
-
-    /**
-     * Get item module
-     * @return string
-     */
-    public function get_itemmodule(): string {
-        return $this->itemmodule;
-    }
-
-    /**
      * Return the Moodle URL to the item
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
+        return $this->get_itemurl() . $this->cm->id;
     }
 
     /**

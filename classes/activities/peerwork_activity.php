@@ -112,27 +112,11 @@ class peerwork_activity extends base {
     }
 
     /**
-     * Get item type
-     * @return string
-     */
-    public function get_itemtype(): string {
-        return $this->itemtype;
-    }
-
-    /**
-     * Get item module
-     * @return string
-     */
-    public function get_itemmodule(): string {
-        return $this->itemmodule;
-    }
-
-    /**
      * Return the Moodle URL to the item
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
+        return $this->get_itemurl() . $this->cm->id;
     }
 
     /**
@@ -141,9 +125,12 @@ class peerwork_activity extends base {
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-
-        $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-        $due_date = $dateobj->format('jS F Y');
+        
+        $due_date = '';
+        if ($unformatteddate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+            $due_date = $dateobj->format('jS F Y');
+        }
         
         return $due_date;
     }

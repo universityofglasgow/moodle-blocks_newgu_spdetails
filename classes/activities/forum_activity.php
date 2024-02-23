@@ -110,27 +110,11 @@ class forum_activity extends base {
     }
 
     /**
-     * Get item type
-     * @return string
-     */
-    public function get_itemtype(): string {
-        return $this->itemtype;
-    }
-
-    /**
-     * Get item module
-     * @return string
-     */
-    public function get_itemmodule(): string {
-        return $this->itemmodule;
-    }
-
-    /**
      * Return the Moodle URL to the item
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
+        return $this->get_itemurl() . $this->cm->id;
     }
 
     /**
@@ -173,17 +157,6 @@ class forum_activity extends base {
             $statusobj->status_link = $statusobj->assessment_url;
             $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         }
-
-        //         if ($forumsubmissions > 0) {
-        //             $status = get_string("status_submitted", "block_newgu_spdetails");;
-        //             $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
-        //             $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
-        //         } else {
-        //             $status = get_string("status_tosubmit", "block_newgu_spdetails");;
-        //             $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
-        //             $statustext = get_string("status_text_submit", "block_newgu_spdetails");
-        //             $link = $CFG->wwwroot . "/mod/forum/view.php?id=" . $cmid;
-        //         }
 
         return $statusobj;
     }

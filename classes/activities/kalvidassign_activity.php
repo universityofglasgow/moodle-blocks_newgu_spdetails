@@ -59,7 +59,7 @@ class kalvidassign_activity extends base {
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
         parent::__construct($gradeitemid, $courseid, $groupid);
 
-        // Get the kalvid assignment object.
+        // Get the kaltura video assignment object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
         $this->kalvidassign = $this->get_kalvidassign($this->cm);
     }
@@ -110,27 +110,11 @@ class kalvidassign_activity extends base {
     }
 
     /**
-     * Get item type
-     * @return string
-     */
-    public function get_itemtype(): string {
-        return $this->itemtype;
-    }
-
-    /**
-     * Get item module
-     * @return string
-     */
-    public function get_itemmodule(): string {
-        return $this->itemmodule;
-    }
-
-    /**
      * Return the Moodle URL to the item
      * @return string
      */
     public function get_assessmenturl(): string {
-        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->itemscript . $this->cm->id;
+        return $this->get_itemurl() . $this->cm->id;
     }
 
     /**
@@ -139,9 +123,12 @@ class kalvidassign_activity extends base {
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-
-        $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-        $due_date = $dateobj->format('jS F Y');
+        
+        $due_date = '';
+        if ($unformatteddate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+            $due_date = $dateobj->format('jS F Y');
+        }
         
         return $due_date;
     }

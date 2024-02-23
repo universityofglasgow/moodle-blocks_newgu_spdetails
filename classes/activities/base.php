@@ -149,6 +149,22 @@ abstract class base {
     }
 
     /**
+     * Get item script
+     * @return string
+     */
+    public function get_itemscript(): string {
+        return $this->itemscript;
+    }
+
+    /**
+     * Get item url
+     * @return string
+     */
+    public function get_itemurl(): string {
+        return $this->itemurl . $this->get_itemtype() . $this->get_itemmodule() . $this->get_itemscript();
+    }
+
+    /**
      * Get item name
      * @return string
      */
