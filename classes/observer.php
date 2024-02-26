@@ -118,6 +118,18 @@ class observer {
     }
 
     /**
+     * Handle a logout event.
+     * 
+     * The session data for which tab/category has been selected doesn't get
+     * cleared as expected - because the page session remains active as long
+     * as the tab/browser is open.
+     * https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage
+     */
+    public static function user_loggedout(\core\event\user_loggedout $event): bool {
+        return true;
+    }
+
+    /**
      * Utility method to save violating DRY rules.
      * @param int $userid
      * @return bool

@@ -50,4 +50,8 @@ $observers = [
         'eventname' => '\mod_assign\event\identities_revealed',
         'callback' => 'block_newgu_spdetails\observer::identities_revealed'
     ],
+    [
+        'eventname' => '\core\event\user_loggedout',
+        'callback' => 'block_newgu_spdetails\observer::user_loggedout'
+    ],
 ];
