@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class to handle course viewed/updated events.
+ * Class to handle assessment events.
  *
- * Retrieve cache data, or create a new cache instance if none exists,
- * or it has since expired, before passing the data to the suite of
- * tests, and then finally adding a link to the report on the page.
+ * The cache needs to be cleared when certain assessment events occcur.
+ * This is needed by the charts on the dashboard to pull in the correct
+ * assessment summaries.
  *
  * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
