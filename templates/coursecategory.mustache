@@ -92,5 +92,14 @@
         {{/data.coursedata}}
         </tbody>
     </table>
+
+    <div class="d-flex flex-row mb-2 justify-content-end">
+        <div class="p-0">
+            <a target='_blank' href='{{data.pdf_link}}'><i style='color:red;' class='fa fa-file-pdf-o fa-2x' aria-hidden='true'></i></a>
+        </div>
+        <div class="p-0">
+            <a target='_blank' href='{{data.excel_link}}'><i style='padding-left:20px; color:green;' class='fa fa-file-excel-o fa-2x' aria-hidden='true'></i></a>
+        </div>
+    </div>
     {{/data.coursedata.length}}
 </div>

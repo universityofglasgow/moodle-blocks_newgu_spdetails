@@ -24,60 +24,43 @@
 
 require_once(dirname(dirname(__FILE__)) . '../../config.php');
 require_once("$CFG->libdir/excellib.class.php");
-//require_once("excellib.class.php");
-
 require_once('locallib.php');
-require_once('assessment_table.php');
 
 defined('MOODLE_INTERNAL') || die();
+
 global $PAGE, $CFG, $DB, $OUTPUT,$USER;
 $PAGE->set_context(context_system::instance());
 require_login();
 $usercontext = context_user::instance($USER->id);
 // FETCH LTI IDs TO BE INCLUDED
 $str_ltiinstancenottoinclude = get_ltiinstancenottoinclude();
-
-
 $spdetailstype = required_param('spdetailstype', PARAM_TEXT);
 $coursestype = required_param('coursestype', PARAM_TEXT);
-
 $str_coursestype = "";
-
 $myfirstlastname = $USER->firstname . " " . $USER->lastname;
 
-$currentcourses = block_newgu_spdetails_external::return_enrolledcourses($USER->id, "current");
+$currentcourses = \block_newgu_spdetails\course::return_enrolledcourses($USER->id, "current");
 $str_currentcourses = implode(",", $currentcourses);
 
-$pastcourses = block_newgu_spdetails_external::return_enrolledcourses($USER->id, "past");
+$pastcourses = \block_newgu_spdetails\course::return_enrolledcourses($USER->id, "past");
 $str_pastcourses = implode(",", $pastcourses);
 
-$itemmodules = "'assign','forum','quiz','workshop'";
-
 $thhd = 'border="1px" height="15" style="text-align:center;background-color: #ccc; border: 3px solid black;"';
-
 $tdstl = 'border="1px" cellpadding="10" valign="middle" height="22" style="margin-left:10px;"';
 $tdstc = 'border="1px" cellpadding="10" valign="middle" height="22" style="text-align:center;"';
-
 $spdetailspdf = "No Courses found.";
 
-
-
 if ($str_currentcourses!="" && $coursestype=="current") {
-
     $str_coursestype = "Current Courses";
 
-    $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
-
-//    $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_currentcourses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
+    $str_itemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
 
     $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_currentcourses.') && gi.courseid>1 && gi.itemtype="mod" && ((gi.iteminstance IN (' . $str_ltiinstancenottoinclude . ') && gi.itemmodule="lti") OR gi.itemmodule!="lti") && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
-//&& (gi.iteminstance IN ($str_ltiinstancenottoinclude) && gi.itemmodule='lti') &&
 
     $arr_cc = $DB->get_records_sql($sql_cc);
 
     $spdetailspdf = "<table width=100%>";
     $spdetailspdf .= '<tr style="font-weight: bold;">';
-
     $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('course') . '</th>';
     $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
     $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
@@ -86,7 +69,6 @@ if ($str_currentcourses!="" && $coursestype=="current") {
     $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('status') . "</th>";
     $spdetailspdf .= '<th width="11%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="15%" ' . $thhd . '>' . get_string('feedback') . "</th>";
-
     $spdetailspdf .= "</tr>";
 
     $row = 6;
@@ -110,11 +92,10 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         // FETCH ASSESSMENT TYPE
         $arr_gradecategory = $DB->get_record('grade_categories',array('courseid'=>$courseid, 'id'=>$categoryid));
         if (!empty($arr_gradecategory)) {
-          $gradecategoryname = $arr_gradecategory->fullname;
+            $gradecategoryname = $arr_gradecategory->fullname;
         }
 
-        $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
-
+        $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
         // FETCH INCLUDED IN GCAT
         $cfdvalue = 0;
@@ -125,7 +106,7 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         $arr_customfielddata = $DB->get_record('customfield_data', array('fieldid'=>$cffid, 'instanceid'=>$courseid));
 
         if (!empty($arr_customfielddata)) {
-              $cfdvalue = $arr_customfielddata->value;
+            $cfdvalue = $arr_customfielddata->value;
         }
 
         if ($cfdvalue==1) {
@@ -133,7 +114,8 @@ if ($str_currentcourses!="" && $coursestype=="current") {
         }
 
         // FETCH WEIGHT
-        $finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
+        //$finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
+        $finalweight = \block_newgu_spdetails\course::return_weight($aggregationcoef);
 
         // DUE DATE
         $duedate = 0;
@@ -143,40 +125,50 @@ if ($str_currentcourses!="" && $coursestype=="current") {
 
         // READ individual TABLE OF ACTIVITY (MODULE)
         if ($modulename!="") {
-          $arr_duedate = $DB->get_record($modulename,array('course'=>$courseid, 'id'=>$iteminstance));
+            $arr_duedate = $DB->get_record($modulename,array('course'=>$courseid, 'id'=>$iteminstance));
 
-        if (!empty($arr_duedate)) {
-          if ($modulename=="assign") {
-            $duedate = $arr_duedate->duedate;
+            if (!empty($arr_duedate)) {
+                if ($modulename=="assign") {
+                    $duedate = $arr_duedate->duedate;
 
-            $arr_userflags = $DB->get_record('assign_user_flags', array('userid'=>$USER->id, 'assignment'=>$iteminstance));
+                    $arr_userflags = $DB->get_record('assign_user_flags', array('userid'=>$USER->id, 'assignment'=>$iteminstance));
 
-            if ($arr_userflags) {
-            $extensionduedate = $arr_userflags->extensionduedate;
-            if ($extensionduedate>0) {
-              $extspan = get_string('extended', 'block_newgu_spdetails') . '" class="extended">*';
+                    if ($arr_userflags) {
+                        $extensionduedate = $arr_userflags->extensionduedate;
+                        if ($extensionduedate>0) {
+                          $extspan = get_string('extended', 'block_newgu_spdetails') . '" class="extended">*';
+                        }
+                    }
+                }
+                if ($modulename=="forum") {
+                    $duedate = $arr_duedate->duedate;
+                }
+                if ($modulename=="quiz") {
+                    $duedate = $arr_duedate->timeclose;
+                }
+                if ($modulename=="workshop") {
+                    $duedate = $arr_duedate->submissionend;
+                }
             }
-            }
-
-          }
-          if ($modulename=="forum") {
-            $duedate = $arr_duedate->duedate;
-          }
-          if ($modulename=="quiz") {
-            $duedate = $arr_duedate->timeclose;
-          }
-          if ($modulename=="workshop") {
-            $duedate = $arr_duedate->submissionend;
-          }
         }
-      }
 
         if ($duedate!=0) {
           $str_duedate = date("d/m/Y", $duedate) . $extspan;
         }
 
         // FETCH STATUS
-        $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
+        $gradestatus = \block_newgu_spdetails\grade::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
+
+        // $gradestatobj = \block_newgu_spdetails\grade::get_grade_status_and_feedback($courseid, 
+        //                     $itemid, 
+        //                     $modulename, 
+        //                     $iteminstance, 
+        //                     $USER->id, 
+        //                     $gradetype, 
+        //                     $key_cc->scaleid, 
+        //                     $key_cc->grademax, 
+        //                     ''
+        //                 );
 
         $status = $gradestatus["status"];
         $link = $gradestatus["link"];
@@ -279,7 +271,7 @@ if ($coursestype=="past") {
 
     $str_coursestype = "Past Courses";
 
-    $str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $str_pastcourses);
+    $str_itemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $str_pastcourses);
 
 //    $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_pastcourses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
 
@@ -329,7 +321,7 @@ if ($coursestype=="past") {
           $gradecategoryname = $arr_gradecategory->fullname;
         }
 
-        $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
+        $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
 
         // FETCH INCLUDED IN GCAT
@@ -410,7 +402,7 @@ if ($coursestype=="past") {
 
         $status="";
 
-        $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
+        $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
 
         $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
 

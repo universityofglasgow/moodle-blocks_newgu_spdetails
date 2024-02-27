@@ -42,7 +42,7 @@ function get_gradefeedback(string $modulename, int $iteminstance, int $courseid,
     $link = "";
     $gradetodisplay = "";
 
-    $gradestatus = block_newgu_spdetails_external::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
+    $gradestatus = \block_newgu_spdetails\grade::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
 
     $status = $gradestatus["status"];
     $link = $gradestatus["link"];
@@ -57,7 +57,7 @@ function get_gradefeedback(string $modulename, int $iteminstance, int $courseid,
     $provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
     $converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
 
-    $cmid = block_newgu_spdetails_external::get_cmid($modulename, $courseid, $iteminstance);
+    $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
 
     if ($finalgrade!=Null) {
         if ($gradetype==1) {
@@ -113,7 +113,7 @@ function get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2) {
 
   $finalweight = "—";
 
-  $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
+  $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
   $summative = get_string('summative', 'block_newgu_spdetails');
 
@@ -133,11 +133,11 @@ function get_assessmenttypeorder($coursetype,$tdr,$userid) {
 
 global $DB, $CFG;
 
-$courses = block_newgu_spdetails_external::return_enrolledcourses($userid, $coursetype);
+$courses = \block_newgu_spdetails\course::return_enrolledcourses($userid, $coursetype);
 $str_courses = implode(",", $courses);
 
 
-$str_itemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($userid, $str_courses);
+$str_itemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($userid, $str_courses);
 
 $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_courses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
 
@@ -167,7 +167,7 @@ foreach ($arr_cc as $key_cc) {
 
     $aggregationcoef = $key_cc->aggregationcoef;
 
-    $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
+    $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
   }
 

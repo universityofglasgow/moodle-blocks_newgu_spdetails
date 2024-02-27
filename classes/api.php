@@ -77,6 +77,8 @@ class api extends \external_api
 
             //$pagination = $OUTPUT->paging_bar($totalassessments, $page, $limit, $url);
             //$data['pagination'] = $pagination;
+            $data['pdf_link'] = 'downloadspdetails.php?spdetailstype=pdf&coursestype=' . $activetab;
+            $data['excel_link'] = 'downloadspdetails.php?spdetailstype=excel&coursestype=' . $activetab;
         }
 
         return $data;
@@ -128,7 +130,7 @@ class api extends \external_api
      * 
      * @return array
      */
-    public static function get_assessmentsduesoon() {
+    public static function get_assessmentsduesoon(): array {
         
         $stats = \block_newgu_spdetails\course::get_assessmentsduesoon();
 
@@ -144,7 +146,7 @@ class api extends \external_api
      * 
      * @return array
      */
-    public static function get_assessmentsummary() {
+    public static function get_assessmentsummary(): array {
         
         $summary = \block_newgu_spdetails\course::get_assessmentsummary();
 
