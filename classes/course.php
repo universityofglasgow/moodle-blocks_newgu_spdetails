@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class to describe the structure of a course
+ * Class to describe the structure of a course.
  *
  * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -32,9 +32,9 @@
      * 
      * @param array $courses - an array of courses the user is enrolled in
      * @param bool $active - indicate if this is a current or past course
-     * @param return array $data
+     * @return array
      */
-    public static function get_course_structure(array $courses, bool $active) {
+    public static function get_course_structure(array $courses, bool $active): array {
         $coursedata = [];
         $data = [
             'parent' => 0
@@ -109,15 +109,15 @@
     }
 
     /**
-     * Process and prepare for display MyGrades specific sub categories
+     * Process and prepare for display MyGrades specific sub categories.
      * 
      * @param int $courseid
-     * @param int $gradecategoryid
+     * @param array $mygradecategories
      * @param string $assessmenttype
      * @param string $sortorder
-     * return array
+     * @return array
      */
-    public static function process_mygrades_subcategories($courseid, $mygradecategories, $assessmenttype, $sortorder) {
+    public static function process_mygrades_subcategories(int $courseid, array $mygradecategories, string $assessmenttype, string $sortorder): array {
         
         $mygrades_subcatdata = [];
         $tmp = [];
@@ -156,12 +156,12 @@
      * There doesn't appear to be anything API wise we can use, so we're
      * having to do some manual legwork to get what we need here.
      * @param int $courseid
-     * @param int $gcatcategories
+     * @param array $gcatcategories
      * @param string $assessmenttype
      * @param string $sortorder
-     * return array 
+     * @return array 
      */
-    public static function process_gcat_subcategories($courseid, $gcatcategories, $assessmenttype, $sortorder) {
+    public static function process_gcat_subcategories(int $courseid, array $gcatcategories, string $assessmenttype, string $sortorder): array {
         global $CFG, $USER;
         $gcat_subcatdata = [];
         $tmp = [];
@@ -203,15 +203,15 @@
     }
 
     /**
-     * Process and prepare for display MyGrades specific sub categories
+     * Process and prepare for display MyGrades specific sub categories.
      * 
      * @param int $courseid
-     * @param int $gradecategoryid
+     * @param array $subcategories
      * @param string $assessmenttype
      * @param string $sortorder
-     * return array
+     * @return array
      */
-    public static function process_default_subcategories($courseid, $subcategories, $assessmenttype, $sortorder) {
+    public static function process_default_subcategories(int $courseid, array $subcategories, string $assessmenttype, string $sortorder): array {
         $default_subcatdata = [];
         $tmp = [];
         
@@ -244,10 +244,12 @@
     /**
      * Utility function for sorting - as we're not using any fancy libraries
      * that will do this for us, we need to manually implement this feature.
+     * 
      * @param array $itemstosort
      * @param string $sortorder
+     * @return array
      */
-    public static function sort_items($itemstosort, $sortorder) {
+    public static function sort_items(array $itemstosort, string $sortorder): array {
         switch($sortorder) {
             case "asc":
                 uasort($itemstosort, function($a, $b) {
@@ -266,11 +268,12 @@
     }
 
     /**
-     * Reusing the code from local_gugrades/api::get_dashboard_get_courses
+     * Reusing the code from local_gugrades/api::get_dashboard_get_courses.
+     * 
      * @param int $courseid
-     * @return bool $mygradesenabled
+     * @return bool
      */
-    public static function is_type_mygrades(int $courseid) {
+    public static function is_type_mygrades(int $courseid): bool {
         global $DB;
         
         $mygradesenabled = false;
@@ -292,11 +295,12 @@
     }
 
     /**
-     * Reusing the code from local_gugrades/api::get_dashboard_get_courses
+     * Reusing the code from local_gugrades/api::get_dashboard_get_courses.
+     * 
      * @param int $courseid
-     * @return bool $gcatenabled
+     * @return bool
      */
-    public static function is_type_gcat($courseid) {
+    public static function is_type_gcat(int $courseid): bool {
         global $DB;
 
         $gcatenabled = false;
@@ -318,15 +322,13 @@
 
     /**
      * Returns the 'weight' in percentage
-     * 
-     * @param float $aggregationcoef
-     * 
      * According to the spec, weighting is now derived only from the weight in the Gradebook set up.
      * @see https://gla.sharepoint.com/:w:/s/GCATUpgradeProjectTeam/EVDsT68UetZMn8Ug5ISb394BfYLW_MwcyMI7RF0JAC38PQ?e=BOofAS
      * 
+     * @param float $aggregationcoef
      * @return string Weight (in percentage), or '—' if empty
      */
-    public static function return_weight(float $aggregationcoef) {
+    public static function return_weight(float $aggregationcoef): string {
         $weight = (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100);
         $finalweight = ($weight > 0) ? round($weight, 2) . '%' : get_string('emptyvalue', 'block_newgu_spdetails');
 
@@ -334,13 +336,15 @@
     }
 
     /**
-     * Returns the 'assessment type' for an assessment, using its weighting as a
+     * Returns the 'assessment type' for an assessment. Achieved through using the
+     * assessments aggregation coefficient and category name. If the item only has 
+     * a weighting value - then we consider it to be a summative assessment.
      * 
      * @param string $gradecategoryname
      * @param int $aggregationcoef
      * @return string 'Formative', 'Summative', or '—'
      */
-    public static function return_assessmenttype(string $gradecategoryname, float $aggregationcoef) {
+    public static function return_assessmenttype(string $gradecategoryname, float $aggregationcoef): string {
         $type = strtolower($gradecategoryname);
         $hasweight = !empty((float)$aggregationcoef);
 
@@ -359,9 +363,9 @@
      * @param string $cmdodule
      * @param int $courseid
      * @param int $instance
-     * @param return int $cmid
+     * @return int
      */
-    public static function get_cmid(string $cmodule, int $courseid, int $instance)
+    public static function get_cmid(string $cmodule, int $courseid, int $instance): int
     {
         // cmodule is module name e.g. quiz, forums etc.
         global $DB;
@@ -387,7 +391,7 @@
      * @return array|void
      * @throws dml_exception
      */
-    public static function return_enrolledcourses(int $userid, string $coursetype, string $usertype = "student")
+    public static function return_enrolledcourses(int $userid, string $coursetype, string $usertype = "student"): array
     {
 
         $currentdate = time();
@@ -457,7 +461,7 @@
     /**
      * Return the assessments that are due in the next 24 hours, week and month.
      * 
-     * @return array $stats
+     * @return array
      */
     public static function get_assessmentsduesoon() {
         global $USER;
@@ -554,7 +558,7 @@
      * Return the summary of assessments that have been marked, submitted, are
      * outstanding or are overdue.
      * 
-     * @return array $stats
+     * @return array
      */
     public static function get_assessmentsummary() {
 

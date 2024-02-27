@@ -18,7 +18,7 @@
  * Concrete implementation for mod_assign
  * @package    block_newgu_spdetails
  * @copyright  2024
- * @author     Howard Miller/Greg Pedder
+ * @author     Howard Miller/Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,7 +31,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
 /**
- * Specific implementation for assignment
+ * Specific implementation for assignment activity.
  */
 class assign_activity extends base {
 
@@ -46,12 +46,13 @@ class assign_activity extends base {
     private $assign;
 
     /**
-     * @var contstant CACHE_KEY
+     * @var constant CACHE_KEY
      */
     const CACHE_KEY = 'studentid_assessmentsduesoon:';
 
     /**
-     * Constructor, set grade itemid
+     * Constructor, set grade itemid.
+     * 
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -65,11 +66,12 @@ class assign_activity extends base {
     }
 
     /**
-     * Get assignment object
+     * Get assignment object.
+     * 
      * @param object $cm course module
      * @return object
      */
-    public function get_assign($cm) {
+    public function get_assign($cm): object {
         global $DB;
 
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
@@ -80,20 +82,12 @@ class assign_activity extends base {
     }
 
     /**
-     * Is this a Proxy or Adapter method/pattern??
-     * Seeing as get_first_grade is specific to Assignments,
-     * what is the better way to describe this.
+     * Return the grade either from the assignment or
+     * directly from Gradebook otherwise.
+     * 
+     * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
-        return $this->get_first_grade($userid);
-    }
-
-    /**
-     * Implement get_first_grade
-     * @param int $userid
-     * @return object|bool
-     */
-    public function get_first_grade(int $userid): object|bool {
         global $DB;
 
         $activitygrade = new \stdClass();
@@ -122,11 +116,22 @@ class assign_activity extends base {
             }
         }
 
+        // This just pulls the grade from assign. Not sure it's that simple
+        // False, means do not create grade if it does not exist
+        // This is the grade object from mdl_assign_grades (check negative values).
+        $assigngrade = $this->assign->get_user_grade($userid, false);
+
+        if ($assigngrade !== false) {
+            $activitygrade->grade = $assigngrade->grade;
+            return $activitygrade;
+        }
+
         return false;
     }
 
     /**
-     * Return the Moodle URL to the item
+     * Return the Moodle URL to the item.
+     * 
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -134,7 +139,8 @@ class assign_activity extends base {
     }
 
     /**
-     * Return a formatted date
+     * Return a formatted date.
+     * 
      * @param int $unformatteddate
      * @return string
      */
@@ -152,10 +158,12 @@ class assign_activity extends base {
     }
 
     /**
+     * Method to return the current status of the assessment item.
+     * 
      * @param int $userid
-     * @return object $statusobj
+     * @return object
      */
-    public function get_status($userid): object {
+    public function get_status(int $userid): object {
         
         global $DB;
 
@@ -262,6 +270,8 @@ class assign_activity extends base {
     }
 
     /**
+     * Method to return any feedback provided by the teacher.
+     * 
      * @param object $gradestatusobj
      * @return object
      */
@@ -271,7 +281,8 @@ class assign_activity extends base {
 
     /**
      * Return the due date of the assignment if it hasn't been submitted.
-     * @return array $assignmentdata
+     * 
+     * @return array
      */
     public function get_assessmentsdue(): array {
         global $USER, $DB;

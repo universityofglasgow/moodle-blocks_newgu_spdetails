@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Default class for grade/activity access classes
+ * Default class for grade/activity access classes.
+ * 
  * @package    blocks_newgu_spdetails
  * @copyright  2024
- * @author     Howard Miller/Greg Pedder
+ * @author     Howard Miller/Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -107,23 +108,24 @@ abstract class base {
     /**
      * Implement get_first_grade
      * This is currently just the same as a manual grade
-     * (this is pulling 'finalgrade' instead of 'rawgrade'. Not sure if this is correct/complete)
+     * (this is pulling 'finalgrade' instead of 'rawgrade'. Not sure if this is correct/complete).
+     * 
      * @param int $userid
-     * @return object|bool
+     * @return mixed object|bool
      */
-    public function get_first_grade(int $userid):object|bool {
+    public function get_first_grade(int $userid): object|bool {
         global $DB;
         $gradeobj = new \stdClass();
         $gradeobj->finalgrade = null;
         $gradeobj->rawgrade = null;
 
         if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
-            if ($grade->finalgrade) {
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $gradeobj->finalgrade = $grade->finalgrade;
                 return $gradeobj;
             }
 
-            if ($grade->rawgrade) {
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
                 $gradeobj->rawgrade = $grade->rawgrade;
                 return $gradeobj;
             }
@@ -133,7 +135,8 @@ abstract class base {
     }
 
     /**
-     * Get item type
+     * Get item type.
+     * 
      * @return string
      */
     public function get_itemtype(): string {
@@ -141,7 +144,8 @@ abstract class base {
     }
 
     /**
-     * Get item module
+     * Get item module.
+     * 
      * @return string
      */
     public function get_itemmodule(): string {
@@ -149,7 +153,8 @@ abstract class base {
     }
 
     /**
-     * Get item script
+     * Get item script.
+     * 
      * @return string
      */
     public function get_itemscript(): string {
@@ -157,7 +162,8 @@ abstract class base {
     }
 
     /**
-     * Get item url
+     * Get item url.
+     * 
      * @return string
      */
     public function get_itemurl(): string {
@@ -165,7 +171,8 @@ abstract class base {
     }
 
     /**
-     * Get item name
+     * Get item name.
+     * 
      * @return string
      */
     public function get_itemname(): string {
@@ -173,19 +180,22 @@ abstract class base {
     }
 
     /**
+     * Allow the implementing class to decide how the status
+     * should be determined.
+     * 
      * @param int $userid
      * @return object
      */
-    abstract public function get_status($userid): object;
+    abstract public function get_status(int $userid): object;
 
     /**
-     * Return the feedback for a given graded activity
+     * Return the feedback for a given graded activity.
      * 
      * We need to make this part of the object - currently
      * being called as a static method.
      * 
      * @param object $gradestatusobj
-     * @return object $feedbackobj
+     * @return object
      */
     public function get_feedback(object $gradestatusobj): object {
         $feedbackobj = new \stdClass();
@@ -221,9 +231,10 @@ abstract class base {
     }
 
     /**
-     * Return the due date of the assignment if it hasn't been submitted.
-     * This is mainly needed by the charts that are now being used.
-     * @return array $assignmentdata
+     * Allow the implementing class to determine how the due
+     * date of assessment submissions are worked out.
+     * 
+     * @return array
      */
     abstract public function get_assessmentsdue(): array;
 

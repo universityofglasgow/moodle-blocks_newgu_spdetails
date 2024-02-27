@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Concrete implementation for all 'other' grade and activity types
+ * Concrete implementation for all 'other' grade and activity types.
+ * 
  * @package    block_newgu_spdetails
  * @copyright  2024
- * @author     Howard Miller
+ * @author     Howard Miller/Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,7 +28,7 @@ namespace block_newgu_spdetails\activities;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Implement a default activity type
+ * Implementation for a default activity type.
  */
 class default_activity extends base {
 
@@ -51,9 +52,10 @@ class default_activity extends base {
     }
     
     /**
-     * Return the grade directly from Gradebook
+     * Return the grade directly from Gradebook.
+     * 
      * @param int $userid
-     * @return object|bool
+     * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
         global $DB;
@@ -85,7 +87,8 @@ class default_activity extends base {
     }
 
     /**
-     * Return the Moodle URL to the item
+     * Return the Moodle URL to the item.
+     * 
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -93,7 +96,8 @@ class default_activity extends base {
     }
 
     /**
-     * Return a formatted date
+     * Return a formatted date.
+     * 
      * @param int $unformatteddate
      * @return string
      */
@@ -109,10 +113,13 @@ class default_activity extends base {
     }
 
     /**
+     * Default implementation for returning the status of
+     * an assessment. 
+     * 
      * @param int $userid
      * @return object
      */
-    public function get_status($userid): object {
+    public function get_status(int $userid): object {
         global $DB;
 
         $statusobj = new \stdClass();
@@ -129,15 +136,19 @@ class default_activity extends base {
     }
 
     /**
+     * Method to return any feedback provided by the teacher.
+     * 
      * @param object $gradestatusobj
+     * @return object
      */
-    public function get_feedback($gradestatusobj): object {
+    public function get_feedback(object $gradestatusobj): object {
         return parent::get_feedback($gradestatusobj);
     }
 
     /**
      * Return the due date of the default activity if it hasn't been submitted.
-     * @return array $assignmentdata
+     * 
+     * @return array
      */
     public function get_assessmentsdue(): array {
         $assignmentdata = [];

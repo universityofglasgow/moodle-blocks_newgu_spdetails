@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Concrete implementation for mod_lti.
+ * Concrete implementation for mod_glossary.
  * 
  * @package    block_newgu_spdetails
  * @copyright  2024
@@ -25,14 +25,16 @@
 
 namespace block_newgu_spdetails\activities;
 
+use cache;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/lti/locallib.php');
+require_once($CFG->dirroot . '/mod/glossary/locallib.php');
 
 /**
- * Implementation for a LTI activity.
+ * Implementation for a glossary activity.
  */
-class lti_activity extends base {
+class glossary_activity extends base {
 
     /**
      * @var object $cm
@@ -40,9 +42,14 @@ class lti_activity extends base {
     private $cm;
 
     /**
-     * @var object $lti
+     * @var object $glossary
      */
-    private $lti;
+    private $glossary;
+
+    /**
+     * @var constant CACHE_KEY
+     */
+    const CACHE_KEY = 'studentid_assessmentsduesoon:';
 
     /**
      * Constructor, set grade itemid.
@@ -54,31 +61,30 @@ class lti_activity extends base {
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
         parent::__construct($gradeitemid, $courseid, $groupid);
 
-        // Get the lti object.
+        // Get the assignment object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        //$this->lti = $this->get_lti($this->cm);
+        $this->glossary = $this->get_glossary($this->cm);
     }
 
     /**
-     * Get lti object.
+     * Get assignment object.
      * 
      * @param object $cm course module
      * @return object
      */
-    public function get_lti(object $cm): object {
+    public function get_glossary($cm): object {
         global $DB;
 
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $coursemodulecontext = \context_module::instance($cm->id);
-        $lti = new \lti($coursemodulecontext, $cm, $course);
+        $assign = new \glossary($coursemodulecontext, $cm, $course);
 
-        return $lti;
+        return $assign;
     }
 
     /**
      * Return the grade directly from Gradebook.
      * 
-     * @param int $userid
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
@@ -95,12 +101,12 @@ class lti_activity extends base {
                 return parent::get_first_grade($userid);
             }
 
+            // We want access to other properties, hence the return type...
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $activitygrade->finalgrade = $grade->finalgrade;
                 return $activitygrade;
             }
 
-            // We want access to other properties, hence the return...
             if ($grade->rawgrade != null && $grade->rawgrade > 0) {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;
@@ -147,17 +153,9 @@ class lti_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->due_date = time();
-
-        
-        // Formatting this here as the integer format for the date is no longer needed for testing against.
-        if ($statusobj->due_date != 0) {
-            $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
-        } else {
-            $statusobj->due_date = '';
-        }
 
         return $statusobj;
+
     }
 
     /**
@@ -171,14 +169,46 @@ class lti_activity extends base {
     }
 
     /**
-     * Return the due date of the LTI activity if it hasn't been submitted.
+     * Return the due date of the assignment if it hasn't been submitted.
      * 
      * @return array
      */
     public function get_assessmentsdue(): array {
-        $assignmentdata = [];
-        return $assignmentdata;
+        global $DB, $USER;
 
+        // Cache this query as it's going to get called for each assessment in the course otherwise.
+        $cache = cache::make('block_newgu_spdetails', 'kalvidassignmentsduequery');
+        $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
+        $currenttime = time();
+        $fiveminutes = $currenttime - 300;
+        $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
+        $glossarydata = [];
+
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            
+
+            $submissionsdata = [
+                'updated' => time(),
+                'glossarysubmissions' => $glossarydata
+            ];
+
+            $cachedata = [
+                $cachekey => [
+                    $submissionsdata
+                ]
+            ];
+            $cache->set_many($cachedata);
+
+        } else {
+            $cachedata = $cache->get_many([$cachekey]);
+            $glossarydata = $cachedata[$cachekey][0]['glossarysubmissions'];
+        }
+        
+        return $glossarydata;
     }
 
 }

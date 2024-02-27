@@ -88,6 +88,9 @@ class grade {
                 $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
             }
 
+            // For the assignment activity, if both finalgrade and rawgrade return empty, 
+            // we do have a grade record - do we use this here? 
+
             return $gradestatus;
         }
         
@@ -116,8 +119,9 @@ class grade {
      * @param int $gradetype
      * @param int $scaleid
      * @param int $grademax
+     * @return string
      */
-    public static function get_formatted_grade_from_grade_type(int $grade, int $gradetype, int $scaleid = null, int $grademax) {
+    public static function get_formatted_grade_from_grade_type(int $grade, int $gradetype, int $scaleid = null, int $grademax): string {
         
         $return_grade = null;
         switch($gradetype) {
@@ -144,8 +148,16 @@ class grade {
         return $return_grade;
     }
 
-    public static function get_overall_grade($gradableitems) {
-
+    /**
+     * Stub method.
+     * For the Overall Grade heading on the dashboard.
+     * Needs to work at each category level.
+     * 
+     * @param array $gradableitems
+     * @return array
+     */
+    public static function get_overall_grade(array $gradableitems): array {
+        return [];
     }
 
     /**
@@ -158,7 +170,7 @@ class grade {
      * @param int $userid
      * @return array
      */
-    public static function return_gradestatus(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid) {
+    public static function return_gradestatus(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid): array {
         global $DB, $CFG;
 
         $status = "";
@@ -477,7 +489,7 @@ class grade {
      * @param array $gradecategories
      * @return object
      */
-    public static function recurse_categorytree($category, $gradeitems, $items, $gradecategories) {
+    public static function recurse_categorytree($category, $gradeitems, $items, $gradecategories): object {
         // While this looks odd, when we call this method recursively, we are in fact
         // passing in the previously built up array of $items. We also (re)set $record 
         // here since after the final iteration, when control is returned, $items will

@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Concrete implementation for mod_forum
+ * Concrete implementation for mod_forum.
+ * 
  * @package    block_newgu_spdetails
  * @copyright  2024
- * @author     Howard Miller/Greg Pedder
+ * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/mod/forum/locallib.php');
 
 /**
- * Specific implementation for a forum activity
+ * Implementation for a forum activity.
  */
 class forum_activity extends base {
 
@@ -44,12 +45,13 @@ class forum_activity extends base {
     private $forum;
 
     /**
-     * @var contstant CACHE_KEY
+     * @var constant CACHE_KEY
      */
     const CACHE_KEY = 'studentid_forumduesoon:';
 
     /**
-     * Constructor, set grade itemid
+     * Constructor, set grade itemid.
+     * 
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -63,11 +65,12 @@ class forum_activity extends base {
     }
 
     /**
-     * Get forum object
+     * Get forum object.
+     * 
      * @param object $cm course module
      * @return object
      */
-    public function get_forum($cm) {
+    public function get_forum(object $cm): object {
         global $DB;
 
         $forum = $DB->get_record('forum', ['id' => $cm->instance], '*', MUST_EXIST);
@@ -76,9 +79,10 @@ class forum_activity extends base {
     }
 
     /**
-     * Return the grade directly from Gradebook
+     * Return the grade directly from Gradebook.
+     * 
      * @param int $userid
-     * @return object|bool
+     * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
         global $DB;
@@ -110,7 +114,8 @@ class forum_activity extends base {
     }
 
     /**
-     * Return the Moodle URL to the item
+     * Return the Moodle URL to the item.
+     * 
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -118,7 +123,8 @@ class forum_activity extends base {
     }
 
     /**
-     * Return a formatted date
+     * Return a formatted date.
+     * 
      * @param int $unformatteddate
      * @return string
      */
@@ -134,10 +140,12 @@ class forum_activity extends base {
     }
 
     /**
+     * Method to return the current status of the assessment item.
+     * 
      * @param int $userid
      * @return object
      */
-    public function get_status($userid): object {
+    public function get_status(int $userid): object {
         global $DB;
 
         $statusobj = new \stdClass();
@@ -162,6 +170,8 @@ class forum_activity extends base {
     }
 
     /**
+     * Method to return any feedback provided by the teacher.
+     * 
      * @param object $gradestatusobj
      * @return object
      */

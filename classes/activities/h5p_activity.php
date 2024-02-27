@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Concrete implementation for mod_kalvidassign.
+ * Concrete implementation for mod_h5pactivity.
  * 
  * @package    block_newgu_spdetails
  * @copyright  2024
@@ -29,12 +29,12 @@ use cache;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/kalvidassign/locallib.php');
+require_once($CFG->dirroot . '/lib/datalib.php');
 
 /**
- * Implementation for a Kaltura Video activity.
+ * Implementation for a h5p activity.
  */
-class kalvidassign_activity extends base {
+class h5p_activity extends base {
 
     /**
      * @var object $cm
@@ -42,14 +42,14 @@ class kalvidassign_activity extends base {
     private $cm;
 
     /**
-     * @var object $assign
+     * @var object $h5p
      */
-    private $kalvidassign;
+    private $h5passign;
 
     /**
      * @var constant CACHE_KEY
      */
-    const CACHE_KEY = 'studentid_kalvidassignmentsduesoon:';
+    const CACHE_KEY = 'studentid_h5pduesoon:';
 
     /**
      * Constructor, set grade itemid.
@@ -61,22 +61,26 @@ class kalvidassign_activity extends base {
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
         parent::__construct($gradeitemid, $courseid, $groupid);
 
-        // Get the kaltura video assignment object.
-        $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->kalvidassign = $this->get_kalvidassign($this->cm);
+        // Get the assignment object.
+        $this->h5passign = $this->get_h5passign();
     }
 
     /**
-     * Get the assignment object.
+     * Get the assignment.
      * 
-     * @param object $cm course module
-     * @return array
+     * @return object
      */
-    public function get_kalvidassign(object $cm): array {
+    public function get_h5passign(): object {
+        global $DB;
         
-        $kalvidassign = kalvidassign_validate_cmid($cm->id);
+        $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
+        $h5pactivities = get_all_instances_in_course('h5pactivity', $course);
 
-        return $kalvidassign;
+        foreach($h5pactivities as $h5pactivity) {
+            if ($this->gradeitem->instanceid == $h5pactivity->instance) {
+                return $h5pactivity;
+            }
+        } 
     }
 
     /**
@@ -150,9 +154,9 @@ class kalvidassign_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->due_date = $this->kalvidassign[2]->timedue;
-        $allowsubmissionsfromdate = $this->kalvidassign[2]->timeavailable;
-        $statusobj->allowlatesubmissions = $this->kalvidassign[2]->preventlate;
+        $statusobj->due_date = $this->h5p;
+        $allowsubmissionsfromdate = $this->h5p;
+        $statusobj->allowlatesubmissions = $this->h5p;
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
@@ -161,15 +165,15 @@ class kalvidassign_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $kalvidassignsubmission = $DB->get_record('kalvidassign_submission', ['vidassignid' => $this->kalvidassign[2]->id, 'userid' => $userid]);
+            $h5psubmission = $DB->get_record('h5pactivity_attempts', ['h5pactivityid' => $this->h5p->h5pactivityid, 'userid' => $userid]);
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
             $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
-            if (!empty($kalvidassignsubmission)) {
-                $statusobj->grade_status = $kalvidassignsubmission->timemarked;
+            if (!empty($h5psubmission)) {
+                $statusobj->grade_status = $h5psubmission->completion;
 
                 if ($statusobj->grade_status == null) {
                     $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
@@ -241,36 +245,19 @@ class kalvidassign_activity extends base {
         global $DB, $USER;
 
         // Cache this query as it's going to get called for each assessment in the course otherwise.
-        $cache = cache::make('block_newgu_spdetails', 'kalvidassignmentsduequery');
+        $cache = cache::make('block_newgu_spdetails', 'h5pduequery');
         $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
         $currenttime = time();
         $fiveminutes = $currenttime - 300;
         $cachekey = self::CACHE_KEY . $USER->id;
         $cachedata = $cache->get_many([$cachekey]);
-        $kalviddata = [];
+        $h5pdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
-            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
             
-            $kalvidsubmissions = $DB->get_fieldset_select('kalvidassign_submission', 'vidassignid', $select,$params);
-            // Access the assignment itself.
-            $kalvidassignment = $this->kalvidassign[2];
-            
-            if (!in_array($kalvidassignment->id, $kalvidsubmissions)) {
-                if ($kalvidassignment->timeavailable < $now) {
-                    if ($kalvidassignment->timedue == 0 || $kalvidassignment->timedue > $now) {
-                        $obj = new \stdClass();
-                        $obj->duedate = $kalvidassignment->timedue;
-                        $kalviddata[] = $obj;
-                    }
-                }
-            }
-
             $submissionsdata = [
                 'updated' => time(),
-                'kalvidassignmentsubmissions' => $kalviddata
+                'h5psubmissions' => $h5pdata
             ];
 
             $cachedata = [
@@ -279,13 +266,12 @@ class kalvidassign_activity extends base {
                 ]
             ];
             $cache->set_many($cachedata);
-
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $kalviddata = $cachedata[$cachekey][0]['kalvidassignmentsubmissions'];
+            $h5pdata = $cachedata[$cachekey][0]['h5psubmissions'];
         }
         
-        return $kalviddata;
+        return $h5pdata;
     }
 
 }

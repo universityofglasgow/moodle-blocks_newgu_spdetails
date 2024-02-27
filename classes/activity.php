@@ -37,7 +37,7 @@ class activity {
      * @param string $activetab
      * @param string $sortby
      * @param string $sortorder
-     * @return array $activitydata
+     * @return array
      */
     public static function get_activityitems(int $subcategory, int $userid, string $activetab, string $sortby, string $sortorder): array {    
         $activitydata = [];
@@ -86,6 +86,9 @@ class activity {
     }
 
     /**
+     * Method to determine which course type API needs to be used in 
+     * order to process the returned grade category and course items.
+     * 
      * @param object $activityitems
      * @param int $courseid
      * @param int $subcategory
@@ -94,7 +97,7 @@ class activity {
      * @param string $assessmenttype
      * @param string $sortby
      * @param string $sortorder
-     * @return array $data
+     * @return array
      */
     public static function process_get_activities(object $activityitems, int $courseid, int $subcategory, int $userid, string $activetab, string $assessmenttype, string $sortby, string $sortorder): array {
         $data = [];
@@ -157,7 +160,7 @@ class activity {
      * @param array|string $lti_instances_to_exclude
      * @param string $assessmenttype
      * @param string $sortorder
-     * @return array $mygradesdata
+     * @return array
      */
     public static function process_mygrades_items(array $mygradesitems, string $activetab, array|string $lti_instances_to_exclude, string $assessmenttype, string $sortorder): array {
 
@@ -292,7 +295,7 @@ class activity {
      * @param int $subcategory
      * @param array|string $lti_instances_to_exclude
      * @param string $sortorder
-     * @return array $gcatdata
+     * @return array
      */
     public static function process_gcat_items(int $subcategory, array|string $lti_instances_to_exclude, int $userid, string $activetab, string $assessmenttype, string $sortby, string $sortorder): array {
 
@@ -386,7 +389,7 @@ class activity {
      * @param array|string $lti_instances_to_exclude
      * @param string $assessmenttype
      * @param string $sortorder
-     * @return array $defaultdata
+     * @return array
      */
     public static function process_default_items(array $defaultitems, string $activetab, array|string $lti_instances_to_exclude, string $assessmenttype, string $sortorder): array {
         
@@ -515,8 +518,9 @@ class activity {
      * that will do this for us, we need to manually implement this feature.
      * @param array $itemstosort
      * @param string $sortorder
+     * @return array
      */
-    public static function sort_items($itemstosort, $sortorder) {
+    public static function sort_items(array $itemstosort, string $sortorder): array {
         switch($sortorder) {
             case "asc":
                 uasort($itemstosort, function($a, $b) {

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Concrete implementation for mod_lti.
+ * Concrete implementation for mod_scorm.
  * 
  * @package    block_newgu_spdetails
  * @copyright  2024
@@ -27,12 +27,10 @@ namespace block_newgu_spdetails\activities;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/lti/locallib.php');
-
 /**
- * Implementation for a LTI activity.
+ * Implementation for a SCORM activity type.
  */
-class lti_activity extends base {
+class scorm_activity extends base {
 
     /**
      * @var object $cm
@@ -40,12 +38,7 @@ class lti_activity extends base {
     private $cm;
 
     /**
-     * @var object $lti
-     */
-    private $lti;
-
-    /**
-     * Constructor, set grade itemid.
+     * For this activity, get just the basic course module info.
      * 
      * @param int $gradeitemid Grade item id
      * @param int $courseid
@@ -54,27 +47,10 @@ class lti_activity extends base {
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
         parent::__construct($gradeitemid, $courseid, $groupid);
 
-        // Get the lti object.
+        // Get the forum object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        //$this->lti = $this->get_lti($this->cm);
     }
-
-    /**
-     * Get lti object.
-     * 
-     * @param object $cm course module
-     * @return object
-     */
-    public function get_lti(object $cm): object {
-        global $DB;
-
-        $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
-        $coursemodulecontext = \context_module::instance($cm->id);
-        $lti = new \lti($coursemodulecontext, $cm, $course);
-
-        return $lti;
-    }
-
+    
     /**
      * Return the grade directly from Gradebook.
      * 
@@ -95,12 +71,12 @@ class lti_activity extends base {
                 return parent::get_first_grade($userid);
             }
 
+            // We want access to other properties, hence the return type...
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $activitygrade->finalgrade = $grade->finalgrade;
                 return $activitygrade;
             }
 
-            // We want access to other properties, hence the return...
             if ($grade->rawgrade != null && $grade->rawgrade > 0) {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;
@@ -137,7 +113,8 @@ class lti_activity extends base {
     }
 
     /**
-     * Method to return the current status of the assessment item.
+     * Default implementation for returning the status of
+     * an assessment. 
      * 
      * @param int $userid
      * @return object
@@ -147,15 +124,13 @@ class lti_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->due_date = time();
-
-        
-        // Formatting this here as the integer format for the date is no longer needed for testing against.
-        if ($statusobj->due_date != 0) {
-            $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
-        } else {
-            $statusobj->due_date = '';
-        }
+        $statusobj->grade_status = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->due_date = '';
+        $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+        $statusobj->status_text = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+        $statusobj->status_link = '';
 
         return $statusobj;
     }
@@ -171,7 +146,7 @@ class lti_activity extends base {
     }
 
     /**
-     * Return the due date of the LTI activity if it hasn't been submitted.
+     * Return the due date of the default activity if it hasn't been submitted.
      * 
      * @return array
      */
