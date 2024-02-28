@@ -14,7 +14,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Javascript to initialise the Assessments due soon section
+ * JavaScript to initialise the Assessments due soon section.
+ * We're using Chart.js v3.8.0 at present.
  *
  * @module     block_newgu_spdetails/assessmentsduesoon
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -27,9 +28,92 @@
 import * as Log from 'core/log';
 import * as ajax from 'core/ajax';
 import {Chart, BarController} from 'core/chartjs';
+import {exception as displayException} from 'core/notification';
+import Templates from 'core/templates';
 
 const Selectors = {
     DUESOON_BLOCK: '#assessmentsDueSoonContainer',
+    COURSECONTENTS_BLOCK: '#courseTab-container',
+    ASSESSMENTSDUE_BLOCK: '#assessmentsDue-container',
+    ASSESSMENTSDUE_CONTENTS: '#assessmentsdue_content'
+};
+
+const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
+    const chartType = ((legendItem) ? legendItem.datasetIndex : chartItem);
+    Log.debug('chartType:' + chartType);
+
+    let containerBlock = document.querySelector(Selectors.COURSECONTENTS_BLOCK);
+    if (containerBlock.checkVisibility()) {
+        containerBlock.classList.add('hidden-container');
+    }
+
+    let assessmentsDueBlock = document.querySelector(Selectors.ASSESSMENTSDUE_BLOCK);
+    let assessmentsDueContents = document.querySelector(Selectors.ASSESSMENTSDUE_CONTENTS);
+    assessmentsDueBlock.classList.remove('hidden-container');
+
+    if (assessmentsDueBlock.children.length > 0) {
+        assessmentsDueContents.innerHTML = '';
+    }
+
+    assessmentsDueContents.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
+        "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
+
+    ajax.call([{
+        methodname: 'block_newgu_spdetails_get_assessmentsduebytype',
+        args: {
+            charttype: chartType
+        },
+    }])[0].done(function(response) {
+        document.querySelector('.loader').remove();
+        let assessmentdata = JSON.parse(response.result);
+        Log.debug('data:' + assessmentdata.assessmentitems);
+        Templates.renderForPromise('block_newgu_spdetails/assessmentsdue', {data:assessmentdata})
+        .then(({html, js}) => {
+            Templates.appendNodeContents(assessmentsDueContents, html, js);
+            returnToAssessmentsHandler();
+        }).catch((error) => displayException(error));
+    }).fail(function(response) {
+        if(response) {
+            document.querySelector('.loader').remove();
+            let errorContainer = document.createElement('div');
+            errorContainer.classList.add('alert', 'alert-danger');
+
+            if(response.hasOwnProperty('message')) {
+                let errorMsg = document.createElement('p');
+
+                errorMsg.innerHTML = response.message;
+                errorContainer.appendChild(errorMsg);
+                errorMsg.classList.add('errormessage');
+            }
+
+            if(response.hasOwnProperty('moreinfourl')) {
+                let errorLinkContainer = document.createElement('p');
+                let errorLink = document.createElement('a');
+
+                errorLink.setAttribute('href', response.moreinfourl);
+                errorLink.setAttribute('target', '_blank');
+                errorLink.innerHTML = 'More information about this error';
+                errorContainer.appendChild(errorLinkContainer);
+                errorLinkContainer.appendChild(errorLink);
+                errorLinkContainer.classList.add('errorcode');
+            }
+
+            assessmentsDueContents.prepend(errorContainer);
+        }
+    });
+};
+
+const returnToAssessmentsHandler = () => {
+    Log.debug('returnToAssessmentsHandler called');
+    if (document.querySelector('#assessments-due-return')) {
+        document.querySelector('#assessments-due-return').addEventListener('click', () => {
+            Log.debug('click event triggered');
+            let containerBlock = document.querySelector(Selectors.COURSECONTENTS_BLOCK);
+            let assessmentsDueBlock = document.querySelector(Selectors.ASSESSMENTSDUE_BLOCK);
+            assessmentsDueBlock.classList.add('hidden-container');
+            containerBlock.classList.remove('hidden-container');
+        });
+    }
 };
 
 /**
@@ -47,7 +131,6 @@ const fetchAssessmentsDueSoon = () => {
         args: {},
     }])[0].done(function(response) {
         document.querySelector('.loader').remove();
-        Log.debug('response is:' + response[0]['24hours']);
         tempPanel.insertAdjacentHTML("afterbegin", "<canvas id='assessmentsDueSoonChart'\n" +
             " aria-label='Assessments Due Soon chart data' role='graphics-object'>\n" +
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
@@ -68,8 +151,7 @@ const fetchAssessmentsDueSoon = () => {
             }
         ];
 
-
-        new Chart(
+        const chart = new Chart(
             document.getElementById('assessmentsDueSoonChart'),
             {
                 type: 'bar',
@@ -86,6 +168,7 @@ const fetchAssessmentsDueSoon = () => {
                         legend: {
                             display: true,
                             position: 'top',
+                            onClick: viewAssessmentsDueByChartType,
                             labels: {
                                 usePointStyle: true,
                                 font: {
@@ -95,9 +178,19 @@ const fetchAssessmentsDueSoon = () => {
                                     const datasets = chart.data.datasets;
                                     return datasets[0].data.map((data, i) => ({
                                         text: `${chart.data.labels[i]} ${data}`,
+                                        borderRadius: 0,
+                                        datasetIndex: i,
                                         fillStyle: datasets[0].backgroundColor[i],
+                                        fontColor: '',
+                                        hidden: false,
+                                        lineCap: '',
+                                        lineDash: [],
+                                        lineDashOffset: 0,
+                                        lineJoin: '',
+                                        lineWidth: 0,
                                         strokeStyle: datasets[0].backgroundColor[i],
                                         pointStyle: 'rectRounded',
+                                        rotation: 0,
                                         index: i
                                     }));
                                 }
@@ -106,9 +199,10 @@ const fetchAssessmentsDueSoon = () => {
                     },
                 },
                 data: {
+                    labels: data.map(row => row.labeltitle),
                     datasets: [{
-                        indexAxis: 'y',
                         data: data.map(row => row.value),
+                        indexAxis: 'y',
                         backgroundColor: [
                             'rgba(255,0,0,0.6)',
                             'rgba(255,153,0,0.6)',
@@ -121,11 +215,24 @@ const fetchAssessmentsDueSoon = () => {
                         ],
                         borderWidth: 1,
                         hoverOffset: 4
-                    }],
-                    labels: data.map(row => row.labeltitle),
+                    }]
                 }
             }
         );
+
+        const canvas = document.getElementById('assessmentsDueSoonChart');
+        canvas.onclick = (evt) => {
+            const points = chart.getElementsAtEventForMode(
+                evt,
+                'nearest',
+                { intersect: true },
+                true
+              );
+              if (points.length === 0) {
+                return;
+              }
+              viewAssessmentsDueByChartType(points[0].index);
+          };
 
     }).fail(function(err) {
         document.querySelector('.loader').remove();

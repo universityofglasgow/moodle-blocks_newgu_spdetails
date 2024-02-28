@@ -138,6 +138,18 @@ class api extends \external_api
     }
 
     /**
+     * Return assessments that are due - filtered by type: 24hrs, 7days etc.
+     * 
+     * @param int $charttype
+     * @return array
+     */
+    public static function get_assessmentsduebytype(int $charttype): array {
+        $assessmentsdue = \block_newgu_spdetails\course::get_assessmentsduebytype($charttype);
+
+        return $assessmentsdue;
+    }
+
+    /**
      * Return a summary of current assessments for the student
      * 
      * @TODO - this needs to be refactored to make better use of

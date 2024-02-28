@@ -338,7 +338,7 @@ class assign_activity extends base {
 
         if (!in_array($assignment->id, $assignmentsubmissions)) {
             if ($allowsubmissionsfromdate < $now) {
-                if ($duedate == 0 || $duedate > $now) {
+                if ($duedate > $now) {
                     $assignmentdata[] = $assignment;
                 }
             }

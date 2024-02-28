@@ -91,4 +91,14 @@ $functions = [
             MOODLE_OFFICIAL_MOBILE_SERVICE
         ],
     ],
+    'block_newgu_spdetails_get_assessmentsduebytype' => [
+        'classname'   => 'block_newgu_spdetails\external\get_assessmentsduebytype',
+        'description' => 'Return only assessments due by selected type: 24hrs, 7 days, 1 month',
+        'type'        => 'read',
+        'ajax'        => true,
+        'loginrequired' => true,
+        'services'    => [
+            MOODLE_OFFICIAL_MOBILE_SERVICE
+        ],
+    ],
 ];
