@@ -59,6 +59,12 @@
         <div class="return-assessments-text">{{#str}} back_to, block_newgu_spdetails{{/str}}</div>
     </div>
 </div>
+{{^data.assessmentitems}}
+<div class="alert alert-warning" role="alert">
+    {{#str}} noassessmentfound, block_newgu_spdetails {{/str}}
+</div>
+{{/data.assessmentitems}}
+{{#data.assessmentitems.length}}
 <div id="assessments_due" class="assessments-details-sort-container">
     <table class="table table-responsive assessments-details-table">
         <thead>
@@ -97,3 +103,4 @@
         </tbody>
     </table>
 </div>
+{{/data.assessmentitems.length}}
