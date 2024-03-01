@@ -220,6 +220,14 @@ const subCategoryReturnHandler = (id) => {
             }
             loadAssessments(activetab, 0, 'shortname', 'asc', true, id);
         });
+
+        document.querySelector('#subcategory-return-assessment').addEventListener('keyup', function(event) {
+            let element = document.activeElement;
+            if (event.keyCode === 13 && element.hasAttribute('tabindex')) {
+                event.preventDefault();
+                element.click();
+            }
+        });
     }
 };
 

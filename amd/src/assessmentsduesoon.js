@@ -49,11 +49,12 @@ const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
 
     let assessmentsDueBlock = document.querySelector(Selectors.ASSESSMENTSDUE_BLOCK);
     let assessmentsDueContents = document.querySelector(Selectors.ASSESSMENTSDUE_CONTENTS);
-    assessmentsDueBlock.classList.remove('hidden-container');
 
     if (assessmentsDueBlock.children.length > 0) {
         assessmentsDueContents.innerHTML = '';
     }
+
+    assessmentsDueBlock.classList.remove('hidden-container');
 
     assessmentsDueContents.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
         "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
@@ -113,6 +114,14 @@ const returnToAssessmentsHandler = () => {
             assessmentsDueBlock.classList.add('hidden-container');
             containerBlock.classList.remove('hidden-container');
         });
+
+        document.querySelector('#assessments-due-return').addEventListener('keyup', function(event) {
+            let element = document.activeElement;
+            if (event.keyCode === 13 && element.hasAttribute('tabindex')) {
+                event.preventDefault();
+                element.click();
+            }
+        });
     }
 };
 
@@ -151,13 +160,15 @@ const fetchAssessmentsDueSoon = () => {
             }
         ];
 
-        const chart = new Chart(
-            document.getElementById('assessmentsDueSoonChart'),
-            {
+        const ctx = document.getElementById('assessmentsDueSoonChart');
+        const chart = new Chart(ctx, {
                 type: 'bar',
                 options: {
                     responsive: true,
                     indexAxis: 'y',
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    },
                     scales: {
                         x: {
                             suggestedMin: 1,
@@ -169,6 +180,12 @@ const fetchAssessmentsDueSoon = () => {
                             display: true,
                             position: 'top',
                             onClick: viewAssessmentsDueByChartType,
+                            onHover: (event) => {
+                                event.native.target.style.cursor = 'pointer';
+                            },
+                            onLeave: (event) => {
+                                event.native.target.style.cursor = 'default';
+                            },
                             labels: {
                                 usePointStyle: true,
                                 font: {
