@@ -18,7 +18,7 @@
  * Default class for grade/activity access classes.
  * 
  * @package    blocks_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Howard Miller/Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

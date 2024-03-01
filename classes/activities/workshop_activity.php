@@ -18,7 +18,7 @@
  * Concrete implementation for mod_workshop.
  * 
  * @package    block_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -254,33 +254,14 @@ class workshop_activity extends base {
         $workshopdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            if ($workshopsubmissions = $this->workshop->get_submission_by_author($USER->id)) {
-            
-                if (!in_array($workshop->id, $workshopsubmissions)) {
-                    
-                    // We're checking for both items here as the spec has stated that
-                    // both items should appear on the dashboard.
-                    if ($workshop->submissionstart != 0 && $workshop->submissionstart < $now) {
-                        if ($workshop->submissionend != 0 && $workshop->submissionend > $now) {
-                            $obj = new \stdClass();
-                            $obj->duedate = $workshop->submissionend;
-                            $workshopdata[] = $obj;
-                        }
-                    }
-
-                    if ($workshop->assessmentstart != 0 && $workshop->assessmentstart < $now) {
-                        if ($workshop->assessmentend != 0 && $workshop->assessmentend > $now) {
-                            $obj = new \stdClass();
-                            $obj->duedate = $workshop->assessmentend;
-                            $workshopdata[] = $obj;
-                        }
-                    }
-                }
-            }
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $select = 'authorid = :userid AND timecreated BETWEEN :lastmonth AND :now';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'workshopid', $select,$params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'workshopsubmissions' => $workshopdata
+                'workshopsubmissions' => $workshopsubmissions
             ];
 
             $cachedata = [
@@ -291,7 +272,30 @@ class workshop_activity extends base {
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $workshopdata = $cachedata[$cachekey][0]['workshopsubmissions'];
+            $workshopsubmissions = $cachedata[$cachekey][0]['workshopsubmissions'];
+        }
+
+        if (!in_array($workshop->id, $workshopsubmissions)) {
+                    
+            // We're checking for both items here as the spec has stated that
+            // both items should appear on the dashboard.
+            if ($workshop->submissionstart != 0 && $workshop->submissionstart < $now) {
+                if ($workshop->submissionend != 0 && $workshop->submissionend > $now) {
+                    $obj = new \stdClass();
+                    $obj->name = $workshop->name;
+                    $obj->duedate = $workshop->submissionend;
+                    $workshopdata[] = $obj;
+                }
+            }
+
+            if ($workshop->assessmentstart != 0 && $workshop->assessmentstart < $now) {
+                if ($workshop->assessmentend != 0 && $workshop->assessmentend > $now) {
+                    $obj = new \stdClass();
+                    $obj->name = $workshop->name;
+                    $obj->duedate = $workshop->assessmentend;
+                    $workshopdata[] = $obj;
+                }
+            }
         }
 
         return $workshopdata;

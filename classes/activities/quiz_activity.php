@@ -18,7 +18,7 @@
  * Concrete implementation for mod_quiz.
  * 
  * @package    block_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -231,7 +231,6 @@ class quiz_activity extends base {
         $quizdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
             $select = 'userid = :userid AND timestart BETWEEN :lastmonth AND :now AND state != :finished';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now, 'finished' => 'finished'];
@@ -257,7 +256,7 @@ class quiz_activity extends base {
 
         if (!in_array($quizobj->id, $quizattempts)) {
             if ($quizobj->timeopen != 0 && $quizobj->timeopen < $now) {
-                if ($quizobj->timeclose != 0 && $quizobj->timeclose > $now) {
+                if ($quizobj->timeclose > $now) {
                     $obj = new \stdClass();
                     $obj->name = $quizobj->name;
                     $obj->duedate = $quizobj->timeclose;

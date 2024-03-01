@@ -18,7 +18,7 @@
  * Concrete implementation for mod_lesson.
  * 
  * @package    block_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -232,21 +232,14 @@ class lesson_activity extends base {
         $lessondata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $lessondeadlines = lesson_get_user_deadline($this->courseid);
-            
-            foreach($lessondeadlines as $lessondeadline) {
-                if ($this->lesson->id == $lessondeadline->id) {
-                    if ($this->lesson->deadline != 0 && $this->lesson->deadline > $now) {                    
-                        $obj = new \stdClass();
-                        $obj->duedate = $this->lesson->deadline;
-                        $lessondata[] = $obj;
-                    }
-                }
-            }
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $select = 'userid = :userid AND lessontime BETWEEN :lastmonth AND :now';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $lessonsubmissions = $DB->get_fieldset_select('lesson_timer', 'lessonid', $select,$params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'lessonsubmissions' => $lessondata
+                'lessonsubmissions' => $lessonsubmissions
             ];
 
             $cachedata = [
@@ -257,7 +250,18 @@ class lesson_activity extends base {
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $lessondata = $cachedata[$cachekey][0]['lessonsubmissions'];
+            $lessonsubmissions = $cachedata[$cachekey][0]['lessonsubmissions'];
+        }
+
+        if (!in_array($this->lesson->id, $lessonsubmissions)) {
+            if ($this->lesson->deadline != 0 && $this->lesson->deadline > $now) {
+                if ($this->lesson->deadline != 0 && $this->lesson->deadline > $now) {                    
+                    $obj = new \stdClass();
+                    $obj->name = $this->lesson->name;
+                    $obj->duedate = $this->lesson->deadline;
+                    $lessondata[] = $obj;
+                }
+            }
         }
 
         return $lessondata;

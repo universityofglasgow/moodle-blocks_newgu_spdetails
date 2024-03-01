@@ -18,7 +18,7 @@
  * Concrete implementation for mod_lti.
  * 
  * @package    block_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -172,6 +172,10 @@ class lti_activity extends base {
 
     /**
      * Return the due date of the LTI activity if it hasn't been submitted.
+     * 
+     * This requires some extra checks - we have the feature that excludes
+     * LTI's from the dashboard as gradable activities - we probably want to
+     * carry out that check here also, when checking the submission entries.
      * 
      * @return array
      */

@@ -18,7 +18,7 @@
  * Concrete implementation for mod_kalvidassign.
  * 
  * @package    block_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -253,24 +253,11 @@ class kalvidassign_activity extends base {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
             $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            
             $kalvidsubmissions = $DB->get_fieldset_select('kalvidassign_submission', 'vidassignid', $select,$params);
-            // Access the assignment itself.
-            $kalvidassignment = $this->kalvidassign[2];
-            
-            if (!in_array($kalvidassignment->id, $kalvidsubmissions)) {
-                if ($kalvidassignment->timeavailable < $now) {
-                    if ($kalvidassignment->timedue == 0 || $kalvidassignment->timedue > $now) {
-                        $obj = new \stdClass();
-                        $obj->duedate = $kalvidassignment->timedue;
-                        $kalviddata[] = $obj;
-                    }
-                }
-            }
 
             $submissionsdata = [
                 'updated' => time(),
-                'kalvidassignmentsubmissions' => $kalviddata
+                'kalvidassignmentsubmissions' => $kalvidsubmissions
             ];
 
             $cachedata = [
@@ -282,7 +269,21 @@ class kalvidassign_activity extends base {
 
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $kalviddata = $cachedata[$cachekey][0]['kalvidassignmentsubmissions'];
+            $kalvidsubmissions = $cachedata[$cachekey][0]['kalvidassignmentsubmissions'];
+        }
+
+        // Access the assignment itself.
+        $kalvidassignment = $this->kalvidassign[2];
+            
+        if (!in_array($kalvidassignment->id, $kalvidsubmissions)) {
+            if ($kalvidassignment->timeavailable < $now) {
+                if ($kalvidassignment->timedue == 0 || $kalvidassignment->timedue > $now) {
+                    $obj = new \stdClass();
+                    $obj->name = $kalvidassignment->name;
+                    $obj->duedate = $kalvidassignment->timedue;
+                    $kalviddata[] = $obj;
+                }
+            }
         }
         
         return $kalviddata;

@@ -18,7 +18,7 @@
  * Concrete implementation for mod_glossary.
  * 
  * @package    block_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,7 +29,7 @@ use cache;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/glossary/locallib.php');
+require_once($CFG->dirroot . '/mod/glossary/lib.php');
 
 /**
  * Implementation for a glossary activity.
@@ -49,7 +49,7 @@ class glossary_activity extends base {
     /**
      * @var constant CACHE_KEY
      */
-    const CACHE_KEY = 'studentid_assessmentsduesoon:';
+    const CACHE_KEY = 'studentid_glossaryduesoon:';
 
     /**
      * Constructor, set grade itemid.
@@ -61,25 +61,20 @@ class glossary_activity extends base {
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
         parent::__construct($gradeitemid, $courseid, $groupid);
 
-        // Get the assignment object.
-        $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->glossary = $this->get_glossary($this->cm);
+        // Get the glossary object.
+        $this->glossary = $this->get_glossary();
     }
 
     /**
-     * Get assignment object.
+     * Get glossary object.
      * 
      * @param object $cm course module
      * @return object
      */
-    public function get_glossary($cm): object {
-        global $DB;
+    public function get_glossary(): object {
+        $glossary = glossary_get_entry_by_id($this->gradeitem->iteminstance);
 
-        $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
-        $coursemodulecontext = \context_module::instance($cm->id);
-        $assign = new \glossary($coursemodulecontext, $cm, $course);
-
-        return $assign;
+        return $glossary;
     }
 
     /**
@@ -189,11 +184,11 @@ class glossary_activity extends base {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
             $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            
+            $glossarysubmissions = $DB->get_fieldset_select('glossary_entries', 'glossaryid', $select,$params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'glossarysubmissions' => $glossarydata
+                'glossarysubmissions' => $glossarysubmissions
             ];
 
             $cachedata = [
@@ -205,7 +200,16 @@ class glossary_activity extends base {
 
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $glossarydata = $cachedata[$cachekey][0]['glossarysubmissions'];
+            $glossarysubmissions = $cachedata[$cachekey][0]['glossarysubmissions'];
+        }
+
+        if (!in_array($this->glossary->id, $glossarysubmissions)) {
+            if ($this->glossary->assessed == 1 && $this->glossary->assesstimestart > $now) {
+                $obj = new \stdClass();
+                $obj->name = $this->glossary->name;
+                $obj->duedate = $this->glossary->assesstimefinish;
+                $glossarydata[] = $obj;
+            }
         }
         
         return $glossarydata;

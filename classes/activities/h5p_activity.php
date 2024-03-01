@@ -18,7 +18,7 @@
  * Concrete implementation for mod_h5pactivity.
  * 
  * @package    block_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -75,12 +75,15 @@ class h5p_activity extends base {
         
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $h5pactivities = get_all_instances_in_course('h5pactivity', $course);
-
+        $instance = null;
         foreach($h5pactivities as $h5pactivity) {
             if ($this->gradeitem->instanceid == $h5pactivity->instance) {
-                return $h5pactivity;
+                $instance = $h5pactivity;
+                break;
             }
-        } 
+        }
+
+        return $instance;
     }
 
     /**
@@ -255,9 +258,14 @@ class h5p_activity extends base {
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $h5psubmissions = $DB->get_fieldset_select('h5pactivity_attempts', 'h5pactivityid', $select,$params);
+
             $submissionsdata = [
                 'updated' => time(),
-                'h5psubmissions' => $h5pdata
+                'h5psubmissions' => $h5psubmissions
             ];
 
             $cachedata = [
@@ -268,7 +276,18 @@ class h5p_activity extends base {
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $h5pdata = $cachedata[$cachekey][0]['h5psubmissions'];
+            $h5psubmissions = $cachedata[$cachekey][0]['h5psubmissions'];
+        }
+
+        $h5pactivity = $this->h5passign;
+
+        // Not sure how due dates/end dates work with H5P submissions
+        // just yet, so we simply include them if the activity wasn't
+        // found in the list of submissions.
+        if (!in_array($h5pactivity->id, $h5psubmissions)) {
+            $obj = new \stdClass();
+            $obj->name = $h5pactivity->name;
+            $h5pdata[] = $obj;
         }
         
         return $h5pdata;

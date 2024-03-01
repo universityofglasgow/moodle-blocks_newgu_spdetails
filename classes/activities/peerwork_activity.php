@@ -18,7 +18,7 @@
  * Concrete implementation for mod_peerwork.
  * 
  * @package    block_newgu_spdetails
- * @copyright  2024
+ * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -258,21 +258,11 @@ class peerwork_activity extends base {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
             $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            
             $peerworksubmissions = $DB->get_fieldset_select('peerwork_submission', 'peerworkid', $select,$params);
-            $peerworkassignment = $this->peerwork;
-            
-            if (!in_array($peerworkassignment->id, $peerworksubmissions) && $peerworkassignment->allowlatesubmissions == 0) {
-                if ($peerworkassignment->fromdate < $now) {
-                    if ($peerworkassignment->duedate == 0 || $peerworkassignment->duedate > $now) {
-                        $peerworkdata[] = $peerworkassignment;
-                    }
-                }
-            }
 
             $submissionsdata = [
                 'updated' => time(),
-                'peerworksubmissions' => $peerworkdata
+                'peerworksubmissions' => $peerworksubmissions
             ];
 
             $cachedata = [
@@ -284,7 +274,17 @@ class peerwork_activity extends base {
 
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $peerworkdata = $cachedata[$cachekey][0]['peerworksubmissions'];
+            $peerworksubmissions = $cachedata[$cachekey][0]['peerworksubmissions'];
+        }
+
+        $peerworkassignment = $this->peerwork;
+            
+        if (!in_array($peerworkassignment->id, $peerworksubmissions) && $peerworkassignment->allowlatesubmissions == 0) {
+            if ($peerworkassignment->fromdate < $now) {
+                if ($peerworkassignment->duedate > $now) {
+                    $peerworkdata[] = $peerworkassignment;
+                }
+            }
         }
 
         return $peerworkdata;
