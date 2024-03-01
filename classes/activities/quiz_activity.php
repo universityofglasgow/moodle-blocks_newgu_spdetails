@@ -219,7 +219,7 @@ class quiz_activity extends base {
      * @return array
      */
     public function get_assessmentsdue(): array {
-        global $USER;
+        global $USER, $DB;
         
         // Cache this query as it's going to get called for each assessment in the course otherwise.
         $cache = cache::make('block_newgu_spdetails', 'quizduequery');
@@ -231,22 +231,15 @@ class quiz_activity extends base {
         $quizdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $quizobj = $this->quiz->get_quiz();
-            $quizattempts = quiz_get_user_attempts($quizobj->id, $USER->id);
             
-            if (!in_array($quizobj->id, $quizattempts)) {
-                if ($quizobj->timeopen != 0 && $quizobj->timeopen < $now) {
-                    if ($quizobj->timeclose != 0 && $quizobj->timeclose > $now) {
-                        $obj = new \stdClass();
-                        $obj->duedate = $quizobj->timeclose;
-                        $quizdata[] = $obj;
-                    }
-                }
-            }
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $select = 'userid = :userid AND timestart BETWEEN :lastmonth AND :now AND state != :finished';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now, 'finished' => 'finished'];
+            $quizattempts = $DB->get_fieldset_select('quiz_attempts', 'id', $select,$params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'quizsubmissions' => $quizdata
+                'quizattempts' => $quizattempts
             ];
 
             $cachedata = [
@@ -257,7 +250,20 @@ class quiz_activity extends base {
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $quizdata = $cachedata[$cachekey][0]['quizsubmissions'];
+            $quizattempts = $cachedata[$cachekey][0]['quizattempts'];
+        }
+
+        $quizobj = $this->quiz->get_quiz();
+
+        if (!in_array($quizobj->id, $quizattempts)) {
+            if ($quizobj->timeopen != 0 && $quizobj->timeopen < $now) {
+                if ($quizobj->timeclose != 0 && $quizobj->timeclose > $now) {
+                    $obj = new \stdClass();
+                    $obj->name = $quizobj->name;
+                    $obj->duedate = $quizobj->timeclose;
+                    $quizdata[] = $obj;
+                }
+            }
         }
 
         return $quizdata;

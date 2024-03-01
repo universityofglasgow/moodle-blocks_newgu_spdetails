@@ -536,7 +536,7 @@
                 $duein24hours++;
             }
 
-            if (($assignment->duedate > $now) && ($assignment->duedate > $next24hours) && ($assignment->duedate < $next7days)) {
+            if (($assignment->duedate > $now) && ($assignment->duedate < $next7days)) {
                 $duein7days++;
             }
 
