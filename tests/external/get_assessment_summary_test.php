@@ -32,13 +32,15 @@ global $CFG;
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
 class get_assessment_summary_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
+    
+    /**
+     * Test that the assessment summary returns the specific key names.
+     */
     public function test_get_assessment_summary() {
-        global $DB;
-
         // We're the test student.
         $this->setUser($this->student1->id);
 
-        // Check that our stats values are returned as expected
+        // Check that our stats values are returned as expected.
         $stats = get_assessmentsummary::execute();
         $stats = \external_api::clean_returnvalue(
             get_assessmentsummary::execute_returns(),
@@ -49,5 +51,77 @@ class get_assessment_summary_test extends \blocks_newgu_spdetails\external\newgu
         $this->assertArrayHasKey('tobe_sub', $stats[0]);
         $this->assertArrayHasKey('overdue', $stats[0]);
         $this->assertArrayHasKey('assess_marked', $stats[0]);
+    }
+
+    /**
+     * Test that the number of submitted items match.
+     */
+    public function test_get_assessment_summary_submitted() {
+        // We're the test student.
+        $this->setUser($this->student1->id);
+
+        // Check that our stats values are returned as expected.
+        $stats = get_assessmentsummary::execute();
+        $stats = \external_api::clean_returnvalue(
+            get_assessmentsummary::execute_returns(),
+            $stats
+        );
+        $this->assertIsArray($stats);
+        $this->assertArrayHasKey('sub_assess', $stats[0]);
+        $this->assertEquals(0, $stats[0]['sub_assess']);
+    }
+
+    /**
+     * Test that the number of items to be submitted match.
+     */
+    public function test_get_assessment_summary_tosubmit() {
+        // We're the test student.
+        $this->setUser($this->student1->id);
+
+        // Check that our stats values are returned as expected.
+        $stats = get_assessmentsummary::execute();
+        $stats = \external_api::clean_returnvalue(
+            get_assessmentsummary::execute_returns(),
+            $stats
+        );
+        $this->assertIsArray($stats);
+        $this->assertArrayHasKey('tobe_sub', $stats[0]);
+        $this->assertEquals(10, $stats[0]['tobe_sub']);
+    }
+
+    /**
+     * Test that the number of items that are overdue match.
+     */
+    public function test_get_assessment_summary_overdue() {
+        // We're the test student.
+        $this->setUser($this->student1->id);
+
+        // Check that our stats values are returned as expected.
+        $stats = get_assessmentsummary::execute();
+        $stats = \external_api::clean_returnvalue(
+            get_assessmentsummary::execute_returns(),
+            $stats
+        );
+        $this->assertIsArray($stats);
+        $this->assertArrayHasKey('overdue', $stats[0]);
+        $this->assertEquals(0, $stats[0]['overdue']);
+    }
+
+    /**
+     * Test that the number of items that have been graded match.
+     */
+    public function test_get_assessment_summary_graded() {
+        // We're the test student.
+        $this->setUser($this->student1->id);
+
+        // Check that our stats values are returned as expected.
+        $stats = get_assessmentsummary::execute();
+        $stats = \external_api::clean_returnvalue(
+            get_assessmentsummary::execute_returns(),
+            $stats
+        );
+        $this->assertIsArray($stats);
+        $this->assertArrayHasKey('assess_marked', $stats[0]);
+        $this->assertEquals(0, $stats[0]['assess_marked']);
     }
 }

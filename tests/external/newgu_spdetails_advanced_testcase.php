@@ -87,15 +87,16 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
      * Add assignment grade
      * @param int $assignid
      * @param int $studentid
-     * @param float $gradeval
+     * @param float $gradeval,
+     * @param string $status
      */
-    protected function add_assignment_grade(int $assignid, int $studentid, float $gradeval) {
+    protected function add_assignment_grade(int $assignid, int $studentid, float $gradeval, string $status = ASSIGN_SUBMISSION_STATUS_NEW) {
         global $USER, $DB;
 
         $submission = new \stdClass();
         $submission->assignment = $assignid;
         $submission->userid = $studentid;
-        $submission->status = ASSIGN_SUBMISSION_STATUS_SUBMITTED;
+        $submission->status = $status;
         $submission->latest = 0;
         $submission->attemptnumber = 0;
         $submission->groupid = 0;
@@ -255,7 +256,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'iteminstance' => $assignment1->id
         ]);
 
-        $gradeditem1 = $this->add_assignment_grade($assessmentitem1->id, $student1->id, 35);
+        $gradeditem1 = $this->add_assignment_grade($assessmentitem1->id, $student1->id, 35, ASSIGN_SUBMISSION_STATUS_SUBMITTED);
 
         $assessmentitem2 = $this->getDataGenerator()->create_grade_item([
             'itemtype' => 'mod',
@@ -268,6 +269,8 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'iteminstance' => $assignment2->id
         ]);
 
+        $gradeditem2 = $this->add_assignment_grade($assessmentitem2->id, $student1->id, 18, ASSIGN_SUBMISSION_STATUS_SUBMITTED);
+
         $assessmentitem3 = $this->getDataGenerator()->create_grade_item([
             'itemtype' => 'mod',
             'itemmodule' => 'assign',
@@ -279,7 +282,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'iteminstance' => $assignment3->id
         ]);
 
-        $gradeditem2 = $this->add_assignment_grade($assessmentitem3->id, $student1->id, 12.5);
+        $gradeditem3 = $this->add_assignment_grade($assessmentitem3->id, $student1->id, 12.5, ASSIGN_SUBMISSION_STATUS_NEW);
 
         $groupassessmentitem = $this->getDataGenerator()->create_grade_item([
             'itemtype' => 'mod',
@@ -330,6 +333,8 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'grademax' => 23,
             'iteminstance' => $assignment5->id
         ]);
+
+        $gradeditem5 = $this->add_assignment_grade($assessmentitem5->id, $student1->id, 15, ASSIGN_SUBMISSION_STATUS_NEW);
 
         // Howard's API adds some additional data...
         $gugradescourse->firstlevel[] = [
@@ -486,7 +491,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         ]);
 
         // Add a past assignment grade.
-        $assignmentgrade1_past = $this->add_assignment_grade($assignment_past->id, $student1->id, 95.5);
+        $assignmentgrade1_past = $this->add_assignment_grade($assignment_past->id, $student1->id, 95.5, ASSIGN_SUBMISSION_STATUS_SUBMITTED);
 
         // $quiz_past = $this->getDataGenerator()->create_module('quiz', ['course' => $course_past->id]);
         // $survey_past = $this->getDataGenerator()->create_module('survey', ['course' => $course_past->id]);
