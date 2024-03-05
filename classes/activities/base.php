@@ -118,10 +118,16 @@ abstract class base {
         $gradeobj = new \stdClass();
         $gradeobj->finalgrade = null;
         $gradeobj->rawgrade = null;
+        $gradeobj->gradedate = null;
+        
 
         if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $gradeobj->finalgrade = $grade->finalgrade;
+                // Not sure if this is correct, however, it seems plausible that the
+                // date the item was graded/released could be inferred from the time
+                // -modified column.
+                $gradeobj->gradedate = $grade->timemodified;
                 return $gradeobj;
             }
 

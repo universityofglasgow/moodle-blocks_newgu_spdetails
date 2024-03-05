@@ -516,7 +516,43 @@
                         }
                     }
                 }
-            } 
+            } else {
+                // Our course structure doesn't have any categories :-(
+                $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
+                if ($gradecat) {
+                    if (count($gradecat) > 0) {
+                        foreach($gradecat as $gradecategory) {
+                            $activities = \local_gugrades\api::get_activities($course->id, $gradecategory->id);
+                            if ($activities) {
+                                $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($gradecategory->id, $activities->items, [], $activities->categories);
+
+                                // This is now a flat list of all items associated with this course...
+                                if ($categoryitems) {
+                                    foreach($categoryitems->items as $item) {
+                                        $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance, $item->courseid, false, MUST_EXIST);
+                                        $modinfo = get_fast_modinfo($item->courseid);
+                                        $cm = $modinfo->get_cm($cm->id);
+                                        if ($cm->uservisible) {
+                                            if ($item->itemmodule == 'lti') {
+                                                if (is_array($lti_instances_to_exclude) && in_array($item->courseid, $lti_instances_to_exclude) ||
+                                                $item->courseid == $lti_instances_to_exclude) {
+                                                    continue;
+                                                }
+                                            }
+
+                                            // Get the activity based on its type...
+                                            $activity = \block_newgu_spdetails\activity::activity_factory($item->id, $item->courseid, 0);
+                                            if ($records = $activity->get_assessmentsdue()) {
+                                                $assignmentdata[] = $records[0];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (!$assignmentdata) {
@@ -592,10 +628,11 @@
 
         $assessmentsdueheader = get_string('header_assessmentsdue', 'block_newgu_spdetails', $option);
 
-        $assignmentdata = [];
+        $assessmentdata = [];
         $lti_instances_to_exclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
         foreach($courses as $course) {
             $courseurl = new \moodle_url('/course/view.php', ['id' => $course->id]);
+            // We're expecting our course object to contain a firstlevel array...
             if ($course->firstlevel) {
                 foreach($course->firstlevel as $subcategory) {
                     $subcategoryId = $subcategory['id'];
@@ -654,7 +691,7 @@
                                                 'gradebookenabled' => ''
                                             ];
                                             
-                                            $assignmentdata[] = $tmp;
+                                            $assessmentdata[] = $tmp;
                                         }
                                     }
                                 }
@@ -662,15 +699,86 @@
                         }
                     }
                 }
-            } 
-        }
+            } else {
+                // Our course has no sub categories...
+                $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
+                if ($gradecat) {
+                    if (count($gradecat) > 0) {
+                        foreach($gradecat as $gradecategory) {
+                            $activities = \local_gugrades\api::get_activities($course->id, $gradecategory->id);
+                            if ($activities) {
+                                $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($gradecategory->id, $activities->items, [], $activities->categories);
 
-        if (!$assignmentdata) {
-            return $assignmentdata;
+                                // This is now a flat list of all items associated with this course...
+                                if ($categoryitems) {
+                                    foreach($categoryitems->items as $item) {
+                                        $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance, $item->courseid, false, MUST_EXIST);
+                                        $modinfo = get_fast_modinfo($item->courseid);
+                                        $cm = $modinfo->get_cm($cm->id);
+                                        if ($cm->uservisible) {
+                                            if ($item->itemmodule == 'lti') {
+                                                if (is_array($lti_instances_to_exclude) && in_array($item->courseid, $lti_instances_to_exclude) ||
+                                                $item->courseid == $lti_instances_to_exclude) {
+                                                    continue;
+                                                }
+                                            }
+
+                                            // Get the activity based on its type...
+                                            $activityitem = \block_newgu_spdetails\activity::activity_factory($item->id, $item->courseid, 0);
+                                            if ($assessments = $activityitem->get_assessmentsdue()) {
+                                                $assessment = $assessments[0];
+                                                if (($assessment->duedate != 0) && $assessment->duedate < $when) {
+                                                    $item_icon = '';
+                                                    $icon_alt = '';
+                                                    if ($iconurl = $cm->get_icon_url()->out(false)) {
+                                                        $item_icon = $iconurl;
+                                                        $icon_alt = $cm->get_module_type_name();
+                                                    }
+                                                    $assessment_weight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
+                                                    $assessment_type = self::return_assessmenttype($subcategory['fullname'], $item->aggregationcoef);
+                                                    $status = $activityitem->get_status($USER->id);
+                                                    $due_date = '';
+                                                    if ($assessment->duedate != 0) {
+                                                        $due_date = $activityitem->get_formattedduedate($assessment->duedate);
+                                                    }
+                                                    $tmp = [
+                                                        'id' => $assessment->id,
+                                                        'courseurl' => $courseurl->out(),
+                                                        'coursename' => $course->shortname,
+                                                        'assessment_url' => $activityitem->get_assessmenturl(),
+                                                        'item_icon' => $item_icon,
+                                                        'icon_alt' => $icon_alt,
+                                                        'item_name' => $assessment->name,
+                                                        'assessment_type' => $assessment_type,
+                                                        'assessment_weight' => $assessment_weight,
+                                                        'due_date' => $due_date,
+                                                        'grade_status' => $status->grade_status,
+                                                        'status_link' => $status->status_link,
+                                                        'status_class' => $status->status_class,
+                                                        'status_text' => $status->status_text,
+                                                        'gradebookenabled' => ''
+                                                    ];
+                                                    
+                                                    $assessmentdata[] = $tmp;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         $assessmentsdue['chart_header'] = $assessmentsdueheader;
-        $assessmentsdue['assessmentitems'] = $assignmentdata;
+
+        if (!$assessmentdata) {
+            return $assessmentsdue;
+        }
+
+        $assessmentsdue['assessmentitems'] = $assessmentdata;
 
         return $assessmentsdue;
     }
@@ -681,7 +789,7 @@
      * 
      * @return array
      */
-    public static function get_assessmentsummary() {
+    public static function get_assessmentsummary(): array {
 
         global $DB, $USER;
 
@@ -706,10 +814,11 @@
         $str_currentcourses = implode(",", $currentcourses);
         $str_itemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
 
-        $records = $DB->get_recordset_sql("SELECT id, courseid, itemmodule, iteminstance, gradetype, scaleid, grademax 
+        $query = "SELECT id, courseid, itemmodule, iteminstance, gradetype, scaleid, grademax 
         FROM {grade_items} 
         WHERE courseid IN (" . $str_currentcourses . ") 
-        AND id NOT IN (" . $str_itemsnotvisibletouser . ") AND courseid > 1 AND itemtype='mod'");
+        AND id NOT IN (" . $str_itemsnotvisibletouser . ") AND courseid > 1 AND itemtype='mod'";
+        $records = $DB->get_recordset_sql($query);
 
         if ($records->valid()) {
             foreach ($records as $key_gi) {
@@ -765,6 +874,247 @@
         ];
 
         return $stats;
+    }
+
+    /**
+     * Return only the assessments that have been:
+     * Submitted
+     * Are still to be submitted
+     * Overdue
+     * Marked/Graded
+     * 
+     * @param int $charttype
+     * @return array
+     */
+    public static function get_assessmentsummarybytype(int $charttype): array {
+        global $USER, $PAGE;
+
+        $PAGE->set_context(\context_system::instance());
+
+        $sortstring = 'shortname asc';
+        $courses = \local_gugrades\api::dashboard_get_courses($USER->id, true, false, $sortstring);
+
+        $assessmentsdue = [];
+
+        if (!$courses) {
+            return $assessmentsdue;
+        }
+
+        $date_header = '';
+        $option = '';
+        $which_status = '';
+        switch($charttype) {
+            case 0:
+                $option = get_string('status_text_submitted', 'block_newgu_spdetails');
+                $date_header = get_string('header_datesubmitted', 'block_newgu_spdetails');
+                $which_status = get_string('status_submitted', 'block_newgu_spdetails');
+                break;
+            case 1:
+                $option = get_string('status_text_tobesubmitted', 'block_newgu_spdetails');
+                $date_header = get_string('header_duedate', 'block_newgu_spdetails');
+                $which_status = get_string('status_submit', 'block_newgu_spdetails');
+                break;
+            case 2:
+                $option = get_string('status_text_overdue', 'block_newgu_spdetails');
+                $date_header = get_string('header_duedate', 'block_newgu_spdetails');
+                $which_status = get_string('status_overdue', 'block_newgu_spdetails');
+                break;
+            case 3:
+                $option = get_string('status_text_marked', 'block_newgu_spdetails');
+                $date_header = get_string('header_dategraded', 'block_newgu_spdetails');
+                $which_status = get_string('status_graded', 'block_newgu_spdetails');
+                break;
+        }
+
+        $assessmentsummaryheader = get_string('header_assessmentsummary', 'block_newgu_spdetails', $option);
+
+        $assessmentdata = [];
+        $lti_instances_to_exclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
+        foreach($courses as $course) {
+            $courseurl = new \moodle_url('/course/view.php', ['id' => $course->id]);
+            // We're expecting our course object to contain a firstlevel array...
+            if ($course->firstlevel) {
+                foreach($course->firstlevel as $subcategory) {
+                    $subcategoryId = $subcategory['id'];
+                    $activities = \local_gugrades\api::get_activities($course->id, $subcategoryId);
+
+                    if ($activities) {
+                        $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($subcategoryId, $activities->items, [], $activities->categories);
+
+                        // This is now a flat list of all items associated with this course...
+                        if ($categoryitems) {
+                            foreach($categoryitems->items as $item) {
+                                $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance, $item->courseid, false, MUST_EXIST);
+                                $modinfo = get_fast_modinfo($item->courseid);
+                                $cm = $modinfo->get_cm($cm->id);
+                                if ($cm->uservisible) {
+                                    if ($item->itemmodule == 'lti') {
+                                        if (is_array($lti_instances_to_exclude) && in_array($item->courseid, $lti_instances_to_exclude) ||
+                                        $item->courseid == $lti_instances_to_exclude) {
+                                            continue;
+                                        }
+                                    }
+
+
+                                    // Get the activity based on its type...
+                                    $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($item->courseid, 
+                                        $item->id, 
+                                        $item->itemmodule, 
+                                        $item->iteminstance, 
+                                        $USER->id, 
+                                        $item->gradetype, 
+                                        $item->scaleid, 
+                                        $item->grademax, 
+                                        ''
+                                    );
+
+                                    $status = $gradestatus->grade_status;
+                                    $date = '';
+                                    
+                                    if ($status == $which_status) {
+                                        $item_icon = '';
+                                        $icon_alt = '';
+                                        if ($iconurl = $cm->get_icon_url()->out(false)) {
+                                            $item_icon = $iconurl;
+                                            $icon_alt = $cm->get_module_type_name();
+                                        }
+
+                                        switch($charttype) {
+                                            case 3:
+                                                $dateobj = \DateTime::createFromFormat('U', $gradestatus->grade_date);
+                                                $date = $dateobj->format('jS F Y');
+                                                break;
+                                            default:
+                                                $date = $gradestatus->due_date;
+                                                break;
+                                        }
+
+                                        $assessment_type = self::return_assessmenttype($subcategory['fullname'], $item->aggregationcoef);
+                                        $assessment_weight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
+                                        $tmp = [
+                                            'id' => $item->id,
+                                            'courseurl' => $courseurl->out(),
+                                            'coursename' => $course->shortname,
+                                            'assessment_url' => $gradestatus->assessment_url,
+                                            'item_icon' => $item_icon,
+                                            'icon_alt' => $icon_alt,
+                                            'item_name' => $item->itemname,
+                                            'assessment_type' => $assessment_type,
+                                            'assessment_weight' => $assessment_weight,
+                                            'due_date' => $date,
+                                            'grade_status' => $gradestatus->grade_status,
+                                            'status_link' => $gradestatus->status_link,
+                                            'status_class' => $gradestatus->status_class,
+                                            'status_text' => $gradestatus->status_text,
+                                            'gradebookenabled' => ''
+                                        ];
+                                        
+                                        $assessmentdata[] = $tmp;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Our course structure doesn't have any categories :-(
+                $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
+                if ($gradecat) {
+                    if (count($gradecat) > 0) {
+                        foreach($gradecat as $gradecategory) {
+                            $activities = \local_gugrades\api::get_activities($course->id, $gradecategory->id);
+                            if ($activities) {
+                                $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($gradecategory->id, $activities->items, [], $activities->categories);
+        
+                                // This is now a flat list of all items associated with this course...
+                                if ($categoryitems) {
+                                    foreach($categoryitems->items as $item) {
+                                        $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance, $item->courseid, false, MUST_EXIST);
+                                        $modinfo = get_fast_modinfo($item->courseid);
+                                        $cm = $modinfo->get_cm($cm->id);
+                                        if ($cm->uservisible) {
+                                            if ($item->itemmodule == 'lti') {
+                                                if (is_array($lti_instances_to_exclude) && in_array($item->courseid, $lti_instances_to_exclude) ||
+                                                $item->courseid == $lti_instances_to_exclude) {
+                                                    continue;
+                                                }
+                                            }
+        
+        
+                                            // Get the activity based on its type...
+                                            $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($item->courseid, 
+                                                $item->id, 
+                                                $item->itemmodule, 
+                                                $item->iteminstance, 
+                                                $USER->id, 
+                                                $item->gradetype, 
+                                                $item->scaleid, 
+                                                $item->grademax, 
+                                                ''
+                                            );
+        
+                                            $status = $gradestatus->grade_status;
+                                            $date = '';
+                                            
+                                            if ($status == $which_status) {
+                                                $item_icon = '';
+                                                $icon_alt = '';
+                                                if ($iconurl = $cm->get_icon_url()->out(false)) {
+                                                    $item_icon = $iconurl;
+                                                    $icon_alt = $cm->get_module_type_name();
+                                                }
+        
+                                                switch($charttype) {
+                                                    case 3:
+                                                        $date = 'tbc';
+                                                        break;
+                                                    default:
+                                                        $date = $gradestatus->due_date;
+                                                        break;
+                                                }
+        
+                                                $assessment_type = self::return_assessmenttype($subcategory['fullname'], $item->aggregationcoef);
+                                                $assessment_weight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
+                                                $tmp = [
+                                                    'id' => $item->id,
+                                                    'courseurl' => $courseurl->out(),
+                                                    'coursename' => $course->shortname,
+                                                    'assessment_url' => $gradestatus->assessment_url,
+                                                    'item_icon' => $item_icon,
+                                                    'icon_alt' => $icon_alt,
+                                                    'item_name' => $item->itemname,
+                                                    'assessment_type' => $assessment_type,
+                                                    'assessment_weight' => $assessment_weight,
+                                                    'due_date' => $date,
+                                                    'grade_status' => $gradestatus->grade_status,
+                                                    'status_link' => $gradestatus->status_link,
+                                                    'status_class' => $gradestatus->status_class,
+                                                    'status_text' => $gradestatus->status_text,
+                                                    'gradebookenabled' => ''
+                                                ];
+                                                
+                                                $assessmentdata[] = $tmp;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } 
+            }
+        }
+
+        $assessmentsdue['chart_header'] = $assessmentsummaryheader;
+
+        if (!$assessmentdata) {
+            return $assessmentsdue;
+        }
+
+        $assessmentsdue['date_header'] = $date_header;
+        $assessmentsdue['assessmentitems'] = $assessmentdata;
+
+        return $assessmentsdue;
     }
 
 }

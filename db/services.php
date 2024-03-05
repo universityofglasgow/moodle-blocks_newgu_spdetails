@@ -71,6 +71,16 @@ $functions = [
             MOODLE_OFFICIAL_MOBILE_SERVICE
         ],
     ],
+    'block_newgu_spdetails_get_assessmentsummarybytype' => [
+        'classname'   => 'block_newgu_spdetails\external\get_assessmentsummarybytype',
+        'description' => 'Return only assessments due by selected type: submitted, overdue etc',
+        'type'        => 'read',
+        'ajax'        => true,
+        'loginrequired' => true,
+        'services'    => [
+            MOODLE_OFFICIAL_MOBILE_SERVICE
+        ],
+    ],
     'block_newgu_spdetails_get_assessments' => [
         'classname'   => 'block_newgu_spdetails\external\get_assessments',
         'description' => 'Display current and past assessments on the Student Dashboard',

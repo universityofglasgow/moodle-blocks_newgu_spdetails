@@ -48,6 +48,7 @@ class grade {
         $gradestatus = new \stdClass();
         $gradestatus->assessment_url = '';
         $gradestatus->due_date = '';
+        $gradestatus->grade_date = '';
         $gradestatus->grade_status = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
         $gradestatus->status_text = '';
         $gradestatus->status_class = '';
@@ -67,6 +68,7 @@ class grade {
 
             if (property_exists($activitygrade, 'finalgrade') && $activitygrade->finalgrade > 0) {
                 $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->finalgrade, $gradetype, $scaleid, $grademax, $coursetype);
+                $gradestatus->grade_date = $activitygrade->gradedate;
                 $gradestatus->grade_status = get_string('status_graded', 'block_newgu_spdetails');
                 $gradestatus->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                 $gradestatus->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
@@ -74,6 +76,7 @@ class grade {
                 $gradestatus->grade_class = true;
                 $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                 $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
+                return $gradestatus;
             }
 
             // It's not been mentioned/specced w/regards provisional grades - do we treat rawgrades as such?
@@ -86,12 +89,13 @@ class grade {
                 $gradestatus->grade_provisional = true;
                 $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                 $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
+                return $gradestatus;
             }
 
-            // For the assignment activity, if both finalgrade and rawgrade return empty, 
-            // we do have a grade record - do we use this here? 
+            // For an assignment activity, if both finalgrade and rawgrade return empty, 
+            // we do have a grade record - do we/should we use this here? 
 
-            return $gradestatus;
+            // return $gradestatus;
         }
         
         // We either don't have a grade record, or the grade may not have been 

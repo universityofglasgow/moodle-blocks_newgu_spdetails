@@ -66,14 +66,21 @@
 {{/data.assessmentitems}}
 {{#data.assessmentitems.length}}
 <div id="assessments_due" class="assessments-details-sort-container">
-    <table class="table table-responsive assessments-details-table">
+    <table id="myTable" class="table table-striped table-responsive assessments-details-table">
         <thead>
             <tr>
                 <th id="sortby_shortname" data-sortby="shortname" class="td15 th-sortable">{{#str}} header_course, block_newgu_spdetails {{/str}}</th>
                 <th id="sortby_fullname" data-sortby="fullname" class="td50 th-sortable">{{#str}} header_assessment, block_newgu_spdetails {{/str}}</th>
                 <th class="td10">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
                 <th class="td5">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
-                <th id="sortby_duedate" data-sortby="duedate" class="td10 th-sortable">{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_duedate" data-sortby="duedate" class="td10 th-sortable">
+                    {{#data.date_header}}
+                        {{data.date_header}}
+                    {{/data.date_header}}
+                    {{^data.date_header}}
+                        {{#str}} header_duedate, block_newgu_spdetails {{/str}}
+                    {{/data.date_header}}
+                </th>
                 <th id="sortby_status" data-sortby="status" class="td15 th-sortable">{{#str}} header_status, block_newgu_spdetails {{/str}}</th>
             </tr>
         </thead>

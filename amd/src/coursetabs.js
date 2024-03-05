@@ -42,7 +42,6 @@ const initCourseTabs = () => {
 
     // Account for returning to the page, or reloading.
     if (activeTab) {
-        Log.debug('activetab:', activetab);
         activetab = activeTab;
         let currentTab = document.querySelector('#current_tab');
         let pastTab = document.querySelector('#past_tab');
@@ -62,7 +61,6 @@ const initCourseTabs = () => {
     }
 
     if (activeCategoryId) {
-        Log.debug('activeCategoryId:', activeCategoryId);
         subcatId = activeCategoryId;
         isPageClicked = true;
     }
@@ -110,7 +108,6 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
     promise[0].done(function(response) {
         document.querySelector('.loader').remove();
         let coursedata = JSON.parse(response.result);
-        Log.debug('coursedata struct:' + response.result + ' len:' + response.result.length);
         Templates.renderForPromise('block_newgu_spdetails/' + whichTemplate, {data:coursedata})
         .then(({html, js}) => {
             Templates.appendNodeContents(containerBlock, html, js);
@@ -147,6 +144,7 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
                 errorMsg.innerHTML = response.message;
                 errorContainer.appendChild(errorMsg);
                 errorMsg.classList.add('errormessage');
+                Log.debug(errorMsg);
             }
 
             if(response.hasOwnProperty('moreinfourl')) {
@@ -199,14 +197,11 @@ const showSubcategoryDetails = (object) => {
 };
 
 const subCategoryReturnHandler = (id) => {
-    Log.debug('subCategoryReturnHandler called with id:' + id);
-
     // The 'return to...' element won't exist on the page at the top most level.
     if (document.querySelector('#subcategory-return-assessment')) {
         document.querySelector('#subcategory-return-assessment').addEventListener('click', () => {
             // We now want to reload the previous level, using the previous id...
             // In order to display all courses, we pass null back to loadAssessments.
-            Log.debug('calling loadAssessments with id:' + id);
             if (id == 0 || id === null) {
                 id = null;
                 document.querySelector('#courseNav-container').classList.remove('hidden-container');
@@ -259,7 +254,6 @@ const sortingHeaders = (object, activetab, page, subcategory) => {
 };
 
 const sortingStatus = function(sortby, sortorder) {
-    Log.debug('sortingStatus called with sortby:' + sortby + ' sortorder:' + sortorder);
     let sortByShortName = document.querySelector('#sortby_shortname');
     let sortByFullName = document.querySelector('#sortby_fullname');
     let sortByAssessmentType = document.querySelector('#sortby_assessmenttype');

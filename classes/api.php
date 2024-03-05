@@ -166,6 +166,18 @@ class api extends \external_api
     }
 
     /**
+     * Return the assessment summary - filtered by type: submitted, overdue etc.
+     * 
+     * @param int $charttype
+     * @return array
+     */
+    public static function get_assessmentsummarybytype(int $charttype): array {
+        $assessmentsummary = \block_newgu_spdetails\course::get_assessmentsummarybytype($charttype);
+
+        return $assessmentsummary;
+    }
+
+    /**
      * Retrieves Parent category ids
      *
      * @param string $courseids

@@ -44,7 +44,7 @@
     <div class="assessments-overview-container border rounded my-2 p-2">
         <h3>{{#str}}headingataglance, block_newgu_spdetails{{/str}}</h3>
         <div class="container">
-            <div class="row row-cols-2">
+            <div class="row">
                 <div class="col">
                     <div class="card">
                         <div class="card-header">
@@ -81,13 +81,7 @@
                     </li>
                 </ul>
             </div>
-            {{#pagination}}
-                {{pagination}}
-            {{/pagination}}
             <div id="course_contents_container" class="tab-content"></div>
-            {{#pagination}}
-                {{pagination}}
-            {{/pagination}}
         </div>
         <div id="assessmentsDue-container" class="container-xxl hidden-container">
             <div id="assessmentsdue_content" class="tab-content"></div>

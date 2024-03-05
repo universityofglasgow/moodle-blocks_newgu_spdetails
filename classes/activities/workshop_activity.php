@@ -95,6 +95,7 @@ class workshop_activity extends base {
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
         $activitygrade->rawgrade = null;
+        $activitygrade->gradedate = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
@@ -103,12 +104,13 @@ class workshop_activity extends base {
                 return parent::get_first_grade($userid);
             }
 
+            // We want access to other properties, hence the returns...
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $activitygrade->finalgrade = $grade->finalgrade;
+                $activitygrade->gradedate = $grade->timemodified;
                 return $activitygrade;
             }
 
-            // We want access to other properties, hence the return...
             if ($grade->rawgrade != null && $grade->rawgrade > 0) {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;
@@ -242,7 +244,7 @@ class workshop_activity extends base {
      * @return array
      */
     public function get_assessmentsdue(): array {
-        global $USER;
+        global $USER, $DB;
         
         // Cache this query as it's going to get called for each assessment in the course otherwise.
         $cache = cache::make('block_newgu_spdetails', 'workshopduequery');
@@ -257,7 +259,7 @@ class workshop_activity extends base {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
             $select = 'authorid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'workshopid', $select,$params);
+            $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'id', $select,$params);
 
             $submissionsdata = [
                 'updated' => time(),

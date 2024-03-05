@@ -84,7 +84,7 @@
     </div>
 </div>
 <div id="current_subassessments" class="assessments-details-sort-container">
-    <table class="table table-responsive assessments-details-table">
+    <table class="table table-striped table-responsive assessments-details-table">
         <thead>
             <tr>
                 <th id="sortby_fullname" data-sortby="fullname" class="td50 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
@@ -106,7 +106,7 @@
             <tr data-id="{{id}}">
                 <td class="td50 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder-open"></i><strong>{{name}}</strong></a></td>
                 <td class="td15 subcategory-row">{{assessment_type}}</td>
-                <td class="td5 subcategory-row">{{subcatweight}}</td>
+                <td class="td5 subcategory-row" colspan="5">{{subcatweight}}</td>
             </tr>
             {{/subcategories}}
             {{#assessmentitems}}
@@ -114,7 +114,7 @@
                 <td class="td50"><a href="{{assessment_url}}">{{#item_icon}}<img class="icon itemicon" src="{{item_icon}}" alt="{{icon_alt}}" />{{/item_icon}}{{item_name}}</a></td>
                 <td class="td10">{{assessment_type}}</td>
                 <td class="td5">{{assessment_weight}}</td>
-                <td class="td15">{{due_date}}</td>
+                <td class="td15"{{^grade_status}} colspan="2"{{/grade_status}}>{{due_date}}</td>
                 {{#grade_status}}
                 <td class="td15">
                     {{#status_link}}

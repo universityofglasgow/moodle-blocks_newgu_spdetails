@@ -94,6 +94,7 @@ class assign_activity extends base {
         $activitygrade->finalgrade = null;
         $activitygrade->rawgrade = null;
         $activitygrade->grade = null;
+        $activitygrade->gradedate = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
@@ -104,12 +105,13 @@ class assign_activity extends base {
                 return parent::get_first_grade($userid);
             }
 
+            // We want access to other properties, hence the returns...
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $activitygrade->finalgrade = $grade->finalgrade;
+                $activitygrade->gradedate = $grade->timemodified;
                 return $activitygrade;
             }
 
-            // We want access to other properties, hence the return...
             if ($grade->rawgrade != null && $grade->rawgrade > 0) {
                 $activitygrade->rawgrade = $grade->rawgrade;
                 return $activitygrade;
@@ -123,6 +125,7 @@ class assign_activity extends base {
 
         if ($assigngrade !== false) {
             $activitygrade->grade = $assigngrade->grade;
+            $activitygrade->gradedate = $assigngrade->timemodified;
             return $activitygrade;
         }
 
@@ -172,6 +175,9 @@ class assign_activity extends base {
         $assigninstance = $this->assign->get_instance();
         $allowsubmissionsfromdate = $assigninstance->allowsubmissionsfromdate;
         $statusobj->grade_status = '';
+        $statusobj->status_text = '';
+        $statusobj->status_class = '';
+        $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $assigninstance->duedate;
 

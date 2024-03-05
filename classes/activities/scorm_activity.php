@@ -63,6 +63,7 @@ class scorm_activity extends base {
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
         $activitygrade->rawgrade = null;
+        $activitygrade->gradedate = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
@@ -71,9 +72,10 @@ class scorm_activity extends base {
                 return parent::get_first_grade($userid);
             }
 
-            // We want access to other properties, hence the return type...
+            // We want access to other properties, hence the returns...
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $activitygrade->finalgrade = $grade->finalgrade;
+                $activitygrade->gradedate = $grade->timemodified;
                 return $activitygrade;
             }
 

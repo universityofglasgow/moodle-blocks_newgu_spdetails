@@ -40,7 +40,6 @@ const Selectors = {
 
 const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
     const chartType = ((legendItem) ? legendItem.datasetIndex : chartItem);
-    Log.debug('chartType:' + chartType);
 
     let containerBlock = document.querySelector(Selectors.COURSECONTENTS_BLOCK);
     if (containerBlock.checkVisibility()) {
@@ -67,7 +66,6 @@ const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
     }])[0].done(function(response) {
         document.querySelector('.loader').remove();
         let assessmentdata = JSON.parse(response.result);
-        Log.debug('data:' + assessmentdata.assessmentitems);
         Templates.renderForPromise('block_newgu_spdetails/assessmentsdue', {data:assessmentdata})
         .then(({html, js}) => {
             Templates.appendNodeContents(assessmentsDueContents, html, js);
@@ -104,11 +102,12 @@ const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
     });
 };
 
+/**
+ * @method returnToAssessmentsHandler
+ */
 const returnToAssessmentsHandler = () => {
-    Log.debug('returnToAssessmentsHandler called');
     if (document.querySelector('#assessments-due-return')) {
         document.querySelector('#assessments-due-return').addEventListener('click', () => {
-            Log.debug('click event triggered');
             let containerBlock = document.querySelector(Selectors.COURSECONTENTS_BLOCK);
             let assessmentsDueBlock = document.querySelector(Selectors.ASSESSMENTSDUE_BLOCK);
             assessmentsDueBlock.classList.add('hidden-container');
