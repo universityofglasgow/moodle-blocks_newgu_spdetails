@@ -140,7 +140,7 @@ const fetchAssessmentsDueSoon = () => {
     }])[0].done(function(response) {
         document.querySelector('.loader').remove();
         tempPanel.insertAdjacentHTML("afterbegin", "<canvas id='assessmentsDueSoonChart'\n" +
-            " aria-label='Assessments Due Soon chart data' role='graphics-object'>\n" +
+            " width='400' height='200' aria-label='Assessments Due Soon chart data' role='graphics-object'>\n" +
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
             "</canvas>");
 

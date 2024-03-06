@@ -141,7 +141,7 @@ const fetchAssessmentSummary = () => {
     }])[0].done(function(response) {
         document.querySelector('.loader').remove();
         tempPanel.insertAdjacentHTML("afterbegin", "<canvas id='assessmentSummaryChart'\n" +
-            " aria-label='Assessment Summary chart data' role='graphics-object'>\n" +
+            " width='400' height='300' aria-label='Assessment Summary chart data' role='graphics-object'>\n" +
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
             "</canvas>");
 
