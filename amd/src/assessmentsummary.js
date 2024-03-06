@@ -38,69 +38,73 @@ const Selectors = {
 };
 
 const viewAssessmentSummaryByChartType = function(event, legendItem, legend) {
-    const chartType = ((legendItem) ? legendItem.index : legend);
 
-    let containerBlock = document.querySelector(Selectors.COURSECONTENTS_BLOCK);
-    if (containerBlock) {
-        if (containerBlock.checkVisibility()) {
-            containerBlock.classList.add('hidden-container');
+    // We don't want this firing from the main Dashboard page.
+    if (!document.querySelector('#student_dashboard')) {
+        const chartType = ((legendItem) ? legendItem.index : legend);
+
+        let containerBlock = document.querySelector(Selectors.COURSECONTENTS_BLOCK);
+        if (containerBlock) {
+            if (containerBlock.checkVisibility()) {
+                containerBlock.classList.add('hidden-container');
+            }
         }
-    }
 
-    let assessmentsDueBlock = document.querySelector(Selectors.ASSESSMENTSDUE_BLOCK);
-    let assessmentsDueContents = document.querySelector(Selectors.ASSESSMENTSDUE_CONTENTS);
+        let assessmentsDueBlock = document.querySelector(Selectors.ASSESSMENTSDUE_BLOCK);
+        let assessmentsDueContents = document.querySelector(Selectors.ASSESSMENTSDUE_CONTENTS);
 
-    if (assessmentsDueBlock.children.length > 0) {
-        assessmentsDueContents.innerHTML = '';
-    }
+        if (assessmentsDueBlock.children.length > 0) {
+            assessmentsDueContents.innerHTML = '';
+        }
 
-    assessmentsDueBlock.classList.remove('hidden-container');
+        assessmentsDueBlock.classList.remove('hidden-container');
 
-    assessmentsDueContents.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
-        "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
+        assessmentsDueContents.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
+            "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
 
-    ajax.call([{
-        methodname: 'block_newgu_spdetails_get_assessmentsummarybytype',
-        args: {
-            charttype: chartType
-        },
-    }])[0].done(function(response) {
-        document.querySelector('.loader').remove();
-        let assessmentdata = JSON.parse(response.result);
-        Templates.renderForPromise('block_newgu_spdetails/assessmentsdue', {data:assessmentdata})
-        .then(({html, js}) => {
-            Templates.appendNodeContents(assessmentsDueContents, html, js);
-            returnToAssessmentsHandler();
-        }).catch((error) => displayException(error));
-    }).fail(function(response) {
-        if(response) {
+        ajax.call([{
+            methodname: 'block_newgu_spdetails_get_assessmentsummarybytype',
+            args: {
+                charttype: chartType
+            },
+        }])[0].done(function(response) {
             document.querySelector('.loader').remove();
-            let errorContainer = document.createElement('div');
-            errorContainer.classList.add('alert', 'alert-danger');
+            let assessmentdata = JSON.parse(response.result);
+            Templates.renderForPromise('block_newgu_spdetails/assessmentsdue', {data:assessmentdata})
+            .then(({html, js}) => {
+                Templates.appendNodeContents(assessmentsDueContents, html, js);
+                returnToAssessmentsHandler();
+            }).catch((error) => displayException(error));
+        }).fail(function(response) {
+            if(response) {
+                document.querySelector('.loader').remove();
+                let errorContainer = document.createElement('div');
+                errorContainer.classList.add('alert', 'alert-danger');
 
-            if(response.hasOwnProperty('message')) {
-                let errorMsg = document.createElement('p');
+                if(response.hasOwnProperty('message')) {
+                    let errorMsg = document.createElement('p');
 
-                errorMsg.innerHTML = response.message;
-                errorContainer.appendChild(errorMsg);
-                errorMsg.classList.add('errormessage');
+                    errorMsg.innerHTML = response.message;
+                    errorContainer.appendChild(errorMsg);
+                    errorMsg.classList.add('errormessage');
+                }
+
+                if(response.hasOwnProperty('moreinfourl')) {
+                    let errorLinkContainer = document.createElement('p');
+                    let errorLink = document.createElement('a');
+
+                    errorLink.setAttribute('href', response.moreinfourl);
+                    errorLink.setAttribute('target', '_blank');
+                    errorLink.innerHTML = 'More information about this error';
+                    errorContainer.appendChild(errorLinkContainer);
+                    errorLinkContainer.appendChild(errorLink);
+                    errorLinkContainer.classList.add('errorcode');
+                }
+
+                assessmentsDueContents.prepend(errorContainer);
             }
-
-            if(response.hasOwnProperty('moreinfourl')) {
-                let errorLinkContainer = document.createElement('p');
-                let errorLink = document.createElement('a');
-
-                errorLink.setAttribute('href', response.moreinfourl);
-                errorLink.setAttribute('target', '_blank');
-                errorLink.innerHTML = 'More information about this error';
-                errorContainer.appendChild(errorLinkContainer);
-                errorLinkContainer.appendChild(errorLink);
-                errorLinkContainer.classList.add('errorcode');
-            }
-
-            assessmentsDueContents.prepend(errorContainer);
-        }
-    });
+        });
+    }
 };
 
 /**
@@ -172,17 +176,23 @@ const fetchAssessmentSummary = () => {
                 options: {
                     responsive: true,
                     onHover: (event, chartElement) => {
-                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                        if (!document.querySelector('#student_dashboard')) {
+                            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                        }
                     },
                     plugins: {
                         legend: {
                             display: true,
                             position: 'right',
                             onClick: (event, legendItem, legend) => {
-                                viewAssessmentSummaryByChartType(event, legendItem, legend);
+                                if (!document.querySelector('#student_dashboard')) {
+                                    viewAssessmentSummaryByChartType(event, legendItem, legend);
+                                }
                             },
                             onHover: (event) => {
-                                event.native.target.style.cursor = 'pointer';
+                                if (!document.querySelector('#student_dashboard')) {
+                                    event.native.target.style.cursor = 'pointer';
+                                }
                             },
                             onLeave: (event) => {
                                 event.native.target.style.cursor = 'default';

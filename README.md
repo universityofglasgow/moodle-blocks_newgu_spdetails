@@ -14,7 +14,7 @@ There is also a Staff view of the 'dashboard', which allows only Staff that are 
 
 # Installation
 ___
-* Either clone or checkout the files to /your/moodle/blocks/newgu_spdetails
+* Either clone or checkout the files to [/your/moodle/]blocks/newgu_spdetails
 * Visit Site admin => Notifications, follow the upgrade instructions which will install the files in the usual Moodle way.
 
 # Use
@@ -23,3 +23,11 @@ ___
 * The Student view is then accessed by the "Click here to view your assessment details" button which should appear after the Course Overview block.
 * From the assessment details page, you can access assignments, sort by various criteria and view past courses.
 * The Status column also allows the student to go directly to the assignment submission page if necessary.
+
+# Uninstall
+___
+* Remove the `block_newgu_spdetails` and `local_gustaffview` plugins from the Moodle folder:
+   * [yourmoodledir]/block/newgu_spdetails
+   * [yourmoodledir]/local/gustaffview
+* Access the plugin uninstall page: Site Administration > Plugins > Plugins overview
+* Look for the removed plugins and click on uninstall for each plugin. 
