@@ -36,6 +36,21 @@ $PAGE->set_pagelayout('report');
 
 $PAGE->navbar->add(get_string('blocktitle', 'block_newgu_spdetails'), new moodle_url('/blocks/newgu_spdetails/index.php'));
 
+// MGU-697 - this needs to be clarified as to what needs to be logged
+// and when. For now, just log that the user has hit the index page.
+// This could be hit several times an hour by the same student if they
+// refresh the page for example. Currently no requirements for how this
+// log data needs to be reported on. WIP.
+$event = \block_newgu_spdetails\event\view_dashboard::create([
+    'objectid' => $USER->id,
+    'context' => \context_system::instance(),
+    'other' =>[
+        'originalusername' => fullname($USER, true),
+        'loggedinasusername' => fullname($user, true)
+    ]
+]);
+$event->trigger();
+
 $templatecontext = (array)[
     'tab_current'       => get_string('tab_current', 'block_newgu_spdetails'),
     'tab_past'          => get_string('tab_past', 'block_newgu_spdetails'),
@@ -49,6 +64,3 @@ $PAGE->requires->js_call_amd('block_newgu_spdetails/main', 'init');
 echo $OUTPUT->header();
 echo $content;
 echo $OUTPUT->footer();
-
-// @todo - add logging to this page - this will be needed for reporting purposes.
-

@@ -97,6 +97,7 @@ $string['label_grade'] = 'Overall grade: ';
 $string['previous'] = 'Previous';
 $string['back_to'] = 'Back to assessment details';
 $string['feedback_tobeconfirmed'] = 'To be confirmed';
+$string['event_view_dashboard'] = 'View student dashboard';
 
 $string['chart_24hrs'] = '24 hours';
 $string['chart_7days'] = '7 days';
