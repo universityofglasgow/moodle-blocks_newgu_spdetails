@@ -173,10 +173,12 @@ class activity {
             
             foreach($tmp as $mygradesitem) {
                 
-                // Is the item hidden from this user...
                 $cm = get_coursemodule_from_instance($mygradesitem->itemmodule, $mygradesitem->iteminstance, $mygradesitem->courseid, false, MUST_EXIST);
                 $modinfo = get_fast_modinfo($mygradesitem->courseid);
                 $cm = $modinfo->get_cm($cm->id);
+
+                // MGU-631 - Honour hidden grades and hidden activities. Having discussed with HM, if the activity is hidden, don't 
+                // show it full stop. This code may not be correct - if - it should only hide the grade if either condition is true.
                 if ($cm->uservisible) {
 
                     if ($mygradesitem->itemmodule == 'lti') {
@@ -219,7 +221,8 @@ class activity {
                         foreach ($usergrades as $usergrade) {
                             switch($usergrade->gradetype) {
                                 case 'RELEASED':
-                                    $grade = $usergrade->displaygrade;
+                                    // MGU-631 - Honour hidden grades and hidden activities.
+                                    $grade = ((!$mygradesitem->hidden) ? $usergrade->displaygrade : get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'));
                                     $grade_class = true;
                                     $grade_status = get_string('status_graded', 'block_newgu_spdetails');
                                     $status_text = get_string('status_text_graded', 'block_newgu_spdetails');
@@ -245,6 +248,8 @@ class activity {
                         
                         $assessment_url = $gradestatobj->assessment_url;
                         $due_date = $gradestatobj->due_date;
+                        // MGU-631 - Honour hidden grades and hidden activities.
+                        $grade = ((!$mygradesitem->hidden) ? $gradestatobj->grade_to_display : get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'));
                         $grade_status = $gradestatobj->grade_status;
                         $status_link = $gradestatobj->status_link;
                         $status_class = $gradestatobj->status_class;
@@ -300,7 +305,7 @@ class activity {
     public static function process_gcat_items(int $subcategory, array|string $lti_instances_to_exclude, int $userid, string $activetab, string $assessmenttype, string $sortby, string $sortorder): array {
 
         global $CFG;
-        // Here we are simply deferring to GCAT's API to return assignments and their status and (released?) grade.
+        // Here we are simply deferring to GCAT's API to return assignments and their status and grade.
         require_once($CFG->dirroot. '/blocks/gu_spdetails/lib.php');
         // course fullname isn't referenced in the query, it's known as coursetitle - find and replace for now...
         $sortby = preg_replace('/(full|short)name/', 'coursetitle, activityname', $sortby);
@@ -313,9 +318,10 @@ class activity {
             
             foreach($tmp as $gcatitem) {
                 
-                // GCAT seems to take care of checking if the module and item is visible to the user
-                // in the API call above. We're assuming that we only have items returned that the
-                // user is therefore able to see.
+                // MGU-631 - GCAT seems to take care of checking if the activity item and grade is 
+                // visible to the user in the API call above. The only issue is whether, for grade
+                // items that were hidden, should the rest of the activity information be displayed.
+                // The above call currently will not return records where gi.hidden = 1.
 
                 // We have no knowledge of the itemmodule here - how do we get that for this check?
                 if (property_exists($gcatitem, 'itemmodule') && $gcatitem->itemmodule == 'lti') {
@@ -402,10 +408,13 @@ class activity {
             
             foreach($tmp as $defaultitem) {
                 
-                // Is the item hidden from this user...
                 $cm = get_coursemodule_from_instance($defaultitem->itemmodule, $defaultitem->iteminstance, $defaultitem->courseid, false, MUST_EXIST);
                 $modinfo = get_fast_modinfo($defaultitem->courseid);
                 $cm = $modinfo->get_cm($cm->id);
+                
+                // MGU-631 - Honour hidden grades and hidden activities.
+                // Having discussed with HM, if the activity is hidden,
+                // don't show it full stop.
                 if ($cm->uservisible) {
                 
                     if ($defaultitem->itemmodule == 'lti') {
@@ -449,7 +458,8 @@ class activity {
                     $status_link = $gradestatobj->status_link;
                     $status_class = $gradestatobj->status_class;
                     $status_text = $gradestatobj->status_text;
-                    $grade = $gradestatobj->grade_to_display;
+                    // MGU-631 - Honour hidden grades and hidden activities.
+                    $grade = ((!$defaultitem->hidden) ? $gradestatobj->grade_to_display : get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'));
                     $grade_class = $gradestatobj->grade_class;
                     $grade_provisional = $gradestatobj->grade_provisional;
                     $grade_feedback = $gradestatobj->grade_feedback;
