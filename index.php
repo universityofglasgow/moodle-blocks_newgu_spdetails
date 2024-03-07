@@ -41,13 +41,22 @@ $PAGE->navbar->add(get_string('blocktitle', 'block_newgu_spdetails'), new moodle
 // This could be hit several times an hour by the same student if they
 // refresh the page for example. Currently no requirements for how this
 // log data needs to be reported on. WIP.
+$otherparams = [
+    'originaluser' => fullname($USER, true),
+    'originaluserid' => $USER->id,
+    'originalemail' => $USER->email
+];
+if (isset($_SESSION['REALUSER'])) {
+    $realuser = get_complete_user_data('id', $_SESSION['REALUSER']->id);
+    $otherparams['realuser'] = fullname($realuser, true);
+    $otherparams['realuserid'] = $realuser->id;
+    $otherparams['realuseremail'] = $realuser->email;
+}
+
 $event = \block_newgu_spdetails\event\view_dashboard::create([
     'objectid' => $USER->id,
     'context' => \context_system::instance(),
-    'other' =>[
-        'originalusername' => fullname($USER, true),
-        'loggedinasusername' => fullname($user, true)
-    ]
+    'other' => $otherparams
 ]);
 $event->trigger();
 
