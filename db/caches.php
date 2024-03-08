@@ -62,6 +62,12 @@ $definitions = [
         'simpledata' => false,
         'ttl' => 300, // 5 minutes expiry time.
     ],
+    'scormduequery' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => false,
+        'simpledata' => false,
+        'ttl' => 300, // 5 minutes expiry time.
+    ],
     'studentdashboarddata' => [
         'mode' => cache_store::MODE_APPLICATION,
         'simplekeys' => false,

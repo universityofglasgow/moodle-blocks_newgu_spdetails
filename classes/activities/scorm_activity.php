@@ -216,8 +216,51 @@ class scorm_activity extends base {
      * @return array
      */
     public function get_assessmentsdue(): array {
-        $assignmentdata = [];
-        return $assignmentdata;
+        global $USER, $DB;
+
+        // Cache this query as it's going to get called for each assessment in the course otherwise.
+        $cache = cache::make('block_newgu_spdetails', 'scormduequery');
+        $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
+        $currenttime = time();
+        $fiveminutes = $currenttime - 300;
+        $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
+        $scormdata = [];
+
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
+            
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $select = 'userid = :userid AND timemodified BETWEEN :lastmonth AND :now';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $scormsubmissions = $DB->get_fieldset_select('scorm_scoes_track', 'scormid', $select,$params);
+
+            $submissionsdata = [
+                'updated' => time(),
+                'scormsubmissions' => $scormsubmissions
+            ];
+
+            $cachedata = [
+                $cachekey => [
+                    $submissionsdata
+                ]
+            ];
+            $cache->set_many($cachedata);
+        } else {
+            $cachedata = $cache->get_many([$cachekey]);
+            $scormsubmissions = $cachedata[$cachekey][0]['scormsubmissions'];
+        }
+
+        $scorm = $this->scorm;
+            
+        if (!in_array($scorm->id, $scormsubmissions)) {
+            if ($scorm->timeclose < $now) {
+                if ($scorm->timeopen > $now) {
+                    $scormdata[] = $scorm;
+                }
+            }
+        }
+        
+        return $scormdata;
 
     }
 
