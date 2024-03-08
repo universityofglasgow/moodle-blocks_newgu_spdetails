@@ -27,6 +27,8 @@ namespace block_newgu_spdetails\activities;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/mod/scorm/locallib.php');
+
 /**
  * Implementation for a SCORM activity type.
  */
@@ -38,6 +40,11 @@ class scorm_activity extends base {
     private $cm;
 
     /**
+     * @var object $scorm
+     */
+    private $scorm;
+
+    /**
      * For this activity, get just the basic course module info.
      * 
      * @param int $gradeitemid Grade item id
@@ -47,8 +54,22 @@ class scorm_activity extends base {
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
         parent::__construct($gradeitemid, $courseid, $groupid);
 
-        // Get the forum object.
+        // Get the scorm object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
+        $this->scorm = $this->get_scorm();
+    }
+
+    /**
+     * Get scorm object.
+     * 
+     * @return object
+     */
+    public function get_scorm(): object {
+        global $DB;
+        
+        $scorm = $DB->get_record('scorm', ['id' => $this->gradeitem->iteminstance]);
+
+        return $scorm;
     }
     
     /**
@@ -126,13 +147,55 @@ class scorm_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
+        $statusobj->due_date = '';
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-        $statusobj->due_date = '';
-        $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
-        $statusobj->status_text = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-        $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+        $statusobj->status_text = '';
+        $statusobj->status_class = '';
         $statusobj->status_link = '';
+        $allowsubmissionsfromdate = $this->scorm->timeopen;
+
+        if ($allowsubmissionsfromdate > time()) {
+            $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
+            $statusobj->status_text = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
+            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        }
+
+        if (time() > $this->scorm->timeclose) {
+            $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+            $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+            $statusobj->status_link = '';
+            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+            $statusobj->due_date = $this->scorm->timeclose;
+        }
+
+        if ($statusobj->grade_status == '') {
+            $scormsubmission = scorm_get_last_completed_attempt($this->scorm->id, $userid);
+            
+            $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+            $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+            $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+            $statusobj->due_date = $this->scorm->timeclose;
+
+            if (!empty($scormsubmission) && $scormsubmission != '1') {
+                $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
+                $statusobj->status_link = '';
+            } else {
+                $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
+                $statusobj->status_link = $statusobj->assessment_url;
+            }
+        }
+
+        // Formatting this here as the integer format for the date is no longer needed for testing against.
+        if ($statusobj->due_date != 0) {
+            $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+        } else {
+            $statusobj->due_date = '';
+        }
 
         return $statusobj;
     }
