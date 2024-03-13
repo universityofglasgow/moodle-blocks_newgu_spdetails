@@ -22,9 +22,10 @@
  * @copyright  2023 University of Glasgow
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace block_newgu_spdetails\external;
 
 defined('MOODLE_INTERNAL') || die();
-global $CFG, $DB;
+global $CFG;
 
 require_once($CFG->dirroot .'/config.php');
 require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
@@ -33,22 +34,19 @@ require_once($CFG->dirroot .'/blocks/newgu_spdetails/block_newgu_spdetails.php')
 /**
  * Test(s) for block_newgu_spdetails
  */
-class block_newgu_spdetails_test extends advanced_testcase {
+class block_newgu_spdetails_test extends \advanced_testcase {
 
     /**
-     * Set up our test conditions...
-     * @return void
-     * @throws dml_exception
+     * Called before every test
      */
-    public function setUp(): void
-    {
+    protected function setUp(): void {
         $this->resetAfterTest(true);
-        $spdetails = new block_newgu_spdetails();
+        $spdetails = new \block_newgu_spdetails();
 
         $this->spdetails = $spdetails;
 
         // The $PAGE object is never instantiated in our test conditions, hence...
-        $page = new moodle_page();
+        $page = new \moodle_page();
         $this->spdetails->page = $page;
     }
 

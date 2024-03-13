@@ -67,7 +67,7 @@ class grade {
             $gradestatus->due_date = $activity->get_formattedduedate();
 
             if (property_exists($activitygrade, 'finalgrade') && $activitygrade->finalgrade > 0) {
-                $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->finalgrade, $gradetype, $scaleid, $grademax, $coursetype);
+                $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->finalgrade, $gradetype, $scaleid, $grademax);
                 $gradestatus->grade_date = $activitygrade->gradedate;
                 $gradestatus->grade_status = get_string('status_graded', 'block_newgu_spdetails');
                 $gradestatus->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
@@ -81,14 +81,13 @@ class grade {
 
             // It's not been mentioned/specced w/regards provisional grades - do we treat rawgrades as such?
             if (property_exists($activitygrade, 'rawgrade') && $activitygrade->rawgrade > 0) {
-                $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype, $activitygrade->rawscaleid);
+                $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype, $scaleid, $grademax);
                 $gradestatus->grade_status = get_string('status_provisional', 'block_newgu_spdetails');
                 $gradestatus->status_text = get_string('status_text_provisional', 'block_newgu_spdetails');
                 $gradestatus->status_class = get_string('status_class_provisional', 'block_newgu_spdetails');
                 $gradestatus->grade_to_display = $grade;
                 $gradestatus->grade_provisional = true;
-                $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
-                $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
+                $gradestatus->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                 return $gradestatus;
             }
 

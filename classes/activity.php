@@ -78,8 +78,8 @@ class activity {
         // to work on all items, rather than just by category/activity item as it currently does.
         $activities = \local_gugrades\api::get_activities($course->id, $subcategory);
         $activitiesdata = self::process_get_activities($activities, $course->id, $subcategory, $userid, $activetab, $assessmenttype, $sortby, $sortorder);
-        $coursedata['subcategories'] = $activitiesdata['subcategories'];
-        $coursedata['assessmentitems'] = $activitiesdata['assessmentitems'];
+        $coursedata['subcategories'] = ((array_key_exists('subcategories', $activitiesdata)) ? $activitiesdata['subcategories'] : '');
+        $coursedata['assessmentitems'] = ((array_key_exists('assessmentitems', $activitiesdata)) ? $activitiesdata['assessmentitems'] : '');
         $activitydata['coursedata'] = $coursedata;
 
         return $activitydata;
@@ -188,6 +188,7 @@ class activity {
                         }
                     }
 
+                    $assessment_url = $cm->url->out();
                     $item_icon = '';
                     $icon_alt = '';
                     if ($iconurl = $cm->get_icon_url()->out(false)) {
@@ -196,14 +197,14 @@ class activity {
                     }
                     $assessment_weight = \block_newgu_spdetails\course::return_weight($mygradesitem->aggregationcoef);
                     $due_date = '';
-                    $grade = '';
+                    $grade_status = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
+                    $status_link = '';
+                    $status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+                    $status_text = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                    $grade = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     $grade_class = false;
                     $grade_provisional = false;
-                    $grade_status = '';
-                    $status_class = '';
-                    $status_text = '';
-                    $status_link = '';
-                    $grade_feedback = '';
+                    $grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     $grade_feedback_link = '';
 
                     $params = [
@@ -214,21 +215,24 @@ class activity {
                     ];
                     if ($usergrades = $DB->get_records('local_gugrades_grade', $params)) {
                         // @todo - swap all of this for the relevant mygrades API calls - if/when one exists.
-                        $assessment_url = $cm->url->out();
                         $dateobj = \DateTime::createFromFormat('U', $cm->customdata['duedate']);
                         $due_date = $dateobj->format('jS F Y');
                         
                         foreach ($usergrades as $usergrade) {
                             switch($usergrade->gradetype) {
                                 case 'RELEASED':
+                                    $status_class = get_string('status_class_graded', 'block_newgu_spdetails');
+                                    $status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                                     // MGU-631 - Honour hidden grades and hidden activities.
                                     $grade = ((!$mygradesitem->hidden) ? $usergrade->displaygrade : get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'));
                                     $grade_class = true;
                                     $grade_status = get_string('status_graded', 'block_newgu_spdetails');
-                                    $status_text = get_string('status_text_graded', 'block_newgu_spdetails');
-                                    $status_class = get_string('status_class_graded', 'block_newgu_spdetails');
                                     $grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                                     $grade_feedback_link = $assessment_url . '#page-footer';
+                                    break;
+
+                                case 'PROVISIONAL':
+                                    $grade_provisional = true;
                                     break;
                             }
                         }
@@ -260,7 +264,7 @@ class activity {
                         'id' => $mygradesitem->id,
                         'assessment_url' => $assessment_url,
                         'item_icon' => $item_icon,
-                        'icon_alt' => $item_alt,
+                        'icon_alt' => $icon_alt,
                         'item_name' => $mygradesitem->itemname,
                         'assessment_type' => $assessmenttype,
                         'assessment_weight' => $assessment_weight,
