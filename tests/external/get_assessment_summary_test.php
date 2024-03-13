@@ -74,7 +74,7 @@ class get_assessment_summary_test extends \blocks_newgu_spdetails\external\newgu
         );
         $this->assertIsArray($stats);
         $this->assertArrayHasKey('sub_assess', $stats[0]);
-        $this->assertEquals(3, $stats[0]['sub_assess']);
+        $this->assertEquals(1, $stats[0]['sub_assess']);
     }
 
     /**
@@ -92,7 +92,7 @@ class get_assessment_summary_test extends \blocks_newgu_spdetails\external\newgu
         );
         $this->assertIsArray($stats);
         $this->assertArrayHasKey('tobe_sub', $stats[0]);
-        $this->assertEquals(4, $stats[0]['tobe_sub']);
+        $this->assertEquals(3, $stats[0]['tobe_sub']);
     }
 
     /**
@@ -128,6 +128,6 @@ class get_assessment_summary_test extends \blocks_newgu_spdetails\external\newgu
         );
         $this->assertIsArray($stats);
         $this->assertArrayHasKey('assess_marked', $stats[0]);
-        $this->assertEquals(0, $stats[0]['assess_marked']);
+        $this->assertEquals(4, $stats[0]['assess_marked']);
     }
 }

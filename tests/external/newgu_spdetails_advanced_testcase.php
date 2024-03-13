@@ -298,10 +298,11 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'Provisional Grade',
             $gcat_summativecategory->id,
             $gcat_scale1->id,
+            $gcat_scale1->id,
             2,
             $assignment1->id
         ];
-        $DB->execute("UPDATE {grade_items} SET itemname = ?, categoryid = ?, idnumber = ?, gradetype = ? WHERE iteminstance = ?", $params);
+        $DB->execute("UPDATE {grade_items} SET itemname = ?, categoryid = ?, idnumber = ?, scaleid = ?, gradetype = ? WHERE iteminstance = ?", $params);
 
         $gradeditem1 = $this->add_assignment_grade($assignment1->id, $student1->id, $teacher->id, 35, ASSIGN_SUBMISSION_STATUS_SUBMITTED);
 
@@ -332,10 +333,11 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'Provisional Grade',
             $gcat_summative_subcategory->id,
             $gcat_scale1->id,
+            $gcat_scale1->id,
             2,
             $assignment2->id
         ];
-        $DB->execute("UPDATE {grade_items} SET itemname = ?, categoryid = ?, idnumber = ?, gradetype = ? WHERE iteminstance = ?", $params);
+        $DB->execute("UPDATE {grade_items} SET itemname = ?, categoryid = ?, idnumber = ?, scaleid = ?, gradetype = ? WHERE iteminstance = ?", $params);
 
         $gradeditem2 = $this->add_assignment_grade($assignment2->id, $student1->id, $teacher->id, 18, ASSIGN_SUBMISSION_STATUS_SUBMITTED);
 
@@ -374,9 +376,10 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         // create_module gives us stuff for free, however, it doesn't set the categoryid correctly :-(
         $params = [
             $gcat_summative_subcategory->id,
+            $gcat_scale1->id,
             $assignment3->id
         ];
-        $DB->execute("UPDATE {grade_items} SET categoryid = ? WHERE iteminstance = ?", $params);
+        $DB->execute("UPDATE {grade_items} SET categoryid = ?, scaleid = ? WHERE iteminstance = ?", $params);
 
         $gradeditem3 = $this->add_assignment_grade($assignment3->id, $student1->id, $teacher->id, 12.5, ASSIGN_SUBMISSION_STATUS_NEW);
 
@@ -416,9 +419,10 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         // create_module gives us stuff for free, however, it doesn't set the categoryid correctly :-(
         $params = [
             $gcat_summative_subcategory->id,
+            $gcat_scale1->id,
             $groupassignment1->id
         ];
-        $DB->execute("UPDATE {grade_items} SET categoryid = ? WHERE iteminstance = ?", $params);
+        $DB->execute("UPDATE {grade_items} SET categoryid = ?, scaleid = ? WHERE iteminstance = ?", $params);
 
         /** 
          * Create a MyGrades type course.
