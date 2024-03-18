@@ -40,47 +40,11 @@
      * 
      * For a GCAT type course, the API is called and it should deal 
      * with the return values.
-     * 
-     * For a MyGrades course - we have the situation where if grades
-     * haven't been imported/released, then it defaults to retrieving
-     * this from gradebook. These tests should account for this, i.e.
-     * we're only dealing with released grades from local_gugrades -
-     * there isn't a notion of provisional grades.
-     * 
-     * For generic Gradebook courses, the data should be coming directly
-     * from gradebook.
      */
-    public function test_get_grade_status_and_feedback() {
+    public function test_get_grade_status_and_feedback_gcat() {
         $userid = $this->student1->id;
         $sortorder = 'asc';
 
-        /**
-         * Check these attributes on a MyGrades course
-         */
-        $mygrades_summative_subcategory2 = $this->mygrades_summative_subcategory2->id;
-        $mygrades_graded_items = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $mygrades_summative_subcategory2);
-
-        $this->assertIsArray($mygrades_graded_items);
-        $this->assertCount(2, $mygrades_graded_items['coursedata']['assessmentitems']);
-
-        // Check for the raw grade/provisional on the first assignment.
-        $this->assertArrayHasKey('grade_provisional', $mygrades_graded_items['coursedata']['assessmentitems'][0]);
-        $this->assertTrue($mygrades_graded_items['coursedata']['assessmentitems'][0]['grade_provisional']);
-        // Check for the feedback.
-        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'), $mygrades_graded_items['coursedata']['assessmentitems'][0]['grade_feedback']);
-
-        // Check for an overridden grade.
-        // Check for the feedback.
-
-        // Check for the final grade.
-        $this->assertArrayHasKey('grade_class', $mygrades_graded_items['coursedata']['assessmentitems'][1]);
-        $this->assertFalse($mygrades_graded_items['coursedata']['assessmentitems'][1]['grade_provisional']);
-        // Check for the feedback.
-        $this->assertStringContainsString(get_string('status_text_viewfeedback', 'block_newgu_spdetails'), $mygrades_graded_items['coursedata']['assessmentitems'][1]['grade_feedback']);
-        
-        /** 
-         * Check these attributes on a GCAT course
-         */
         $gcat_summative_subcategory = $this->gcat_summative_subcategory->id;
         $gcat_graded_items = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gcat_summative_subcategory);
         
@@ -102,9 +66,49 @@
         // Check for the feedback.
         $this->assertStringContainsString(get_string('readfeedback', 'block_gu_spdetails'), $gcat_graded_items['coursedata']['assessmentitems'][1]['grade_feedback']);
 
-        /** 
-         * Check these attributes on a Gradebook course
-         */
+    }
+
+    /**
+     * For a MyGrades course - we have the situation where if grades
+     * haven't been imported/released, then it defaults to retrieving
+     * them from gradebook. These tests should account for this, i.e.
+     * as we're only dealing with released grades from local_gugrades -
+     * there isn't a notion of provisional grades.
+     */
+    public function test_get_grade_status_and_feedback_mygrades() {
+        $userid = $this->student1->id;
+        $sortorder = 'asc';
+
+        $mygrades_summative_subcategory2 = $this->mygrades_summative_subcategory2->id;
+        $mygrades_graded_items = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $mygrades_summative_subcategory2);
+
+        $this->assertIsArray($mygrades_graded_items);
+        $this->assertCount(2, $mygrades_graded_items['coursedata']['assessmentitems']);
+
+        // Check for the raw grade/provisional on the first assignment.
+        $this->assertArrayHasKey('grade_provisional', $mygrades_graded_items['coursedata']['assessmentitems'][0]);
+        $this->assertTrue($mygrades_graded_items['coursedata']['assessmentitems'][0]['grade_provisional']);
+        // Check for the feedback.
+        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'), $mygrades_graded_items['coursedata']['assessmentitems'][0]['grade_feedback']);
+
+        // Check for an overridden grade.
+        // Check for the feedback.
+
+        // Check for the final grade.
+        $this->assertArrayHasKey('grade_class', $mygrades_graded_items['coursedata']['assessmentitems'][1]);
+        $this->assertFalse($mygrades_graded_items['coursedata']['assessmentitems'][1]['grade_provisional']);
+        // Check for the feedback.
+        $this->assertStringContainsString(get_string('status_text_viewfeedback', 'block_newgu_spdetails'), $mygrades_graded_items['coursedata']['assessmentitems'][1]['grade_feedback']);
+    }
+
+    /** 
+     * For generic Gradebook courses, the data should be coming directly
+     * from gradebook.
+     */
+    public function test_get_grade_status_and_feedback_gradebook() {
+        $userid = $this->student1->id;
+        $sortorder = 'asc';
+
         $gradebookcategory = $this->gradebookcategory->id;
         $gradebook_graded_items = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gradebookcategory);
 

@@ -37,14 +37,31 @@ class observer {
     const CACHE_KEY = 'studentid_summary:';
 
     /**
-     * Handle the submission added event.
+     * Handle the core assessable submission event.
+     * Not sure if this is deemed a catch all event?
+     *
+     * @param \core\event\assessable_submitted $event
+     * @return bool
+     */
+    public static function core_assessable_submitted(\core\event\assessable_submitted $event): bool {
+        
+        // Invalidate the cache.
+        if ((!empty($event->userid)) && $event->userid != 1) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:assignment submission created event.
      *
      * @param \mod_assign\event\submission_created $event
      * @return bool
      */
     public static function submission_created(\mod_assign\event\submission_created $event): bool {
 
-        // Invalidate the cache if an assignment submission is made.
+        // Invalidate the cache.
         if ((!empty($event->userid)) && $event->userid != 1) {
             return self::delete_key_from_cache($event->userid);
         }
@@ -60,7 +77,7 @@ class observer {
      */
     public static function assessable_submitted(\mod_assign\event\assessable_submitted $event): bool {
 
-        // Invalidate the cache if an assessable submission is made.
+        // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
         }
@@ -69,30 +86,14 @@ class observer {
     }
 
     /**
-     * Handle the peerwork assessable submitted event.
-     *
-     * @param \mod_peerwork\event\assessable_submitted $event
-     * @return bool
-     */
-    public static function peerwork_assessable_submitted(\mod_peerwork\event\assessable_submitted $event): bool {
-
-        // Invalidate the cache if a peerwork assessable submission is made.
-        if (!empty($event->userid)) {
-            return self::delete_key_from_cache($event->userid);
-        }
-
-        return false;
-    }
-
-    /**
-     * Handle the submission removed event.
+     * Handle the activity type:assignment submission removed event.
      *
      * @param \mod_assign\event\submission_removed $event
      * @return bool
      */
     public static function submission_removed(\mod_assign\event\submission_removed $event): bool {
 
-        // Invalidate the cache if an assignment removal is made.
+        // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
         }
@@ -101,7 +102,23 @@ class observer {
     }
 
     /**
-     * Handle the identities revealed event.
+     * Handle the activity type:assignment extension granted event.
+     * 
+     * @param \mod_assign\event\extension_granted $event
+     * @return bool
+     */
+    public static function extension_granted(\mod_assign\event\extension_granted $event) {
+        
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:assignment identities revealed event.
      * I'm taking this to mean where grades have been released to students.
      *
      * @param \mod_assign\event\identities_revealed $event
@@ -109,7 +126,181 @@ class observer {
      */
     public static function identities_revealed(\mod_assign\event\identities_revealed $event): bool {
 
-        // Invalidate the cache if an assignment submission is made.
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:peerwork submission created event.
+     *
+     * @param \mod_peerwork\event\submission_created $event
+     * @return bool
+     */
+    public static function peerwork_submission_created(\mod_peerwork\event\submission_created $event): bool {
+
+        // Invalidate the cache.
+        if ((!empty($event->userid)) && $event->userid != 1) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:peerwork assessable submitted event.
+     *
+     * @param \mod_peerwork\event\assessable_submitted $event
+     * @return bool
+     */
+    public static function peerwork_assessable_submitted(\mod_peerwork\event\assessable_submitted $event): bool {
+
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:peerwork assessable updated event.
+     *
+     * @param \mod_peerwork\event\submission_updated $event
+     * @return bool
+     */
+    public static function peerwork_submission_updated(\mod_peerwork\event\submission_updated $event): bool {
+        
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:peerwork graded event.
+     *
+     * @param \mod_peerwork\event\submission_graded $event
+     * @return bool
+     */
+    public static function peerwork_submission_graded(\mod_peerwork\event\submission_graded $event): bool {
+
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:peerwork grades released event.
+     * I'm taking this to mean where grades have been released to students.
+     *
+     * @param \mod_peerwork\event\grades_released $event
+     * @return bool
+     */
+    public static function peerwork_grades_released(\mod_peerwork\event\grades_released $event): bool {
+
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:quiz manual grading complete.
+     * 
+     * @param \mod_quiz\event\attempt_manual_grading_completed
+     * @return bool
+     */
+    public static function attempt_manual_grading_completed(\mod_quiz\event\attempt_manual_grading_completed $event): bool {
+
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:SCORM status submitted event.
+     * @param \mod_scorm\event\status_submitted
+     * @return bool
+     */
+    public static function scorm_status_submitted(\mod_scorm\event\status_submitted $event): bool {
+        
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+    }
+
+    /**
+     * Handle the activity type:workshop submission created event.
+     *
+     * @param \mod_workshop\event\submission_created $event
+     * @return bool
+     */
+    public static function workshop_submission_created(\mod_workshop\event\submission_created $event): bool {
+        
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:workshop submission updated event.
+     *
+     * @param \mod_workshop\event\submission_updated $event
+     * @return bool
+     */
+    public static function workshop_submission_updated(\mod_workshop\event\submission_updated $event): bool {
+        
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:workshop assessed event.
+     *
+     * @param \mod_workshop\event\submission_assessed $event
+     * @return bool
+     */
+    public static function workshop_submission_assessed(\mod_workshop\event\submission_assessed $event): bool {
+
+        // Invalidate the cache.
+        if (!empty($event->userid)) {
+            return self::delete_key_from_cache($event->userid);
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle the activity type:workshop submission deleted event.
+     *
+     * @param \mod_workshop\event\submission_deleted $event
+     * @return bool
+     */
+    public static function workshop_submission_deleted(\mod_workshop\event\submission_deleted $event): bool {
+        
+        // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
         }

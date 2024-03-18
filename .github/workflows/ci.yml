@@ -9,9 +9,10 @@ jobs:
         image: mariadb:10
         env:
           MYSQL_USER: 'root'
-          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
-          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
-          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
+          MYSQL_ROOT_PASSWORD: 'root'
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+          MYSQL_CHARACTER_SET_SERVER: 'utf8mb4'
+          MYSQL_COLLATION_SERVER: 'utf8mb4_unicode_ci'
           options: >-
             --health-cmd="mysqladmin ping" 
             --health-interval 10s 
