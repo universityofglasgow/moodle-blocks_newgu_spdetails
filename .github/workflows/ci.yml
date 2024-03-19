@@ -70,7 +70,7 @@ jobs:
           DB_DATABASE: moodle
           DB_USER: root
           DB_PASSWORD: root
-        run: mysql -h 127.0.0.1 --port 3306 -u root -p password moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
+        run: mysql -h 127.0.0.1 --port 3306 -u root -ppassword moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
 
       # - name: PHP Lint
       #   if: ${{ !cancelled() }}
