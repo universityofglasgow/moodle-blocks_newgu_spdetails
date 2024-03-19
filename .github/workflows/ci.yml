@@ -23,7 +23,7 @@ jobs:
       matrix:
         php: ['8.0']
         moodle-branch: ['MOODLE_401_STABLE']
-        database: [postgres]
+        database: [pgsql]
     
     steps:
       - name: Install PostgreSQL client
