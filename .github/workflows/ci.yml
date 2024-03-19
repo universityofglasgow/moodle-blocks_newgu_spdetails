@@ -62,7 +62,7 @@ jobs:
       - name: Verify MySQL is running and configured
         run: |
           sudo systemctl start mysql.service
-          mysql -uroot -h127.0.0.1 -proot -e 'USE moodle; CREATE TABLE IF NOT EXISTS mdl_local_gugrades_config (id BIGINT NOT NULL, courseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id));'
+          mysql -uroot -h127.0.0.1 -proot -e 'SHOW DATABASES;'
 
       # - name: PHP Lint
       #   if: ${{ !cancelled() }}
