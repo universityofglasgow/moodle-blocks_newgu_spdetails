@@ -5,7 +5,7 @@ run-name: ${{ github.actor }} is running GitHub Actions
 on: [push, pull_request]
 
 jobs:
-  run-unit-tests:
+  plugin-build-tests:
     runs-on: ubuntu-22.04
     
     services:
@@ -17,6 +17,7 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+
       mariadb:
         image: mariadb:10
         env:
@@ -26,11 +27,7 @@ jobs:
           MYSQL_COLLATION_SERVER: 'utf8mb4_unicode_ci'
         ports: 
           - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping" 
-          --health-interval 10s 
-          --health-timeout 5s 
-          --health-retries 3
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
     
     strategy:
       fail-fast: false
@@ -69,6 +66,35 @@ jobs:
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+
+      - name: PHP Lint
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phplint
+
+      - name: PHP Mess Detector
+        continue-on-error: true # This step will show errors but will not fail
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpmd
+
+      - name: Moodle Code Checker
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpcs --max-warnings 0
+
+      - name: Moodle PHPDoc Checker
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpdoc --max-warnings 0
+
+      - name: Validating
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci validate
+
+      - name: Mustache Lint
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci mustache
+
+      - name: Grunt
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci grunt --max-lint-warnings 0
 
       - name: PHPUnit tests
         if: ${{ !cancelled() }}
