@@ -12,6 +12,9 @@ jobs:
       mariadb:
         image: mariadb:10
         env:
+          DB_HOST: 127.0.0.1
+          DB_CONNECTION: mysql
+          DB_DATABASE: moodle
           MYSQL_USER: 'root'
           MYSQL_ALLOW_EMPTY_PASSWORD: "true"
           MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
@@ -61,7 +64,8 @@ jobs:
 
       - name: Verify MySQL is running and configured
         run: |
-          mysql -u root moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
+          sudo /etc/init.d/mysql start
+          mysql -h localhost -u root moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
 
       # - name: PHP Lint
       #   if: ${{ !cancelled() }}
