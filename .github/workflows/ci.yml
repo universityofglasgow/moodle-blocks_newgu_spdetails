@@ -65,7 +65,7 @@ jobs:
       - name: Verify MySQL is running and configured
         run: |
           sudo /etc/init.d/mysql start
-          mysql -h 127.0.0.1 --port 3306 -u root moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
+          mysql -h 127.0.0.1 --port 3306 -u root -ppassword moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
 
       # - name: PHP Lint
       #   if: ${{ !cancelled() }}
