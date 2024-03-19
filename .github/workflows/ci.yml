@@ -64,7 +64,9 @@ jobs:
           echo "MySQL service is up and running"
       
       - name: Create additional Unit Test table
-        run: mysql -h 127.0.0.1 --port 3306 -u root -proot moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
+        run: |
+          mysql -h 127.0.0.1 --port 3306 -u root -proot -e 'SHOW DATABASES;'
+          mysql -h 127.0.0.1 --port 3306 -u root -proot moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
 
       # - name: PHP Lint
       #   if: ${{ !cancelled() }}
