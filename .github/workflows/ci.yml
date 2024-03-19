@@ -62,7 +62,6 @@ jobs:
           DB_NAME: 'moodle'
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
 
-      # MySQL service is disabled by default.
       - name: Verify PGSQL is running and configured
         run: |
           psql -h 127.0.0.1 -U postgres -d moodle -c 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL PRIMARY KEY, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value TEXT NOT NULL)'
@@ -96,10 +95,10 @@ jobs:
       #   if: ${{ !cancelled() }}
       #   run: moodle-plugin-ci grunt --max-lint-warnings 0
 
-      # - name: PHPUnit tests
-      #   if: ${{ !cancelled() }}
-      #   run: moodle-plugin-ci phpunit --fail-on-warning
-      # - run: echo "This job's status is ${{ job.status }}."
+      - name: PHPUnit tests
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpunit --fail-on-warning
+      - run: echo "This job's status is ${{ job.status }}."
 
       - name: Mark cancelled jobs as failed.
         if: ${{ cancelled() }}
