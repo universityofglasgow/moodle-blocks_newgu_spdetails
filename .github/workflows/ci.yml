@@ -60,7 +60,6 @@ jobs:
         env:
           DB: ${{ matrix.database }}
           DB_NAME: 'moodle'
-          DB_USER: 'root'
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
 
       # MySQL service is disabled by default.
