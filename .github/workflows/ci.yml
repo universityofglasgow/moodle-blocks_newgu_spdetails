@@ -9,28 +9,25 @@ jobs:
     runs-on: ubuntu-22.04
     
     services:
-      postgres:
-        image: postgres:13
+      mariadb:
+        image: mariadb:10
         env:
-          POSTGRES_USER: 'postgres'
-          POSTGRES_HOST_AUTH_METHOD: 'trust'
+          MYSQL_USER: 'root'
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
+          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
         ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
     
     strategy:
       fail-fast: false
       matrix:
         php: ['8.0']
         moodle-branch: ['MOODLE_401_STABLE']
-        database: [pgsql]
+        database: [mariadb]
     
     steps:
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends postgresql-client
-
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -62,9 +59,9 @@ jobs:
           DB_NAME: 'moodle'
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
 
-      - name: Verify PGSQL is running and configured
+      - name: Verify MySQL is running and configured
         run: |
-          psql -h 127.0.0.1 -U postgres -d moodle -c 'CREATE TABLE local_gugrades_config (id BIGINT NOT NULL PRIMARY KEY, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value TEXT NOT NULL)'
+          mysql -h 127.0.0.1 -u root moodle -e 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL, PRIMARY KEY(id))'
 
       # - name: PHP Lint
       #   if: ${{ !cancelled() }}
