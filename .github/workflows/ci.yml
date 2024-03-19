@@ -7,9 +7,13 @@ jobs:
     services:
       mariadb:
         image: mariadb:10
+        ports: 
+          - 3306:3306
         env:
           MYSQL_USER: 'root'
+          MYSQL_PASSWORD: 'root'
           MYSQL_ROOT_PASSWORD: 'root'
+          MYSQL_DATABASE: test
           MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
           MYSQL_CHARACTER_SET_SERVER: 'utf8mb4'
           MYSQL_COLLATION_SERVER: 'utf8mb4_unicode_ci'
@@ -18,7 +22,6 @@ jobs:
             --health-interval 10s 
             --health-timeout 5s 
             --health-retries 3
-          ports: 3306:3306
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +30,7 @@ jobs:
         database: [mariadb]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           path: plugin
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
