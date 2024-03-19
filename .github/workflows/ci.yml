@@ -65,7 +65,7 @@ jobs:
       # MySQL service is disabled by default.
       - name: Verify PGSQL is running and configured
         run: |
-          psql -h 127.0.0.1 -U postgres -d moodle -c 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL PRIMARY KEY, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value LONGTEXT NOT NULL)'
+          psql -h 127.0.0.1 -U postgres -d moodle -c 'CREATE TABLE mdl_local_gugrades_config (id BIGINT NOT NULL PRIMARY KEY, coureseid BIGINT NOT NULL, gradeitemid BIGINT, name VARCHAR(25) NOT NULL, value TEXT NOT NULL)'
 
       # - name: PHP Lint
       #   if: ${{ !cancelled() }}
