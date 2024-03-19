@@ -56,6 +56,9 @@ jobs:
           moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1
         env:
           DB: ${{ matrix.database }}
+          DB_NAME: 'moodle'
+          DB_USER: 'root'
+          DB_PASS: 'root'
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
 
       # MySQL service is disabled by default.
