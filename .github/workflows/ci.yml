@@ -53,7 +53,7 @@ jobs:
 
       - name: Install moodle-plugin-ci
         run: |
-          moodle-plugin-ci add-plugin universityofglasgow/moodle --branch='gu41'
+          moodle-plugin-ci add-plugin universityofglasgow/moodle --branch=gu41
           moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1 --db-type=mysqli --db-name=moodle
         env:
           DB: ${{ matrix.database }}
