@@ -54,7 +54,7 @@ jobs:
       - name: Install moodle-plugin-ci
         run: |
           moodle-plugin-ci add-plugin universityofglasgow/moodle-local_gugrades
-          moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1 --db-type=mysqli --db-name=moodle --repo=https://github.com/universityofglasgow/moodle.git --branch=gu41
+          moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1 --db-type=mariadb --db-name=moodle --repo=https://github.com/universityofglasgow/moodle.git --branch=gu41
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
