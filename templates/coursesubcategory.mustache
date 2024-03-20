@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_newgu_spdetails/assessments
+    @template block_newgu_spdetails/coursesubcategory
 
     This template should display the sub categories and any individual elements as part of this course.
 
@@ -30,29 +30,31 @@
 
     Example context (json):
     {
-        "result":{
-            "coursename":"GCAT2023TWEX",
-            "subcategories":[
-                {
-                    "id":27,
-                    "name":"Average of assignments - Sub components - Simple Weighted Mean",
-                    "assessmenttype":"Average",
-                    "weight":""
-                }
-            ],
-            "assessmentitems":[
-                {
-                    "id":705,
-                    "itemname":"Assessment 1",
-                    "itemurl":"/mod/assign/view.php?id=705",
-                    "weight":"",
-                    "duedate":"2023-10-30",
-                    "status":"Overdue",
-                    "grade":"To be confirmed",
-                    "feedback":"To be confirmed"
-                }
-            ]
-        }
+        "result": [
+            {
+                "coursename":"GCAT2023TWEX",
+                "subcategories": [
+                    {
+                        "id":27,
+                        "name":"Average of assignments - Sub components - Simple Weighted Mean",
+                        "assessmenttype":"Average",
+                        "weight":""
+                    }
+                ],
+                "assessmentitems": [
+                    {
+                        "id":705,
+                        "itemname":"Assessment 1",
+                        "itemurl":"/mod/assign/view.php?id=705",
+                        "weight":"",
+                        "duedate":"2023-10-30",
+                        "status":"Overdue",
+                        "grade":"To be confirmed",
+                        "feedback":"To be confirmed"
+                    }
+                ]
+            }
+        ]
     }
 }}
 <div id="subcategory-container" class="assessments-details-container">
