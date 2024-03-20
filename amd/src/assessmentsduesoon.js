@@ -55,7 +55,7 @@ const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
 
     assessmentsDueBlock.classList.remove('hidden-container');
 
-    assessmentsDueContents.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
+    assessmentsDueContents.insertAdjacentHTML("afterbegin", "<div class='loader d-flex justify-content-center'>\n" +
         "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
 
     ajax.call([{
@@ -66,18 +66,19 @@ const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
     }])[0].done(function(response) {
         document.querySelector('.loader').remove();
         let assessmentdata = JSON.parse(response.result);
-        Templates.renderForPromise('block_newgu_spdetails/assessmentsdue', {data:assessmentdata})
+        Templates.renderForPromise('block_newgu_spdetails/assessmentsdue', {data: assessmentdata})
         .then(({html, js}) => {
             Templates.appendNodeContents(assessmentsDueContents, html, js);
             returnToAssessmentsHandler();
+            return true;
         }).catch((error) => displayException(error));
     }).fail(function(response) {
-        if(response) {
+        if (response) {
             document.querySelector('.loader').remove();
             let errorContainer = document.createElement('div');
             errorContainer.classList.add('alert', 'alert-danger');
 
-            if(response.hasOwnProperty('message')) {
+            if (response.hasOwnProperty('message')) {
                 let errorMsg = document.createElement('p');
 
                 errorMsg.innerHTML = response.message;
@@ -85,7 +86,7 @@ const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
                 errorMsg.classList.add('errormessage');
             }
 
-            if(response.hasOwnProperty('moreinfourl')) {
+            if (response.hasOwnProperty('moreinfourl')) {
                 let errorLinkContainer = document.createElement('p');
                 let errorLink = document.createElement('a');
 
@@ -131,7 +132,7 @@ const fetchAssessmentsDueSoon = () => {
     Chart.register(BarController);
     let tempPanel = document.querySelector(Selectors.DUESOON_BLOCK);
 
-    tempPanel.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
+    tempPanel.insertAdjacentHTML("afterbegin", "<div class='loader d-flex justify-content-center'>\n" +
         "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
 
     ajax.call([{
@@ -151,11 +152,11 @@ const fetchAssessmentsDueSoon = () => {
             },
             {
                 labeltitle: `7 days:`,
-                value: response[0]['week']
+                value: response[0].week
             },
             {
                 labeltitle: `month:`,
-                value: response[0]['month']
+                value: response[0].month
             }
         ];
 
@@ -241,7 +242,7 @@ const fetchAssessmentsDueSoon = () => {
             const points = chart.getElementsAtEventForMode(
                 evt,
                 'nearest',
-                { intersect: true },
+                {intersect: true},
                 true
               );
               if (points.length === 0) {
@@ -252,7 +253,7 @@ const fetchAssessmentsDueSoon = () => {
 
     }).fail(function(err) {
         document.querySelector('.loader').remove();
-        tempPanel.insertAdjacentHTML("afterbegin","<div class='d-flex justify-content-center'>\n" +
+        tempPanel.insertAdjacentHTML("afterbegin", "<div class='d-flex justify-content-center'>\n" +
             err.message + "</div>");
         Log.debug(err);
     });

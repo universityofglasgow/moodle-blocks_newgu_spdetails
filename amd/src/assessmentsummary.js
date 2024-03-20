@@ -59,7 +59,7 @@ const viewAssessmentSummaryByChartType = function(event, legendItem, legend) {
 
         assessmentsDueBlock.classList.remove('hidden-container');
 
-        assessmentsDueContents.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
+        assessmentsDueContents.insertAdjacentHTML("afterbegin", "<div class='loader d-flex justify-content-center'>\n" +
             "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
 
         ajax.call([{
@@ -70,18 +70,19 @@ const viewAssessmentSummaryByChartType = function(event, legendItem, legend) {
         }])[0].done(function(response) {
             document.querySelector('.loader').remove();
             let assessmentdata = JSON.parse(response.result);
-            Templates.renderForPromise('block_newgu_spdetails/assessmentsdue', {data:assessmentdata})
+            Templates.renderForPromise('block_newgu_spdetails/assessmentsdue', {data: assessmentdata})
             .then(({html, js}) => {
                 Templates.appendNodeContents(assessmentsDueContents, html, js);
                 returnToAssessmentsHandler();
+                return true;
             }).catch((error) => displayException(error));
         }).fail(function(response) {
-            if(response) {
+            if (response) {
                 document.querySelector('.loader').remove();
                 let errorContainer = document.createElement('div');
                 errorContainer.classList.add('alert', 'alert-danger');
 
-                if(response.hasOwnProperty('message')) {
+                if (response.hasOwnProperty('message')) {
                     let errorMsg = document.createElement('p');
 
                     errorMsg.innerHTML = response.message;
@@ -89,7 +90,7 @@ const viewAssessmentSummaryByChartType = function(event, legendItem, legend) {
                     errorMsg.classList.add('errormessage');
                 }
 
-                if(response.hasOwnProperty('moreinfourl')) {
+                if (response.hasOwnProperty('moreinfourl')) {
                     let errorLinkContainer = document.createElement('p');
                     let errorLink = document.createElement('a');
 
@@ -136,7 +137,7 @@ const fetchAssessmentSummary = () => {
     Chart.register(DoughnutController);
     let tempPanel = document.querySelector(Selectors.SUMMARY_BLOCK);
 
-    tempPanel.insertAdjacentHTML("afterbegin","<div class='loader d-flex justify-content-center'>\n" +
+    tempPanel.insertAdjacentHTML("afterbegin", "<div class='loader d-flex justify-content-center'>\n" +
         "<div class='spinner-border' role='status'><span class='hidden'>Loading...</span></div></div>");
 
     ajax.call([{
@@ -152,19 +153,19 @@ const fetchAssessmentSummary = () => {
         const data = [
             {
                 labeltitle: `Submitted`,
-                value: response[0]['sub_assess']
+                value: response[0].sub_assess
             },
             {
                 labeltitle: `To be submitted`,
-                value: response[0]['tobe_sub']
+                value: response[0].tobe_sub
             },
             {
                 labeltitle: `Overdue`,
-                value: response[0]['overdue']
+                value: response[0].overdue
             },
             {
                 labeltitle: `Marked`,
-                value: response[0]['assess_marked']
+                value: response[0].assess_marked
             },
         ];
 
@@ -236,7 +237,7 @@ const fetchAssessmentSummary = () => {
 
         const canvas = document.getElementById('assessmentSummaryChart');
         canvas.onclick = (evt) => {
-            const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+            const points = chart.getElementsAtEventForMode(evt, 'nearest', {intersect: true}, true);
 
             if (points.length) {
                 const firstPoint = points[0];
