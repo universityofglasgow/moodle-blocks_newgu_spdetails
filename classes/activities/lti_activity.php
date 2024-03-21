@@ -16,7 +16,7 @@
 
 /**
  * Concrete implementation for mod_lti.
- * 
+ *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -46,7 +46,7 @@ class lti_activity extends base {
 
     /**
      * Constructor, set grade itemid.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -56,12 +56,12 @@ class lti_activity extends base {
 
         // Get the lti object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        //$this->lti = $this->get_lti($this->cm);
+        // Does this exist? $this->lti = $this->get_lti($this->cm); To figure out.
     }
 
     /**
      * Get lti object.
-     * 
+     *
      * @param object $cm course module
      * @return object
      */
@@ -77,7 +77,7 @@ class lti_activity extends base {
 
     /**
      * Return the grade directly from Gradebook.
-     * 
+     *
      * @param int $userid
      * @return mixed object|bool
      */
@@ -114,7 +114,7 @@ class lti_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -123,24 +123,24 @@ class lti_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-        
-        $due_date = '';
+
+        $duedate = '';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $due_date = $dateobj->format('jS F Y');
+            $duedate = $dateobj->format('jS F Y');
         }
         
-        return $due_date;
+        return $duedate;
     }
 
     /**
      * Method to return the current status of the assessment item.
-     * 
+     *
      * @param int $userid
      * @return object
      */
@@ -151,7 +151,6 @@ class lti_activity extends base {
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->due_date = time();
 
-        
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
@@ -164,7 +163,7 @@ class lti_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -174,11 +173,11 @@ class lti_activity extends base {
 
     /**
      * Return the due date of the LTI activity if it hasn't been submitted.
-     * 
+     *
      * This requires some extra checks - we have the feature that excludes
      * LTI's from the dashboard as gradable activities - we probably want to
      * carry out that check here also, when checking the submission entries.
-     * 
+     *
      * @return array
      */
     public function get_assessmentsdue(): array {

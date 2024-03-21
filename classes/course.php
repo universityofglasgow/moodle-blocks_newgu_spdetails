@@ -107,19 +107,19 @@ class course {
 
     /**
      * Process and prepare for display MyGrades specific sub categories.
-     * 
+     *
      * @param int $courseid
      * @param array $mygradecategories
      * @param string $assessmenttype
      * @param string $sortorder
      * @return array
      */
-    public static function process_mygrades_subcategories(int $courseid, array $mygradecategories, string $assessmenttype, 
+    public static function process_mygrades_subcategories(int $courseid, array $mygradecategories, string $assessmenttype,
     string $sortorder): array {
         $mygradessubcatdata = [];
         $tmp = [];
         foreach ($mygradecategories as $obj) {
-            $item = \grade_item::fetch(['courseid' => $courseid,'iteminstance' => $obj->category->id, 'itemtype' => 'category']);
+            $item = \grade_item::fetch(['courseid' => $courseid, 'iteminstance' => $obj->category->id, 'itemtype' => 'category']);
             $subcatweight = self::return_weight($item->aggregationcoef);
             // We need to work out the grade aggregate for any graded items w/in this sub category...
             // Is there an API call for this?
@@ -157,7 +157,7 @@ class course {
      * @param string $sortorder
      * @return array
      */
-    public static function process_gcat_subcategories(int $courseid, array $gcatcategories, string $assessmenttype, 
+    public static function process_gcat_subcategories(int $courseid, array $gcatcategories, string $assessmenttype,
     string $sortorder): array {
         global $CFG, $USER;
         $gcatsubcatdata = [];
@@ -166,9 +166,9 @@ class course {
 
         foreach ($gcatcategories as $gcatcategory) {
             $item = \grade_item::fetch([
-                'courseid' => $courseid, 
-                'iteminstance' => $gcatcategory->category->id, 
-                'itemtype' => 'category'
+                'courseid' => $courseid,
+                'iteminstance' => $gcatcategory->category->id,
+                'itemtype' => 'category',
             ]);
             $subcatweight = self::return_weight($item->aggregationcoef);
             // We need to work out the grade aggregate for any graded items w/in this sub category...
@@ -182,7 +182,7 @@ class course {
             // We have an array of 'items' at this point - which we can use to work out the overall grade
             // for each (sub)category - which should then give us an overall grade for all sub categories
             // of our parent - I think...
-            //if ($gcatcategory->items) {}
+            // if ($gcatcategory->items) {}.
 
             $tmp[] = $subcat;
         }
@@ -203,19 +203,19 @@ class course {
 
     /**
      * Process and prepare for display MyGrades specific sub categories.
-     * 
+     *
      * @param int $courseid
      * @param array $subcategories
      * @param string $assessmenttype
      * @param string $sortorder
      * @return array
      */
-    public static function process_default_subcategories(int $courseid, array $subcategories, string $assessmenttype, 
+    public static function process_default_subcategories(int $courseid, array $subcategories, string $assessmenttype,
     string $sortorder): array {
         $defaultsubcatdata = [];
         $tmp = [];
-        
-        foreach($subcategories as $obj) {
+
+        foreach ($subcategories as $obj) {
             $item = \grade_item::fetch(['courseid' => $courseid, 'iteminstance' => $obj->category->id, 'itemtype' => 'category']);
             $subcatweight = self::return_weight($item->aggregationcoef);
             $subcat = new \stdClass();
@@ -227,12 +227,12 @@ class course {
             $tmp[] = $subcat;
         }
 
-        // @todo - This needs redone. $subcategories comes in as an array of
+        // This needs redone. $subcategories comes in as an array of
         // objects, whose category property is also an object - making
         // sorting a tad awkward. The items property that comes in also,
         // is an array of objects containing the necessary property/key
         // which ^can^ get sorted and returned in the correct order needed
-        // by the mustache engine.
+        // by the mustache engine. @todo!
         $tmp2 = self::sort_items($tmp, $sortorder);
         foreach ($tmp2 as $sortedarray) {
             $defaultsubcatdata[] = $sortedarray;
@@ -244,7 +244,7 @@ class course {
     /**
      * Utility function for sorting - as we're not using any fancy libraries
      * that will do this for us, we need to manually implement this feature.
-     * 
+     *
      * @param array $itemstosort
      * @param string $sortorder
      * @return array
@@ -269,13 +269,13 @@ class course {
 
     /**
      * Reusing the code from local_gugrades/api::get_dashboard_get_courses.
-     * 
+     *
      * @param int $courseid
      * @return bool
      */
     public static function is_type_mygrades(int $courseid): bool {
         global $DB;
-        
+
         $mygradesenabled = false;
         $sqlname = $DB->sql_compare_text('name');
         $sql = "SELECT * FROM {local_gugrades_config}
@@ -296,7 +296,7 @@ class course {
 
     /**
      * Reusing the code from local_gugrades/api::get_dashboard_get_courses.
-     * 
+     *
      * @param int $courseid
      * @return bool
      */
@@ -324,7 +324,7 @@ class course {
      * Returns the 'weight' in percentage
      * According to the spec, weighting is now derived only from the weight in the Gradebook set up.
      * @see https://gla.sharepoint.com/:w:/s/GCATUpgradeProjectTeam/EVDsT68UetZMn8Ug5ISb394BfYLW_MwcyMI7RF0JAC38PQ?e=BOofAS
-     * 
+     *
      * @param float $aggregationcoef
      * @return string Weight (in percentage), or '—' if empty
      */
@@ -339,7 +339,7 @@ class course {
      * Returns the 'assessment type' for an assessment. Achieved through using the
      * assessments aggregation coefficient and category name. If the item only has
      * a weighting value - then we consider it to be a summative assessment.
-     * 
+     *
      * @param string $gradecategoryname
      * @param int $aggregationcoef
      * @return string 'Formative', 'Summative', or '—'
@@ -369,14 +369,14 @@ class course {
         // ...$cmodule is module name e.g. quiz, forums etc.
         global $DB;
 
-        $arrmodule = $DB->get_record('modules', array('name' => $cmodule));
+        $arrmodule = $DB->get_record('modules', ['name' => $cmodule]);
         $moduleid = $arrmodule->id;
 
-        $arrcoursemodule = $DB->get_record('course_modules', array(
+        $arrcoursemodule = $DB->get_record('course_modules', [
             'course' => $courseid,
             'module' => $moduleid,
             'instance' => $instance,
-        ));
+        ]);
 
         $cmid = $arrcoursemodule->id;
 
@@ -462,7 +462,7 @@ class course {
 
     /**
      * Return the assessments that are due in the next 24 hours, week and month.
-     * 
+     *
      * @return array
      */
     public static function get_assessmentsduesoon() {
@@ -485,9 +485,9 @@ class course {
         $assignmentdata = [];
         $ltiinstancestoexclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
         foreach ($courses as $course) {
-            
+
             if ($course->firstlevel) {
-                foreach($course->firstlevel as $subcategory) {
+                foreach ($course->firstlevel as $subcategory) {
                     $subcategoryid = $subcategory['id'];
                     $activities = \local_gugrades\api::get_activities($course->id, $subcategoryid);
 
@@ -521,7 +521,7 @@ class course {
                     }
                 }
             } else {
-                // Our course structure doesn't have any categories :-(
+                // Our course structure doesn't have any categories.
                 $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
                 if ($gradecat) {
                     if (count($gradecat) > 0) {
@@ -533,21 +533,23 @@ class course {
 
                                 // This is now a flat list of all items associated with this course...
                                 if ($categoryitems) {
-                                    foreach($categoryitems->items as $item) {
+                                    foreach ($categoryitems->items as $item) {
                                         $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance,
                                         $item->courseid, false, MUST_EXIST);
                                         $modinfo = get_fast_modinfo($item->courseid);
                                         $cm = $modinfo->get_cm($cm->id);
                                         if ($cm->uservisible) {
                                             if ($item->itemmodule == 'lti') {
-                                                if (is_array($ltiinstancestoexclude) && in_array($item->courseid, $ltiinstancestoexclude) ||
-                                                $item->courseid == $ltiinstancestoexclude) {
+                                                if (is_array($ltiinstancestoexclude) && in_array($item->courseid, 
+                                                $ltiinstancestoexclude) || $item->courseid == $ltiinstancestoexclude) {
                                                     continue;
                                                 }
                                             }
 
                                             // Get the activity based on its type...
-                                            $activity = \block_newgu_spdetails\activity::activity_factory($item->id, $item->courseid, 0);
+                                            $activity = \block_newgu_spdetails\activity::activity_factory($item->id,
+                                                $item->courseid, 0
+                                            );
                                             if ($records = $activity->get_assessmentsdue()) {
                                                 $assignmentdata[] = $records[0];
                                             }
@@ -598,7 +600,7 @@ class course {
 
     /**
      * Return assessments that are due - filtered by type: 24hrs, 7days etc.
-     * 
+     *
      * @param int $charttype
      * @return array
      */
@@ -675,7 +677,7 @@ class course {
                                                 $itemicon = $iconurl;
                                                 $iconalt = $cm->get_module_type_name();
                                             }
-                                            $assessment_weight = self::return_weight($item->aggregationcoef);
+                                            $assessmentweight = self::return_weight($item->aggregationcoef);
                                             $assessment_type = self::return_assessmenttype($subcategory['fullname'],
                                             $item->aggregationcoef);
                                             $status = $activityitem->get_status($USER->id);
@@ -692,7 +694,7 @@ class course {
                                                 'icon_alt' => $iconalt,
                                                 'item_name' => $assessment->name,
                                                 'assessment_type' => $assessment_type,
-                                                'assessment_weight' => $assessment_weight,
+                                                'assessment_weight' => $assessmentweight,
                                                 'due_date' => $duedate,
                                                 'grade_status' => $status->grade_status,
                                                 'status_link' => $status->status_link,
@@ -747,7 +749,7 @@ class course {
                                                         $itemicon = $iconurl;
                                                         $iconalt = $cm->get_module_type_name();
                                                     }
-                                                    $assessment_weight = self::return_weight($item->aggregationcoef);
+                                                    $assessmentweight = self::return_weight($item->aggregationcoef);
                                                     $assessment_type = self::return_assessmenttype($subcategory['fullname'],
                                                     $item->aggregationcoef);
                                                     $status = $activityitem->get_status($USER->id);
@@ -764,7 +766,7 @@ class course {
                                                         'icon_alt' => $iconalt,
                                                         'item_name' => $assessment->name,
                                                         'assessment_type' => $assessment_type,
-                                                        'assessment_weight' => $assessment_weight,
+                                                        'assessment_weight' => $assessmentweight,
                                                         'due_date' => $duedate,
                                                         'grade_status' => $status->grade_status,
                                                         'status_link' => $status->status_link,
@@ -772,7 +774,7 @@ class course {
                                                         'status_text' => $status->status_text,
                                                         'gradebookenabled' => '',
                                                     ];
-                                                    
+
                                                     $assessmentdata[] = $tmp;
                                                 }
                                             }
@@ -800,7 +802,7 @@ class course {
     /**
      * Return the summary of assessments that have been marked, submitted, are
      * outstanding or are overdue.
-     * 
+     *
      * @return array
      */
     public static function get_assessmentsummary(): array {
@@ -828,9 +830,9 @@ class course {
         $strcurrentcourses = implode(",", $currentcourses);
         $stritemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $strcurrentcourses);
 
-        $query = "SELECT id, courseid, itemmodule, iteminstance, gradetype, scaleid, grademax 
-        FROM {grade_items} 
-        WHERE courseid IN (" . $strcurrentcourses . ") 
+        $query = "SELECT id, courseid, itemmodule, iteminstance, gradetype, scaleid, grademax
+        FROM {grade_items}
+        WHERE courseid IN (" . $strcurrentcourses . ")
         AND id NOT IN (" . $stritemsnotvisibletouser . ") AND courseid > 1 AND itemtype='mod'";
         $records = $DB->get_recordset_sql($query);
 
@@ -848,14 +850,14 @@ class course {
                 $cm = $modinfo->get_cm($cm->id);
                 if ($cm->uservisible) {
 
-                    $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($courseid, 
-                        $itemid, 
-                        $modulename, 
-                        $iteminstance, 
-                        $USER->id, 
-                        $keygi->gradetype, 
-                        $keygi->scaleid, 
-                        $keygi->grademax, 
+                    $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($courseid,
+                        $itemid,
+                        $modulename,
+                        $iteminstance,
+                        $USER->id,
+                        $keygi->gradetype,
+                        $keygi->scaleid,
+                        $keygi->grademax,
                         ''
                     );
 
@@ -867,7 +869,7 @@ class course {
                         $totalsubmissions++;
                     }
                     if ($status == get_string('status_graded', 'block_newgu_spdetails')) {
-                        if (($gradestatus->grade_to_display != null) && ($gradestatus->grade_to_display != 
+                        if (($gradestatus->grade_to_display != null) && ($gradestatus->grade_to_display !=
                         get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'))) {
                             $marked++;
                         }
@@ -897,7 +899,7 @@ class course {
      * Are still to be submitted
      * Overdue
      * Marked/Graded
-     * 
+     *
      * @param int $charttype
      * @return array
      */
@@ -945,16 +947,16 @@ class course {
 
         $assessmentdata = [];
         $ltiinstancestoexclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
-        foreach($courses as $course) {
+        foreach ($courses as $course) {
             $courseurl = new \moodle_url('/course/view.php', ['id' => $course->id]);
             // We're expecting our course object to contain a firstlevel array...
             if ($course->firstlevel) {
                 foreach ($course->firstlevel as $subcategory) {
-                    $subcategoryId = $subcategory['id'];
-                    $activities = \local_gugrades\api::get_activities($course->id, $subcategoryId);
+                    $subcategoryid = $subcategory['id'];
+                    $activities = \local_gugrades\api::get_activities($course->id, $subcategoryid);
 
                     if ($activities) {
-                        $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($subcategoryId, $activities->items, [],
+                        $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($subcategoryid, $activities->items, [],
                         $activities->categories);
 
                         // This is now a flat list of all items associated with this course...
@@ -966,28 +968,27 @@ class course {
                                 $cm = $modinfo->get_cm($cm->id);
                                 if ($cm->uservisible) {
                                     if ($item->itemmodule == 'lti') {
-                                        if (is_array($ltiinstancestoexclude) && in_array($item->courseid, $ltiinstancestoexclude) 
+                                        if (is_array($ltiinstancestoexclude) && in_array($item->courseid, $ltiinstancestoexclude)
                                         || $item->courseid == $ltiinstancestoexclude) {
                                             continue;
                                         }
                                     }
 
-
                                     // Get the activity based on its type...
                                     $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($item->courseid,
-                                        $item->id, 
-                                        $item->itemmodule, 
-                                        $item->iteminstance, 
-                                        $USER->id, 
-                                        $item->gradetype, 
-                                        $item->scaleid, 
-                                        $item->grademax, 
+                                        $item->id,
+                                        $item->itemmodule,
+                                        $item->iteminstance,
+                                        $USER->id,
+                                        $item->gradetype,
+                                        $item->scaleid,
+                                        $item->grademax,
                                         '',
                                     );
 
                                     $status = $gradestatus->grade_status;
                                     $date = '';
-                                    
+
                                     if ($status == $whichstatus) {
                                         $itemicon = '';
                                         $iconalt = '';
@@ -1006,9 +1007,9 @@ class course {
                                                 break;
                                         }
 
-                                        $assessment_type = self::return_assessmenttype($subcategory['fullname'],
+                                        $assessmenttype = self::return_assessmenttype($subcategory['fullname'],
                                         $item->aggregationcoef);
-                                        $assessment_weight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
+                                        $assessmentweight = self::return_weight($item->aggregationcoef);
                                         $tmp = [
                                             'id' => $item->id,
                                             'courseurl' => $courseurl->out(),
@@ -1017,16 +1018,16 @@ class course {
                                             'item_icon' => $itemicon,
                                             'icon_alt' => $iconalt,
                                             'item_name' => $item->itemname,
-                                            'assessment_type' => $assessment_type,
-                                            'assessment_weight' => $assessment_weight,
+                                            'assessment_type' => $assessmenttype,
+                                            'assessment_weight' => $assessmentweight,
                                             'due_date' => $date,
                                             'grade_status' => $gradestatus->grade_status,
                                             'status_link' => $gradestatus->status_link,
                                             'status_class' => $gradestatus->status_class,
                                             'status_text' => $gradestatus->status_text,
-                                            'gradebookenabled' => ''
+                                            'gradebookenabled' => '',
                                         ];
-                                        
+
                                         $assessmentdata[] = $tmp;
                                     }
                                 }
@@ -1035,7 +1036,7 @@ class course {
                     }
                 }
             } else {
-                // Our course structure doesn't have any categories :-(
+                // Our course structure doesn't have any categories.
                 $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
                 if ($gradecat) {
                     if (count($gradecat) > 0) {
@@ -1044,7 +1045,7 @@ class course {
                             if ($activities) {
                                 $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($gradecategory->id,
                                 $activities->items, [], $activities->categories);
-        
+
                                 // This is now a flat list of all items associated with this course...
                                 if ($categoryitems) {
                                     foreach ($categoryitems->items as $item) {
@@ -1059,18 +1060,17 @@ class course {
                                                     continue;
                                                 }
                                             }
-        
-        
+
                                             // Get the activity based on its type...
                                             $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback(
-                                                $item->courseid, 
-                                                $item->id, 
-                                                $item->itemmodule, 
-                                                $item->iteminstance, 
-                                                $USER->id, 
-                                                $item->gradetype, 
-                                                $item->scaleid, 
-                                                $item->grademax, 
+                                                $item->courseid,
+                                                $item->id,
+                                                $item->itemmodule,
+                                                $item->iteminstance,
+                                                $USER->id,
+                                                $item->gradetype,
+                                                $item->scaleid,
+                                                $item->grademax,
                                                 '',
                                             );
         
@@ -1094,9 +1094,9 @@ class course {
                                                         break;
                                                 }
         
-                                                $assessment_type = self::return_assessmenttype($subcategory['fullname'],
+                                                $assessmenttype = self::return_assessmenttype($subcategory['fullname'],
                                                 $item->aggregationcoef);
-                                                $assessment_weight = self::return_weight($item->aggregationcoef);
+                                                $assessmentweight = self::return_weight($item->aggregationcoef);
                                                 $tmp = [
                                                     'id' => $item->id,
                                                     'courseurl' => $courseurl->out(),
@@ -1105,8 +1105,8 @@ class course {
                                                     'item_icon' => $itemicon,
                                                     'icon_alt' => $iconalt,
                                                     'item_name' => $item->itemname,
-                                                    'assessment_type' => $assessment_type,
-                                                    'assessment_weight' => $assessment_weight,
+                                                    'assessment_type' => $assessmenttype,
+                                                    'assessment_weight' => $assessmentweight,
                                                     'due_date' => $date,
                                                     'grade_status' => $gradestatus->grade_status,
                                                     'status_link' => $gradestatus->status_link,
@@ -1114,7 +1114,7 @@ class course {
                                                     'status_text' => $gradestatus->status_text,
                                                     'gradebookenabled' => '',
                                                 ];
-                                                
+
                                                 $assessmentdata[] = $tmp;
                                             }
                                         }
@@ -1123,7 +1123,7 @@ class course {
                             }
                         }
                     }
-                } 
+                }
             }
         }
 

@@ -43,7 +43,7 @@ class grade {
      */
     public static function get_grade_status_and_feedback(int $courseid, int $itemid, string $modulename, int $iteminstance,
     int $userid, int $gradetype, int $scaleid = null, int $grademax, string $coursetype): object {
-        
+
         global $DB;
 
         $gradestatus = new \stdClass();
@@ -82,7 +82,7 @@ class grade {
 
             // It's not been mentioned/specced w/regards provisional grades - do we treat rawgrades as such?
             if (property_exists($activitygrade, 'rawgrade') && $activitygrade->rawgrade > 0) {
-                $grade = \block_newgu_spdetails\grade::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype,
+                $grade = self::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype,
                 $scaleid, $grademax);
                 $gradestatus->grade_status = get_string('status_provisional', 'block_newgu_spdetails');
                 $gradestatus->status_text = get_string('status_text_provisional', 'block_newgu_spdetails');
@@ -96,7 +96,7 @@ class grade {
             // For an assignment activity, if both finalgrade and rawgrade return empty,
             // we do have a grade record - do we/should we use this here?
         }
-        
+
         // We either don't have a grade record, or the grade may not have been
         // released. Let's work backwards to determine the status and feedback.
         $statusobj = $activity->get_status($userid);
@@ -117,7 +117,7 @@ class grade {
     /**
      * This method returns the grade using the format that was set
      * in the Assessment settings page, i.e. Point, Scale or None.
-     * 
+     *
      * @param int $grade
      * @param int $gradetype
      * @param int $scaleid
@@ -126,10 +126,10 @@ class grade {
      */
     public static function get_formatted_grade_from_grade_type(int $grade, int $gradetype, int $scaleid = null,
     int $grademax): string {
-        
+
         $returngrade = null;
         switch ($gradetype) {
-            // Point Scale
+            // Point Scale.
             case GRADE_TYPE_VALUE:
                 $returngrade = number_format($grade, 3) . " / " . $grademax;
                 break;
@@ -142,10 +142,10 @@ class grade {
                 $scale = new \grade_scale($scaleparams, false);
                 $returngrade = $scale->get_nearest_item($grade);
                 break;
-                
+
             // Grade Type has been set to None in the settings...
             case GRADE_TYPE_TEXT:
-                $returngrade = get_string('status_text_tobeconfirmed','block_newgu_spdetails');
+                $returngrade = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                 break;
         }
 
@@ -166,7 +166,7 @@ class grade {
 
     /**
      * For a given userid, return the current grading status for this assessment item.
-     * 
+     *
      * @param string $modulename
      * @param int $iteminstance
      * @param int $courseid
@@ -198,14 +198,14 @@ class grade {
             "SELECT rawgrade,finalgrade FROM {grade_grades} WHERE itemid = :itemid AND userid = :userid",
             [
                 'itemid' => $itemid,
-                'userid' => $userid
+                'userid' => $userid,
             ]
         );
 
         if (!empty($arrgrade)) {
             $rawgrade = (!empty($arrgrade->rawgrade) ? floor($arrgrade->rawgrade) : null);
             $finalgrade = (!empty($arrgrade->finalgrade) ? floor($arrgrade->finalgrade) : null);
-        
+
             if (is_null($rawgrade) && !is_null($finalgrade)) {
                 $provisionalgrade = $finalgrade;
             }
@@ -235,11 +235,12 @@ class grade {
                 }
 
                 if ($status == "") {
-                    $arrassignsubmission = $DB->get_record("assign_submission", 
-                        ["assignment" => $iteminstance, "userid" => $userid
+                    $arrassignsubmission = $DB->get_record("assign_submission", [
+                        "assignment" => $iteminstance,
+                        "userid" => $userid,
                     ]);
                     $link = $CFG->wwwroot . "/mod/assign/view.php?id=" . $cmid;
-                    
+
                     if (!empty($arrassignsubmission)) {
                         $status = $arrassignsubmission->status;
 
@@ -247,7 +248,7 @@ class grade {
                             $status = get_string("status_notsubmitted", "block_newgu_spdetails");
                             $statustext = get_string("status_text_notsubmitted", "block_newgu_spdetails");
                             $statusclass = get_string("status_class_notsubmitted", "block_newgu_spdetails");
-                            
+
                             if (time() > $duedate + (86400 * 30) && $duedate != 0) {
                                 $status = get_string("status_overdue", "block_newgu_spdetails");
                                 $statusclass = get_string("status_class_overdue", "block_newgu_spdetails");
@@ -291,11 +292,11 @@ class grade {
                 $assessmenturl = $CFG->wwwroot . "/mod/forum/view.php?id=" . $cmid;
 
                 if ($forumsubmissions > 0) {
-                    $status = get_string("status_submitted", "block_newgu_spdetails");;
+                    $status = get_string("status_submitted", "block_newgu_spdetails");
                     $statusclass = get_string("status_class_submitted", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submitted", "block_newgu_spdetails");
                 } else {
-                    $status = get_string("status_submit", "block_newgu_spdetails");;
+                    $status = get_string("status_submit", "block_newgu_spdetails");
                     $statusclass = get_string("status_class_submit", "block_newgu_spdetails");
                     $statustext = get_string("status_text_submit", "block_newgu_spdetails");
                     $link = $CFG->wwwroot . "/mod/forum/view.php?id=" . $cmid;
@@ -305,8 +306,10 @@ class grade {
             case "quiz":
                 $assessmenturl = $CFG->wwwroot . "/mod/quiz/view.php?id=" . $cmid;
 
-                $quizattempts = $DB->count_records("quiz_attempts", 
-                    ["quiz" => $iteminstance, "userid" => $userid, "state" => "finished"
+                $quizattempts = $DB->count_records("quiz_attempts", [
+                    "quiz" => $iteminstance,
+                    "userid" => $userid,
+                    "state" => "finished",
                 ]);
                 if ($quizattempts > 0) {
                     $status = get_string("status_submitted", "block_newgu_spdetails");
@@ -321,7 +324,9 @@ class grade {
                 break;
 
             case "workshop":
-                $arrworkshop = $DB->get_record("workshop", ["id" => $iteminstance]);
+                $arrworkshop = $DB->get_record("workshop", [
+                    "id" => $iteminstance,
+                ]);
                 $assessmenturl = $CFG->wwwroot . "/mod/workshop/view.php?id=" . $cmid;
 
                 $workshopsubmissions = $DB->count_records("workshop_submissions", 
@@ -351,7 +356,7 @@ class grade {
         if ($rawgrade > 0 && ($finalgrade == null || $finalgrade == 0)) {
             $provisional22grademaxpoint = self::return_22grademaxpoint($rawgrade - 1, 1);
         }
-        
+
         if ($finalgrade > 0) {
             $converted22grademaxpoint = self::return_22grademaxpoint($finalgrade - 1, 1);
         }
@@ -416,10 +421,9 @@ class grade {
     public static function get_gradefeedback(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid,
     int $grademax, string $gradetype) {
         global $CFG;
-        
+
         $link = "";
         $gradetodisplay = "";
-        
         $gradestatus = self::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $userid);
         $status = $gradestatus["status"];
         $link = $gradestatus["link"];
@@ -431,9 +435,9 @@ class grade {
         $finalgrade = $gradestatus["finalgrade"];
         $provisional22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
         $converted22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
-        
+
         $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
-        
+
         if ($finalgrade != null) {
             
             // I think this is meant to have been 'scale' type and not
@@ -459,7 +463,7 @@ class grade {
 
             $link = $CFG->wwwroot . '/mod/'.$modulename.'/view.php?id=' . $cmid . '#page-footer';
         }
-        
+
         if ($finalgrade == null  && $duedate < time()) {
             if ($status == "notopen" || $status == "notsubmitted") {
                 $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
@@ -472,23 +476,22 @@ class grade {
             if ($status == "notsubmitted") {
                 $gradetodisplay = get_string("status_text_notsubmitted", "block_newgu_spdetails");
                 if ($gradingduedate > time()) {
-                    $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
+                    $gradetodisplay = "Due " . date("d/m/Y", $gradingduedate);
                 }
             }
-        
         }
-        
+
         if ($status == "submit") {
             $gradetodisplay = get_string("feedback_tobeconfirmed", "block_newgu_spdetails");
             $link = "";
         }
-        
+
         return [
-            "gradetodisplay" => $gradetodisplay, 
-            "link" => $link, 
-            "provisional_22grademaxpoint" => $provisional22grademaxpoint, 
-            "converted_22grademaxpoint" => $converted22grademaxpoint, 
-            "finalgrade" => $finalgrade, 
+            "gradetodisplay" => $gradetodisplay,
+            "link" => $link,
+            "provisional_22grademaxpoint" => $provisional22grademaxpoint,
+            "converted_22grademaxpoint" => $converted22grademaxpoint,
+            "finalgrade" => $finalgrade,
             "rawgrade" => $rawgrade,
         ];
     }
@@ -496,7 +499,7 @@ class grade {
     /**
      * Recursive routine to reduce items from all categories
      * to a flat list of items that can then be iterated over.
-     * 
+     *
      * @param object $category
      * @param array $gradeitems
      * @param array $gradecategories
@@ -504,10 +507,10 @@ class grade {
      */
     public static function recurse_categorytree($category, $gradeitems, $items, $gradecategories): object {
         // While this looks odd, when we call this method recursively, we are in fact
-        // passing in the previously built up array of $items. We also (re)set $record 
+        // passing in the previously built up array of $items. We also (re)set $record
         // here since after the final iteration, when control is returned, $items will
         // contain everything bar the items from the last iteration, thereby having the
-        // side effect of inadvertantly losing those last items. Setting $record to 
+        // side effect of inadvertantly losing those last items. Setting $record to
         // null allows us us to check (after the last iteration and control is returned) 
         // if the object already exist - which it will at the point of last iteration.
         $items = $items;
@@ -527,12 +530,13 @@ class grade {
                 if (is_object($record)) {
                     $items = $record->items;
                 }
-                $record = self::recurse_categorytree($gradecategory->category->id, $gradecategory->items, $items, $gradecategory->categories);
+                $record = self::recurse_categorytree($gradecategory->category->id, $gradecategory->items, $items,
+                $gradecategory->categories);
                 $tmp = 0;
             }
         }
 
-        // Add this all up
+        // Add this all up.
         if (!is_object($record)) {
             $record = new \stdClass();
             $record->items = $items;

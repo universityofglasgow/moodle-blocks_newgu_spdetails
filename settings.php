@@ -35,7 +35,7 @@ if ($ADMIN->fulltree) {
         get_string('includeltilabel', 'block_newgu_spdetails'), ''));
 
     foreach ($arrltitypes as $keyltitypes) {
-    $settings->add(new admin_setting_configcheckbox('block_newgu_spdetails_include_' . $keyltitypes->id,
+        $settings->add(new admin_setting_configcheckbox('block_newgu_spdetails_include_' . $keyltitypes->id,
         $keyltitypes->name, '' , 0));
     }
 }

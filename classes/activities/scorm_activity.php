@@ -16,7 +16,7 @@
 
 /**
  * Concrete implementation for mod_scorm.
- * 
+ *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -46,7 +46,7 @@ class scorm_activity extends base {
 
     /**
      * For this activity, get just the basic course module info.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -61,20 +61,20 @@ class scorm_activity extends base {
 
     /**
      * Get scorm object.
-     * 
+     *
      * @return object
      */
     public function get_scorm(): object {
         global $DB;
-        
+
         $scorm = $DB->get_record('scorm', ['id' => $this->gradeitem->iteminstance]);
 
         return $scorm;
     }
-    
+
     /**
      * Return the grade directly from Gradebook.
-     * 
+     *
      * @param int $userid
      * @return mixed object|bool
      */
@@ -111,7 +111,7 @@ class scorm_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -120,25 +120,25 @@ class scorm_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-        
-        $due_date = '';
+
+        $duedate = '';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $due_date = $dateobj->format('jS F Y');
+            $duedate = $dateobj->format('jS F Y');
         }
         
-        return $due_date;
+        return $duedate;
     }
 
     /**
      * Default implementation for returning the status of
-     * an assessment. 
-     * 
+     * an assessment.
+     *
      * @param int $userid
      * @return object
      */
@@ -171,7 +171,7 @@ class scorm_activity extends base {
 
         if ($statusobj->grade_status == '') {
             $scormsubmission = scorm_get_last_completed_attempt($this->scorm->id, $userid);
-            
+
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
@@ -202,7 +202,7 @@ class scorm_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -212,7 +212,7 @@ class scorm_activity extends base {
 
     /**
      * Return the due date of the default activity if it hasn't been submitted.
-     * 
+     *
      * @return array
      */
     public function get_assessmentsdue(): array {
@@ -228,21 +228,21 @@ class scorm_activity extends base {
         $scormdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            
-            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND timemodified BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $scormsubmissions = $DB->get_fieldset_select('scorm_scoes_track', 'scormid', $select,$params);
+            $scormsubmissions = $DB->get_fieldset_select('scorm_scoes_track', 'scormid', $select, $params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'scormsubmissions' => $scormsubmissions
+                'scormsubmissions' => $scormsubmissions,
             ];
 
             $cachedata = [
                 $cachekey => [
-                    $submissionsdata
-                ]
+                    $submissionsdata,
+                ],
             ];
             $cache->set_many($cachedata);
         } else {
@@ -251,7 +251,7 @@ class scorm_activity extends base {
         }
 
         $scorm = $this->scorm;
-            
+
         if (!in_array($scorm->id, $scormsubmissions)) {
             if ($scorm->timeclose < $now) {
                 if ($scorm->timeopen > $now) {
@@ -259,7 +259,7 @@ class scorm_activity extends base {
                 }
             }
         }
-        
+
         return $scormdata;
 
     }

@@ -16,7 +16,7 @@
 
 /**
  * Concrete implementation for mod_h5pactivity.
- * 
+ *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -53,7 +53,7 @@ class h5p_activity extends base {
 
     /**
      * Constructor, set grade itemid.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -67,16 +67,16 @@ class h5p_activity extends base {
 
     /**
      * Get the assignment.
-     * 
+     *
      * @return object
      */
     public function get_h5passign(): object {
         global $DB;
-        
+
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $h5pactivities = get_all_instances_in_course('h5pactivity', $course);
         $instance = null;
-        foreach($h5pactivities as $h5pactivity) {
+        foreach ($h5pactivities as $h5pactivity) {
             if ($this->gradeitem->instanceid == $h5pactivity->instance) {
                 $instance = $h5pactivity;
                 break;
@@ -88,7 +88,7 @@ class h5p_activity extends base {
 
     /**
      * Return the grade directly from Gradebook.
-     * 
+     *
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
@@ -124,7 +124,7 @@ class h5p_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -133,24 +133,24 @@ class h5p_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-        
-        $due_date = '';
+
+        $duedate = '';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $due_date = $dateobj->format('jS F Y');
+            $duedate = $dateobj->format('jS F Y');
         }
         
-        return $due_date;
+        return $duedate;
     }
 
     /**
      * Method to return the current status of the assessment item.
-     * 
+     *
      * @param int $userid
      * @return object
      */
@@ -170,7 +170,10 @@ class h5p_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $h5psubmission = $DB->get_record('h5pactivity_attempts', ['h5pactivityid' => $this->h5p->h5pactivityid, 'userid' => $userid]);
+            $h5psubmission = $DB->get_record('h5pactivity_attempts', [
+                'h5pactivityid' => $this->h5p->h5pactivityid,
+                'userid' => $userid,
+            ]);
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
@@ -209,7 +212,9 @@ class h5p_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date('d/m/Y', $gradestatus->due_date));
+                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', 
+                            date('d/m/Y', $gradestatus->due_date)
+                        );
                     }
                 }
 
@@ -233,7 +238,7 @@ class h5p_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -243,7 +248,7 @@ class h5p_activity extends base {
 
     /**
      * Return the due date of the assignment if it hasn't been submitted.
-     * 
+     *
      * @return array
      */
     public function get_assessmentsdue(): array {
@@ -259,21 +264,21 @@ class h5p_activity extends base {
         $h5pdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            
-            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $h5psubmissions = $DB->get_fieldset_select('h5pactivity_attempts', 'h5pactivityid', $select,$params);
+            $h5psubmissions = $DB->get_fieldset_select('h5pactivity_attempts', 'h5pactivityid', $select, $params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'h5psubmissions' => $h5psubmissions
+                'h5psubmissions' => $h5psubmissions,
             ];
 
             $cachedata = [
                 $cachekey => [
-                    $submissionsdata
-                ]
+                    $submissionsdata,
+                ],
             ];
             $cache->set_many($cachedata);
         } else {
@@ -291,7 +296,7 @@ class h5p_activity extends base {
             $obj->name = $h5pactivity->name;
             $h5pdata[] = $obj;
         }
-        
+
         return $h5pdata;
     }
 

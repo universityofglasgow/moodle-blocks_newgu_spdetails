@@ -16,7 +16,7 @@
 
 /**
  * Concrete implementation for all 'other' grade and activity types.
- * 
+ *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Howard Miller/Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -39,7 +39,7 @@ class default_activity extends base {
 
     /**
      * For this activity, get just the basic course module info.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -50,10 +50,10 @@ class default_activity extends base {
         // Get the forum object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
     }
-    
+
     /**
      * Return the grade directly from Gradebook.
-     * 
+     *
      * @param int $userid
      * @return mixed object|bool
      */
@@ -88,7 +88,7 @@ class default_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -97,25 +97,24 @@ class default_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-        
-        $due_date = '';
+
+        $duedate = '';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $due_date = $dateobj->format('jS F Y');
+            $duedate = $dateobj->format('jS F Y');
         }
-        
-        return $due_date;
+
+        return $duedate;
     }
 
     /**
-     * Default implementation for returning the status of
-     * an assessment. 
-     * 
+     * Default implementation for returning the status of an assessment.
+     *
      * @param int $userid
      * @return object
      */
@@ -137,7 +136,7 @@ class default_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -147,7 +146,7 @@ class default_activity extends base {
 
     /**
      * Return the due date of the default activity if it hasn't been submitted.
-     * 
+     *
      * @return array
      */
     public function get_assessmentsdue(): array {

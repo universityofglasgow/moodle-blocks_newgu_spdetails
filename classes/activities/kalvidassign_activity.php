@@ -16,7 +16,7 @@
 
 /**
  * Concrete implementation for mod_kalvidassign.
- * 
+ *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -53,7 +53,7 @@ class kalvidassign_activity extends base {
 
     /**
      * Constructor, set grade itemid.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -68,12 +68,12 @@ class kalvidassign_activity extends base {
 
     /**
      * Get the assignment object.
-     * 
+     *
      * @param object $cm course module
      * @return array
      */
     public function get_kalvidassign(object $cm): array {
-        
+
         $kalvidassign = kalvidassign_validate_cmid($cm->id);
 
         return $kalvidassign;
@@ -81,7 +81,7 @@ class kalvidassign_activity extends base {
 
     /**
      * Return the grade directly from Gradebook.
-     * 
+     *
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
@@ -117,7 +117,7 @@ class kalvidassign_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -126,24 +126,24 @@ class kalvidassign_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-        
-        $due_date = '';
+
+        $duedate = '';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $due_date = $dateobj->format('jS F Y');
+            $duedate = $dateobj->format('jS F Y');
         }
         
-        return $due_date;
+        return $duedate;
     }
 
     /**
      * Method to return the current status of the assessment item.
-     * 
+     *
      * @param int $userid
      * @return object
      */
@@ -163,7 +163,10 @@ class kalvidassign_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $kalvidassignsubmission = $DB->get_record('kalvidassign_submission', ['vidassignid' => $this->kalvidassign[2]->id, 'userid' => $userid]);
+            $kalvidassignsubmission = $DB->get_record('kalvidassign_submission', [
+                'vidassignid' => $this->kalvidassign[2]->id,
+                'userid' => $userid,
+            ]);
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
@@ -202,7 +205,9 @@ class kalvidassign_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date('d/m/Y', $gradestatus->due_date));
+                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails',
+                            date('d/m/Y', $gradestatus->due_date)
+                        );
                     }
                 }
 
@@ -226,7 +231,7 @@ class kalvidassign_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -236,7 +241,7 @@ class kalvidassign_activity extends base {
 
     /**
      * Return the due date of the assignment if it hasn't been submitted.
-     * 
+     *
      * @return array
      */
     public function get_assessmentsdue(): array {
@@ -252,20 +257,20 @@ class kalvidassign_activity extends base {
         $kalviddata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $kalvidsubmissions = $DB->get_fieldset_select('kalvidassign_submission', 'vidassignid', $select,$params);
+            $kalvidsubmissions = $DB->get_fieldset_select('kalvidassign_submission', 'vidassignid', $select, $params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'kalvidassignmentsubmissions' => $kalvidsubmissions
+                'kalvidassignmentsubmissions' => $kalvidsubmissions,
             ];
 
             $cachedata = [
                 $cachekey => [
-                    $submissionsdata
-                ]
+                    $submissionsdata,
+                ],
             ];
             $cache->set_many($cachedata);
 
@@ -276,7 +281,7 @@ class kalvidassign_activity extends base {
 
         // Access the assignment itself.
         $kalvidassignment = $this->kalvidassign[2];
-            
+
         if (!in_array($kalvidassignment->id, $kalvidsubmissions)) {
             if ($kalvidassignment->timeavailable < $now) {
                 if ($kalvidassignment->timedue == 0 || $kalvidassignment->timedue > $now) {
@@ -287,7 +292,7 @@ class kalvidassign_activity extends base {
                 }
             }
         }
-        
+
         return $kalviddata;
     }
 

@@ -16,7 +16,7 @@
 
 /**
  * Concrete implementation for mod_workshop.
- * 
+ *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -50,10 +50,10 @@ class workshop_activity extends base {
      * @var constant CACHE_KEY
      */
     const CACHE_KEY = 'studentid_workshopduesoon:';
-    
+
     /**
      * Constructor, set grade itemid.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -68,7 +68,7 @@ class workshop_activity extends base {
 
     /**
      * Get workshop object.
-     * 
+     *
      * @param object $cm course module
      * @return object
      */
@@ -85,7 +85,7 @@ class workshop_activity extends base {
 
     /**
      * Return the grade directly from Gradebook.
-     * 
+     *
      * @param int $userid
      * @return mixed object|bool
      */
@@ -122,7 +122,7 @@ class workshop_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -131,25 +131,25 @@ class workshop_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-        
-        $due_date = '';
+
+        $duedate = '';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $due_date = $dateobj->format('jS F Y');
+            $duedate = $dateobj->format('jS F Y');
         }
-        
-        return $due_date;
+
+        return $duedate;
     }
 
     /**
      * Workshop creates 2 entries in Gradebook - one for an assessment and one for
      * a submission. Not entirely clear which one we should be using at the moment...
-     * 
+     *
      * @param int $userid
      * @return object
      */
@@ -169,12 +169,15 @@ class workshop_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $workshopsubmission = $DB->get_record('workshop_submissions', ['workshopid' => $this->workshop->id, 'authorid' => $userid]);
+            $workshopsubmission = $DB->get_record('workshop_submissions', [
+                'workshopid' => $this->workshop->id,
+                'authorid' => $userid
+            ]);
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
-            
+
             if (!empty($workshopsubmission)) {
                 $statusobj->grade_status = $workshopsubmission->gradeoverby;
 
@@ -206,7 +209,9 @@ class workshop_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date('d/m/Y', $gradestatus->due_date));
+                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails',
+                            date('d/m/Y', $gradestatus->due_date)
+                        );
                     }
                 }
 
@@ -230,7 +235,7 @@ class workshop_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -240,12 +245,12 @@ class workshop_activity extends base {
 
     /**
      * Return the due date of the workshop assignment if it hasn't been submitted.
-     * 
+     *
      * @return array
      */
     public function get_assessmentsdue(): array {
         global $USER, $DB;
-        
+
         // Cache this query as it's going to get called for each assessment in the course otherwise.
         $cache = cache::make('block_newgu_spdetails', 'workshopduequery');
         $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
@@ -256,20 +261,24 @@ class workshop_activity extends base {
         $workshopdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'authorid = :userid AND timecreated BETWEEN :lastmonth AND :now';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $params = [
+                'userid' => $USER->id,
+                'lastmonth' => $lastmonth,
+                'now' => $now,
+            ];
             $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'id', $select,$params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'workshopsubmissions' => $workshopsubmissions
+                'workshopsubmissions' => $workshopsubmissions,
             ];
 
             $cachedata = [
                 $cachekey => [
-                    $submissionsdata
-                ]
+                    $submissionsdata,
+                ],
             ];
             $cache->set_many($cachedata);
         } else {
@@ -278,7 +287,7 @@ class workshop_activity extends base {
         }
 
         if (!in_array($workshop->id, $workshopsubmissions)) {
-                    
+
             // We're checking for both items here as the spec has stated that
             // both items should appear on the dashboard.
             if ($workshop->submissionstart != 0 && $workshop->submissionstart < $now) {

@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  * @param int $gradetype
  * @return array
  */
-function get_gradefeedback(string $modulename, int $iteminstance, int $courseid, 
+function get_gradefeedback(string $modulename, int $iteminstance, int $courseid,
     int $itemid, int $userid, float $grademax, int $gradetype) {
     global $CFG, $DB, $USER;
 
@@ -55,8 +55,8 @@ function get_gradefeedback(string $modulename, int $iteminstance, int $courseid,
     $rawgrade = $gradestatus["rawgrade"];
     $finalgrade = $gradestatus["finalgrade"];
 
-    $provisional_22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
-    $converted_22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
+    $provisional22grademaxpoint = $gradestatus["provisional_22grademaxpoint"];
+    $converted22grademaxpoint = $gradestatus["converted_22grademaxpoint"];
 
     $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
 
@@ -66,7 +66,7 @@ function get_gradefeedback(string $modulename, int $iteminstance, int $courseid,
             . '</span>' . ' (Provisional)';
         }
         if ($gradetype == 2) {
-            $gradetodisplay = '<span class="graded">' . $converted_22grademaxpoint . '</span>' . ' (Provisional)';
+            $gradetodisplay = '<span class="graded">' . $converted22grademaxpoint . '</span>' . ' (Provisional)';
         }
         $link = $CFG->wwwroot . '/mod/'.$modulename.'/view.php?id=' . $cmid . '#page-footer';
     }
@@ -83,7 +83,7 @@ function get_gradefeedback(string $modulename, int $iteminstance, int $courseid,
         if ($status == "notsubmitted") {
             $gradetodisplay = 'Not submitted';
             if ($gradingduedate > time()) {
-                $gradetodisplay = "Due " . date("d/m/Y",$gradingduedate);
+                $gradetodisplay = "Due " . date("d/m/Y", $gradingduedate);
             }
         }
     }
@@ -94,18 +94,18 @@ function get_gradefeedback(string $modulename, int $iteminstance, int $courseid,
     }
 
     return [
-        "gradetodisplay" => $gradetodisplay, 
-        "link" => $link, 
-        "provisional_22grademaxpoint" => $provisional_22grademaxpoint, 
-        "converted_22grademaxpoint" => $converted_22grademaxpoint, 
-        "finalgrade" => $finalgrade, 
+        "gradetodisplay" => $gradetodisplay,
+        "link" => $link,
+        "provisional_22grademaxpoint" => $provisional22grademaxpoint,
+        "converted_22grademaxpoint" => $converted22grademaxpoint,
+        "finalgrade" => $finalgrade,
         "rawgrade"  => $rawgrade,
     ];
 }
 
 /**
  * Return the weight.
- * 
+ *
  * @param int $courseid
  * @param int $categoryid
  * @param int $aggregationcoef
@@ -114,8 +114,8 @@ function get_gradefeedback(string $modulename, int $iteminstance, int $courseid,
 function get_weight($courseid, $categoryid, $aggregationcoef, $aggregationcoef2) {
     global $DB;
 
-    $arrgradecategory = $DB->get_record('grade_categories', array('courseid'=>$courseid, 'id'=>$categoryid));
-    
+    $arrgradecategory = $DB->get_record('grade_categories', ['courseid' => $courseid, 'id' => $categoryid]);
+
     if (!empty($arrgradecategory)) {
         $gradecategoryname = $arrgradecategory->fullname;
         $aggregation = $arrgradecategory->aggregation;
@@ -135,7 +135,7 @@ function get_weight($courseid, $categoryid, $aggregationcoef, $aggregationcoef2)
 
 /**
  * Returns somthing.
- * 
+ *
  * @param string $coursetype
  * @param string $tdr
  * @param int $userid
@@ -148,11 +148,11 @@ function get_assessmenttypeorder($coursetype, $tdr, $userid) {
     $strcourses = implode(",", $courses);
     $stritemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($userid, $strcourses);
     $sqlcc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('
-      . $strcourses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$stritemsnotvisibletouser 
+      . $strcourses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$stritemsnotvisibletouser
       . ') && gi.courseid=c.id';
     $arrcc = $DB->get_records_sql($sqlcc);
 
-    $arrorder = array();
+    $arrorder = [];
 
     foreach ($arrcc as $keycc) {
         $cmid = $keycc->id;
@@ -162,20 +162,20 @@ function get_assessmenttypeorder($coursetype, $tdr, $userid) {
         $itemid = $keycc->id;
         $categoryid = $keycc->categoryid;
 
-        // DUE DATE
+        // DUE DATE.
         $assessmenttype = "";
         $strassessmenttype = "—";
 
-        // READ individual TABLE OF ACTIVITY (MODULE)
+        // READ individual TABLE OF ACTIVITY (MODULE).
         if ($modulename != "") {
 
-          $arrgradecategory = $DB->get_record('grade_categories', array('courseid' => $courseid, 'id' => $categoryid));
-          if (!empty($arrgradecategory)) {
-              $gradecategoryname = $arrgradecategory->fullname;
-          }
+            $arrgradecategory = $DB->get_record('grade_categories', array('courseid' => $courseid, 'id' => $categoryid));
+            if (!empty($arrgradecategory)) {
+                  $gradecategoryname = $arrgradecategory->fullname;
+            }
 
-          $aggregationcoef = $keycc->aggregationcoef;
-          $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
+            $aggregationcoef = $keycc->aggregationcoef;
+            $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
         }
 
         $arrorder[$itemid] = $assessmenttype;
@@ -193,28 +193,28 @@ function get_assessmenttypeorder($coursetype, $tdr, $userid) {
         $strorder .= $keyorder . ",";
     }
     $strorder = rtrim($strorder, ",");
-    
+
     return $strorder;
 }
 
 /**
  * Does something.
- * 
+ *
  * @param string $tdr
  * @param int $userid
  */
-function get_duedateorder($tdr,$userid) {
+function get_duedateorder($tdr, $userid) {
 
     global $DB, $CFG;
 
     $currentcourses = block_newgu_spdetails_external::return_enrolledcourses($userid, "current");
     $strcurrentcourses = implode(",", $currentcourses);
-    $currentxl = array();
+    $currentxl = [];
     $stritemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($userid, $strcurrentcourses);
     $sqlcc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in (' . $strcurrentcourses
     . ') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in (' . $stritemsnotvisibletouser . ') && gi.courseid=c.id';
     $arrcc = $DB->get_records_sql($sqlcc);
-    $arrorder = array();
+    $arrorder = [];
 
     foreach ($arrcc as $keycc) {
         $cmid = $keycc->id;
@@ -223,26 +223,26 @@ function get_duedateorder($tdr,$userid) {
         $courseid = $keycc->courseid;
         $itemid = $keycc->id;
 
-        // DUE DATE
+        // DUE DATE.
         $duedate = 0;
         $extspan = "";
         $extensionduedate = 0;
         $strduedate = "—";
 
-        // READ individual TABLE OF ACTIVITY (MODULE)
+        // READ individual TABLE OF ACTIVITY (MODULE).
         if ($modulename != "") {
-            $arrduedate = $DB->get_record($modulename, array('course' => $courseid, 'id' => $iteminstance));
+            $arrduedate = $DB->get_record($modulename, ['course' => $courseid, 'id' => $iteminstance]);
 
             if (!empty($arrduedate)) {
                 if ($modulename == "assign") {
                     $duedate = $arrduedate->duedate;
 
-                    $arruserflags = $DB->get_record('assign_user_flags', array('userid' => $userid, 'assignment' => $iteminstance));
+                    $arruserflags = $DB->get_record('assign_user_flags', ['userid' => $userid, 'assignment' => $iteminstance]);
 
                     if ($arruserflags) {
                         $extensionduedate = $arruserflags->extensionduedate;
                         if ($extensionduedate > 0) {
-                            $extspan = '<a href="javascript:void(0)" title="' . get_string('extended', 'block_newgu_spdetails') 
+                            $extspan = '<a href="javascript:void(0)" title="' . get_string('extended', 'block_newgu_spdetails')
                             . '" class="extended">*</a>';
                         }
                     }
@@ -287,7 +287,7 @@ function get_duedateorder($tdr,$userid) {
 
 /**
  * Does something.
- * 
+ *
  * @param string $tdr
  */
 function get_startenddateorder($tdr) {
@@ -296,17 +296,17 @@ function get_startenddateorder($tdr) {
 
     $pastcourses = block_newgu_spdetails_external::return_enrolledcourses($USER->id, "past");
     $strpastcourses = implode(",", $pastcourses);
-    $pastxl = array();
-    
+    $pastxl = [];
+
     if ($strpastcourses != "") {
 
         $stritemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $strpastcourses);
-        $sqlcc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in (' . 
-        $strpastcourses . ') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in (' . 
+        $sqlcc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in (' .
+        $strpastcourses . ') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in (' .
         $stritemsnotvisibletouser . ') && gi.courseid=c.id';
         $arrcc = $DB->get_records_sql($sqlcc);
-        $arrsdorder = array();
-        $arredorder = array();
+        $arrsdorder = [];
+        $arredorder = [];
 
         foreach ($arrcc as $keycc) {
             $cmid = $keycc->id;
@@ -318,23 +318,23 @@ function get_startenddateorder($tdr) {
             $aggregationcoef = $keycc->aggregationcoef;
             $aggregationcoef2 = $keycc->aggregationcoef2;
 
-            // FETCH ASSESSMENT TYPE
-            $arrgradecategory = $DB->get_record('grade_categories', array('courseid' => $courseid, 'id' => $categoryid));
+            // FETCH ASSESSMENT TYPE.
+            $arrgradecategory = $DB->get_record('grade_categories', ['courseid' => $courseid, 'id' => $categoryid]);
             if (!empty($arrgradecategory)) {
                 $gradecategoryname = $arrgradecategory->fullname;
             }
 
             $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
-            // START DATE
+            // START DATE.
             $submissionstartdate = 0;
             $startdate = "";
             $duedate = 0;
             $enddate = "";
 
-            // READ individual TABLE OF ACTIVITY (MODULE)
+            // READ individual TABLE OF ACTIVITY (MODULE).
             if ($modulename != "") {
-                $arrsubmissionstartdate = $DB->get_record($modulename, array('course' => $courseid, 'id' => $iteminstance));
+                $arrsubmissionstartdate = $DB->get_record($modulename, ['course' => $courseid, 'id' => $iteminstance]);
 
                 if (!empty($arrsubmissionstartdate)) {
                     if ($modulename == "assign") {
@@ -354,12 +354,12 @@ function get_startenddateorder($tdr) {
                         $duedate = $arrsubmissionstartdate->submissionend;
                     }
                 }
-          }
+            }
 
-          $startdate = date("d/m/Y", $submissionstartdate);
-          $arrsdorder[$itemid] = $submissionstartdate;
-          $enddate = date("d/m/Y", $duedate);
-          $arredorder[$itemid] = $duedate;
+            $startdate = date("d/m/Y", $submissionstartdate);
+            $arrsdorder[$itemid] = $submissionstartdate;
+            $enddate = date("d/m/Y", $duedate);
+            $arredorder[$itemid] = $duedate;
         }
     }
 
@@ -386,7 +386,7 @@ function get_startenddateorder($tdr) {
         $stredorder .= $keyorder . ",";
     }
     $stredorder = rtrim($stredorder, ",");
-    $arrayorder = array("startdateorder" => $strsdorder, "enddateorder" => $stredorder);
+    $arrayorder = ["startdateorder" => $strsdorder, "enddateorder" => $stredorder];
 
     return $arrayorder;
 }
@@ -402,8 +402,8 @@ function get_ltiinstancenottoinclude() {
     $strltinottoinclude = "99999";
     $sqlltitoinclude = "SELECT * FROM {config} WHERE name like '%block_newgu_spdetails_include_%' AND value=1";
     $arrltitoinclude = $DB->get_records_sql($sqlltitoinclude);
-    $arrayltitoinclude = array();
-    
+    $arrayltitoinclude = [];
+
     foreach ($arrltitoinclude as $keyltitoinclude) {
         $name = $keyltitoinclude->name;
         $namepieces = explode("block_newgu_spdetails_include_", $name);
@@ -419,7 +419,7 @@ function get_ltiinstancenottoinclude() {
     $sqlltitypenottoinclude = "SELECT id FROM {lti_types} WHERE id not in (".$strltitoinclude.")";
     $arrltitypenottoinclude = $DB->get_records_sql($sqlltitypenottoinclude);
 
-    $arrayltitypenottoinclude = array();
+    $arrayltitypenottoinclude = [];
     $arrayltitypenottoinclude[] = 0;
     foreach ($arrltitypenottoinclude as $keyltitypenottoinclude) {
         $arrayltitypenottoinclude[] = $keyltitypenottoinclude->id;
@@ -429,8 +429,8 @@ function get_ltiinstancenottoinclude() {
     $sqlltiinstancenottoinclude = "SELECT * FROM {lti} WHERE typeid NOT IN (".$strltitypenottoinclude.")";
     $arrltiinstancenottoinclude = $DB->get_records_sql($sqlltiinstancenottoinclude);
 
-    $arrayltiinstancenottoinclude = array();
-    foreach ($arr_ltiinstancenottoinclude as $keyltiinstancenottoinclude) {
+    $arrayltiinstancenottoinclude = [];
+    foreach ($arrltiinstancenottoinclude as $keyltiinstancenottoinclude) {
         $arrayltiinstancenottoinclude[] = $keyltiinstancenottoinclude->id;
     }
     $strltiinstancenottoinclude = implode(",", $arrayltiinstancenottoinclude);

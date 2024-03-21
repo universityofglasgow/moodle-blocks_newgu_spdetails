@@ -52,7 +52,7 @@ class assign_activity extends base {
 
     /**
      * Constructor, set grade itemid.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -67,7 +67,7 @@ class assign_activity extends base {
 
     /**
      * Get assignment object.
-     * 
+     *
      * @param object $cm course module
      * @return object
      */
@@ -84,7 +84,7 @@ class assign_activity extends base {
     /**
      * Return the grade either from the assignment or
      * directly from Gradebook otherwise.
-     * 
+     *
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
@@ -134,7 +134,7 @@ class assign_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -143,7 +143,7 @@ class assign_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
@@ -155,19 +155,19 @@ class assign_activity extends base {
         }
 
         $dateobj = \DateTime::createFromFormat('U', $rawdate);
-        $due_date = $dateobj->format('jS F Y');
-        
-        return $due_date;
+        $duedate = $dateobj->format('jS F Y');
+
+        return $duedate;
     }
 
     /**
      * Method to return the current status of the assessment item.
-     * 
+     *
      * @param int $userid
      * @return object
      */
     public function get_status(int $userid): object {
-        
+
         global $DB;
 
         $statusobj = new \stdClass();
@@ -195,7 +195,7 @@ class assign_activity extends base {
             }
         }
 
-        // "Allow submissions from" date is in the future...
+        // The "Allow submissions from" date is in the future.
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
@@ -204,11 +204,11 @@ class assign_activity extends base {
 
         if ($statusobj->grade_status == '') {
             $assignsubmission = $DB->get_record('assign_submission', ['assignment' => $assigninstance->id, 'userid' => $userid]);
-            
+
             if (!empty($assignsubmission)) {
                 $statusobj->grade_status = $assignsubmission->status;
 
-                // There is a bug in class assign->get_user_grade() where get_user_submission() is called 
+                // There is a bug in class assign->get_user_grade() where get_user_submission() is called
                 // and an assignment entry is created regardless -i.e. "true" is passed instead of an arg.
                 // This will always result in an assign_submission entry with a status of "new".
                 if ($statusobj->grade_status == 'new') {
@@ -224,7 +224,7 @@ class assign_activity extends base {
                         $statusobj->status_link = $statusobj->assessment_url;
                         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     }
-                    
+
                     if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
                         $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                         $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
@@ -252,7 +252,11 @@ class assign_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date('d/m/Y', $gradestatus->due_date));
+                        $statusobj->grade_to_display = get_string(
+                            'status_text_dueby',
+                            'block_newgu_spdetails',
+                            date('d/m/Y', $gradestatus->due_date)
+                        );
                     }
                 }
 
@@ -277,7 +281,7 @@ class assign_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -287,7 +291,7 @@ class assign_activity extends base {
 
     /**
      * Return the due date of the assignment if it hasn't been submitted.
-     * 
+     *
      * @return array
      */
     public function get_assessmentsdue(): array {
@@ -303,27 +307,27 @@ class assign_activity extends base {
         $assignmentdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'id', $select,$params);
+            $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'id', $select, $params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'assignmentsubmissions' => $assignmentsubmissions
+                'assignmentsubmissions' => $assignmentsubmissions,
             ];
 
             $cachedata = [
                 $cachekey => [
-                    $submissionsdata
-                ]
+                    $submissionsdata,
+                ],
             ];
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
             $assignmentsubmissions = $cachedata[$cachekey][0]['assignmentsubmissions'];
         }
-        
+
         $assignment = $this->assign->get_instance();
         $allowsubmissionsfromdate = $assignment->allowsubmissionsfromdate;
         $duedate = $assignment->duedate;
