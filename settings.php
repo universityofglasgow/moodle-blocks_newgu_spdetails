@@ -28,14 +28,14 @@ defined('MOODLE_INTERNAL') || die;
 if ($ADMIN->fulltree) {
     global $DB;
 
-    $sql_ltitypes = "SELECT lt.id, lt.name, lt.course, c.fullname FROM {lti_types} lt, {course} c WHERE lt.course=c.id";
-    $arr_ltitypes = $DB->get_records_sql($sql_ltitypes);
+    $sqlltitypes = "SELECT lt.id, lt.name, lt.course, c.fullname FROM {lti_types} lt, {course} c WHERE lt.course=c.id";
+    $arrltitypes = $DB->get_records_sql($sqlltitypes);
 
     $settings->add(new admin_setting_heading('includeltilabel',
         get_string('includeltilabel', 'block_newgu_spdetails'), ''));
 
-    foreach ($arr_ltitypes as $key_ltitypes) {
-    $settings->add(new admin_setting_configcheckbox('block_newgu_spdetails_include_' . $key_ltitypes->id,
-        $key_ltitypes->name,'', 0));
+    foreach ($arrltitypes as $keyltitypes) {
+    $settings->add(new admin_setting_configcheckbox('block_newgu_spdetails_include_' . $keyltitypes->id,
+        $keyltitypes->name, '' , 0));
     }
 }

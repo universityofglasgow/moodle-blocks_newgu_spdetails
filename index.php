@@ -44,7 +44,7 @@ $PAGE->navbar->add(get_string('blocktitle', 'block_newgu_spdetails'), new moodle
 $otherparams = [
     'originaluser' => fullname($USER, true),
     'originaluserid' => $USER->id,
-    'originalemail' => $USER->email
+    'originalemail' => $USER->email,
 ];
 if (isset($_SESSION['REALUSER'])) {
     $realuser = get_complete_user_data('id', $_SESSION['REALUSER']->id);
@@ -56,7 +56,7 @@ if (isset($_SESSION['REALUSER'])) {
 $event = \block_newgu_spdetails\event\view_dashboard::create([
     'objectid' => $USER->id,
     'context' => \context_system::instance(),
-    'other' => $otherparams
+    'other' => $otherparams,
 ]);
 $event->trigger();
 

@@ -220,6 +220,7 @@ abstract class base {
                 $feedbackobj->grade_feedback = get_string('status_text_overdue', 'block_newgu_spdetails');
                 break;
 
+            case get_string('status_submitted', 'block_newgu_spdetails'):
             case get_string('status_notsubmitted', 'block_newgu_spdetails'):
                 $feedbackobj->grade_feedback = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                 if ($gradestatusobj->due_date > time()) {

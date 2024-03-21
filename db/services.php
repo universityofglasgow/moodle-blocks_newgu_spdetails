@@ -34,7 +34,7 @@ $services = [
             'block_newgu_spdetails_get_coursegroups',
             'block_newgu_spdetails_get_assessmentsummary',
             'block_newgu_spdetails_get_assessments',
-            'block_newgu_spdetails_get_assessmentsduesoon'
+            'block_newgu_spdetails_get_assessmentsduesoon',
         ],
         'requiredcapability' => '',
         'restrictedusers' => 1,
@@ -68,7 +68,7 @@ $functions = [
         'ajax'        => true,
         'loginrequired' => true,
         'services'    => [
-            MOODLE_OFFICIAL_MOBILE_SERVICE
+            MOODLE_OFFICIAL_MOBILE_SERVICE,
         ],
     ],
     'block_newgu_spdetails_get_assessmentsummarybytype' => [
@@ -78,7 +78,7 @@ $functions = [
         'ajax'        => true,
         'loginrequired' => true,
         'services'    => [
-            MOODLE_OFFICIAL_MOBILE_SERVICE
+            MOODLE_OFFICIAL_MOBILE_SERVICE,
         ],
     ],
     'block_newgu_spdetails_get_assessments' => [
@@ -88,7 +88,7 @@ $functions = [
         'ajax'          => true,
         'loginrequired' => true,
         'services'    => [
-            MOODLE_OFFICIAL_MOBILE_SERVICE
+            MOODLE_OFFICIAL_MOBILE_SERVICE,
         ],
     ],
     'block_newgu_spdetails_get_assessmentsduesoon' => [
@@ -98,7 +98,7 @@ $functions = [
         'ajax'        => true,
         'loginrequired' => true,
         'services'    => [
-            MOODLE_OFFICIAL_MOBILE_SERVICE
+            MOODLE_OFFICIAL_MOBILE_SERVICE,
         ],
     ],
     'block_newgu_spdetails_get_assessmentsduebytype' => [
@@ -108,7 +108,7 @@ $functions = [
         'ajax'        => true,
         'loginrequired' => true,
         'services'    => [
-            MOODLE_OFFICIAL_MOBILE_SERVICE
+            MOODLE_OFFICIAL_MOBILE_SERVICE,
         ],
     ],
 ];

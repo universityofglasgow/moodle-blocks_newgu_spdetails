@@ -79,5 +79,5 @@ $definitions = [
         'simplekeys' => false,
         'simpledata' => false,
         'ttl' => 300, // 5 minutes expiry time.
-    ]
+    ],
 ];

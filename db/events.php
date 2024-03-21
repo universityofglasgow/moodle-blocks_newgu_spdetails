@@ -32,74 +32,74 @@ defined('MOODLE_INTERNAL') || die();
 $observers = [
     [
         'eventname' => '\core\event\assessable_submitted',
-        'callback' => 'block_newgu_spdetails\observer::core_assessable_submitted'
+        'callback' => 'block_newgu_spdetails\observer::core_assessable_submitted',
     ],
     [
         'eventname' => '\mod_assign\event\submission_created',
-        'callback' => 'block_newgu_spdetails\observer::submission_created'
+        'callback' => 'block_newgu_spdetails\observer::submission_created',
     ],
     [
         'eventname' => '\mod_assign\event\assessable_submitted',
-        'callback' => 'block_newgu_spdetails\observer::assessable_submitted'
+        'callback' => 'block_newgu_spdetails\observer::assessable_submitted',
     ],
     [
         'eventname' => '\mod_assign\event\submission_removed',
-        'callback' => 'block_newgu_spdetails\observer::submission_removed'
+        'callback' => 'block_newgu_spdetails\observer::submission_removed',
     ],
     [
         'eventname' => '\mod_assign\event\extension_granted',
-        'callback' => 'block_newgu_spdetails\observer::extension_granted'
+        'callback' => 'block_newgu_spdetails\observer::extension_granted',
     ],
     [
         'eventname' => '\mod_assign\event\identities_revealed',
-        'callback' => 'block_newgu_spdetails\observer::identities_revealed'
+        'callback' => 'block_newgu_spdetails\observer::identities_revealed',
     ],
     [
         'eventname' => '\mod_peerwork\event\submission_created',
-        'callback' => 'block_newgu_spdetails\observer::peerwork_submission_created'
+        'callback' => 'block_newgu_spdetails\observer::peerwork_submission_created',
     ],
     [
         'eventname' => '\mod_peerwork\event\assessable_submitted',
-        'callback' => 'block_newgu_spdetails\observer::peerwork_assessable_submitted'
+        'callback' => 'block_newgu_spdetails\observer::peerwork_assessable_submitted',
     ],
     [
         'eventname' => '\mod_peerwork\event\submission_updated',
-        'callback' => 'block_newgu_spdetails\observer::peerwork_submission_updated'
+        'callback' => 'block_newgu_spdetails\observer::peerwork_submission_updated',
     ],
     [
         'eventname' => '\mod_peerwork\event\submission_graded',
-        'callback' => 'block_newgu_spdetails\observer::peerwork_submission_graded'
+        'callback' => 'block_newgu_spdetails\observer::peerwork_submission_graded',
     ],
     [
         'eventname' => '\mod_peerwork\event\grades_released',
-        'callback' => 'block_newgu_spdetails\observer::peerwork_grades_released'
+        'callback' => 'block_newgu_spdetails\observer::peerwork_grades_released',
     ],
     [
         'eventname' => '\mod_quiz\event\attempt_manual_grading_completed',
-        'callback' => 'block_newgu_spdetails\observer::attempt_manual_grading_completed'
+        'callback' => 'block_newgu_spdetails\observer::attempt_manual_grading_completed',
     ],
     [
         'eventname' => '\mod_scorm\event\status_submitted',
-        'callback' => 'block_newgu_spdetails\observer::scorm_status_submitted'
+        'callback' => 'block_newgu_spdetails\observer::scorm_status_submitted',
     ],
     [
         'eventname' => '\mod_workshop\event\submission_created',
-        'callback' => 'block_newgu_spdetails\observer::workshop_submission_created'
+        'callback' => 'block_newgu_spdetails\observer::workshop_submission_created',
     ],
     [
         'eventname' => '\mod_workshop\event\submission_updated',
-        'callback' => 'block_newgu_spdetails\observer::workshop_submission_updated'
+        'callback' => 'block_newgu_spdetails\observer::workshop_submission_updated',
     ],
     [
         'eventname' => '\mod_workshop\event\submission_assessed',
-        'callback' => 'block_newgu_spdetails\observer::workshop_submission_assessed'
+        'callback' => 'block_newgu_spdetails\observer::workshop_submission_assessed',
     ],
     [
         'eventname' => '\mod_workshop\event\submission_deleted',
-        'callback' => 'block_newgu_spdetails\observer::workshop_submission_deleted'
+        'callback' => 'block_newgu_spdetails\observer::workshop_submission_deleted',
     ],
     [
         'eventname' => '\core\event\user_loggedout',
-        'callback' => 'block_newgu_spdetails\observer::user_loggedout'
+        'callback' => 'block_newgu_spdetails\observer::user_loggedout',
     ],
 ];

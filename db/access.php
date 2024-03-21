@@ -30,7 +30,7 @@ $capabilities = [
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [],
-        'clonepermissionsfrom' => 'moodle/my:manageblocks'
+        'clonepermissionsfrom' => 'moodle/my:manageblocks',
     ],
     'block/newgu_spdetails:readotherdashboard' => [
         'riskbitmask' => RISK_PERSONAL,

@@ -26,8 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die('No Direct Access');
 
-class block_newgu_spdetails extends block_base
-{
+class block_newgu_spdetails extends block_base {
 
     /**
      * Initialize block instance.
@@ -35,8 +34,7 @@ class block_newgu_spdetails extends block_base
      * @return void
      * @throws coding_exception
      */
-    public function init(): void
-    {
+    public function init(): void {
         $this->title = get_string('blocktitle', 'block_newgu_spdetails');
     }
 
@@ -45,8 +43,7 @@ class block_newgu_spdetails extends block_base
      *
      * @return bool
      */
-    public function has_config(): bool
-    {
+    public function has_config(): bool {
         return true;
     }
 
@@ -56,8 +53,7 @@ class block_newgu_spdetails extends block_base
      * @return object $content
      * @throws dml_exception
      */
-    public function get_content(): object
-    {
+    public function get_content(): object {
         global $USER, $OUTPUT;
 
         if ($this->content !== null) {
@@ -68,17 +64,17 @@ class block_newgu_spdetails extends block_base
 
         $viewurl = new moodle_url('/blocks/newgu_spdetails/index.php');
 
-        //$cntstaff = block_newgu_spdetails_external::checkrole($USER->id, 0);
+        // Variable $cntstaff = block_newgu_spdetails_external::checkrole($USER->id, 0);
         $cntstaff = 0;
         if ($cntstaff > 0) {
             $staffurl = new moodle_url('/blocks/newgu_spdetails/sduserdetails.php');
             $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
                 'link' => $viewurl,
-                'stafflink' => $staffurl
+                'stafflink' => $staffurl,
             ]);
         } else {
             $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
-                'link' => $viewurl
+                'link' => $viewurl,
             ]);
         }
 
@@ -92,8 +88,7 @@ class block_newgu_spdetails extends block_base
      *
      * @return array
      */
-    public function applicable_formats(): array
-    {
+    public function applicable_formats(): array {
         return ['my' => true];
     }
 }
