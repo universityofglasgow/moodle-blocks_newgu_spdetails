@@ -522,39 +522,32 @@ class course {
                 }
             } else {
                 // Our course structure doesn't have any categories.
-                $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
-                if ($gradecat) {
-                    if (count($gradecat) > 0) {
-                        foreach ($gradecat as $gradecategory) {
-                            $activities = \local_gugrades\api::get_activities($course->id, $gradecategory->id);
-                            if ($activities) {
-                                $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($gradecategory->id,
-                                $activities->items, [], $activities->categories);
+                $activities = \local_gugrades\api::get_activities($course->id, 1);
+                if ($activities) {
+                    $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree(1,
+                    $activities->items, [], $activities->categories);
 
-                                // This is now a flat list of all items associated with this course...
-                                if ($categoryitems) {
-                                    foreach ($categoryitems->items as $item) {
-                                        $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance,
-                                        $item->courseid, false, MUST_EXIST);
-                                        $modinfo = get_fast_modinfo($item->courseid);
-                                        $cm = $modinfo->get_cm($cm->id);
-                                        if ($cm->uservisible) {
-                                            if ($item->itemmodule == 'lti') {
-                                                if (is_array($ltiinstancestoexclude) && in_array($item->courseid,
-                                                $ltiinstancestoexclude) || $item->courseid == $ltiinstancestoexclude) {
-                                                    continue;
-                                                }
-                                            }
-
-                                            // Get the activity based on its type...
-                                            $activity = \block_newgu_spdetails\activity::activity_factory($item->id,
-                                                $item->courseid, 0
-                                            );
-                                            if ($records = $activity->get_assessmentsdue()) {
-                                                $assignmentdata[] = $records[0];
-                                            }
-                                        }
+                    // This is now a flat list of all items associated with this course...
+                    if ($categoryitems) {
+                        foreach ($categoryitems->items as $item) {
+                            $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance,
+                            $item->courseid, false, MUST_EXIST);
+                            $modinfo = get_fast_modinfo($item->courseid);
+                            $cm = $modinfo->get_cm($cm->id);
+                            if ($cm->uservisible) {
+                                if ($item->itemmodule == 'lti') {
+                                    if (is_array($ltiinstancestoexclude) && in_array($item->courseid,
+                                    $ltiinstancestoexclude) || $item->courseid == $ltiinstancestoexclude) {
+                                        continue;
                                     }
+                                }
+
+                                // Get the activity based on its type...
+                                $activity = \block_newgu_spdetails\activity::activity_factory($item->id,
+                                    $item->courseid, 0
+                                );
+                                if ($records = $activity->get_assessmentsdue()) {
+                                    $assignmentdata[] = $records[0];
                                 }
                             }
                         }
@@ -1037,88 +1030,81 @@ class course {
                 }
             } else {
                 // Our course structure doesn't have any categories.
-                $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
-                if ($gradecat) {
-                    if (count($gradecat) > 0) {
-                        foreach ($gradecat as $gradecategory) {
-                            $activities = \local_gugrades\api::get_activities($course->id, $gradecategory->id);
-                            if ($activities) {
-                                $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($gradecategory->id,
-                                $activities->items, [], $activities->categories);
+                $activities = \local_gugrades\api::get_activities($course->id, 1);
+                if ($activities) {
+                    $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree(1,
+                    $activities->items, [], $activities->categories);
 
-                                // This is now a flat list of all items associated with this course...
-                                if ($categoryitems) {
-                                    foreach ($categoryitems->items as $item) {
-                                        $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance,
-                                        $item->courseid, false, MUST_EXIST);
-                                        $modinfo = get_fast_modinfo($item->courseid);
-                                        $cm = $modinfo->get_cm($cm->id);
-                                        if ($cm->uservisible) {
-                                            if ($item->itemmodule == 'lti') {
-                                                if (is_array($ltiinstancestoexclude) && in_array($item->courseid,
-                                                $ltiinstancestoexclude) || $item->courseid == $ltiinstancestoexclude) {
-                                                    continue;
-                                                }
-                                            }
-
-                                            // Get the activity based on its type...
-                                            $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback(
-                                                $item->courseid,
-                                                $item->id,
-                                                $item->itemmodule,
-                                                $item->iteminstance,
-                                                $USER->id,
-                                                $item->gradetype,
-                                                $item->scaleid,
-                                                $item->grademax,
-                                                '',
-                                            );
-
-                                            $status = $gradestatus->grade_status;
-                                            $date = '';
-
-                                            if ($status == $whichstatus) {
-                                                $itemicon = '';
-                                                $iconalt = '';
-                                                if ($iconurl = $cm->get_icon_url()->out(false)) {
-                                                    $itemicon = $iconurl;
-                                                    $iconalt = $cm->get_module_type_name();
-                                                }
-
-                                                switch ($charttype) {
-                                                    case 3:
-                                                        $date = 'tbc';
-                                                        break;
-                                                    default:
-                                                        $date = $gradestatus->due_date;
-                                                        break;
-                                                }
-
-                                                $assessmenttype = self::return_assessmenttype($subcategory['fullname'],
-                                                $item->aggregationcoef);
-                                                $assessmentweight = self::return_weight($item->aggregationcoef);
-                                                $tmp = [
-                                                    'id' => $item->id,
-                                                    'courseurl' => $courseurl->out(),
-                                                    'coursename' => $course->shortname,
-                                                    'assessment_url' => $gradestatus->assessment_url,
-                                                    'item_icon' => $itemicon,
-                                                    'icon_alt' => $iconalt,
-                                                    'item_name' => $item->itemname,
-                                                    'assessment_type' => $assessmenttype,
-                                                    'assessment_weight' => $assessmentweight,
-                                                    'due_date' => $date,
-                                                    'grade_status' => $gradestatus->grade_status,
-                                                    'status_link' => $gradestatus->status_link,
-                                                    'status_class' => $gradestatus->status_class,
-                                                    'status_text' => $gradestatus->status_text,
-                                                    'gradebookenabled' => '',
-                                                ];
-
-                                                $assessmentdata[] = $tmp;
-                                            }
-                                        }
+                    // This is now a flat list of all items associated with this course...
+                    if ($categoryitems) {
+                        foreach ($categoryitems->items as $item) {
+                            $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance,
+                            $item->courseid, false, MUST_EXIST);
+                            $modinfo = get_fast_modinfo($item->courseid);
+                            $cm = $modinfo->get_cm($cm->id);
+                            if ($cm->uservisible) {
+                                if ($item->itemmodule == 'lti') {
+                                    if (is_array($ltiinstancestoexclude) && in_array($item->courseid,
+                                    $ltiinstancestoexclude) || $item->courseid == $ltiinstancestoexclude) {
+                                        continue;
                                     }
+                                }
+
+                                // Get the activity based on its type...
+                                $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback(
+                                    $item->courseid,
+                                    $item->id,
+                                    $item->itemmodule,
+                                    $item->iteminstance,
+                                    $USER->id,
+                                    $item->gradetype,
+                                    $item->scaleid,
+                                    $item->grademax,
+                                    '',
+                                );
+
+                                $status = $gradestatus->grade_status;
+                                $date = '';
+
+                                if ($status == $whichstatus) {
+                                    $itemicon = '';
+                                    $iconalt = '';
+                                    if ($iconurl = $cm->get_icon_url()->out(false)) {
+                                        $itemicon = $iconurl;
+                                        $iconalt = $cm->get_module_type_name();
+                                    }
+
+                                    switch ($charttype) {
+                                        case 3:
+                                            $date = 'tbc';
+                                            break;
+                                        default:
+                                            $date = $gradestatus->due_date;
+                                            break;
+                                    }
+
+                                    $assessmenttype = self::return_assessmenttype($course->fullname,
+                                    $item->aggregationcoef);
+                                    $assessmentweight = self::return_weight($item->aggregationcoef);
+                                    $tmp = [
+                                        'id' => $item->id,
+                                        'courseurl' => $courseurl->out(),
+                                        'coursename' => $course->shortname,
+                                        'assessment_url' => $gradestatus->assessment_url,
+                                        'item_icon' => $itemicon,
+                                        'icon_alt' => $iconalt,
+                                        'item_name' => $item->itemname,
+                                        'assessment_type' => $assessmenttype,
+                                        'assessment_weight' => $assessmentweight,
+                                        'due_date' => $date,
+                                        'grade_status' => $gradestatus->grade_status,
+                                        'status_link' => $gradestatus->status_link,
+                                        'status_class' => $gradestatus->status_class,
+                                        'status_text' => $gradestatus->status_text,
+                                        'gradebookenabled' => '',
+                                    ];
+
+                                    $assessmentdata[] = $tmp;
                                 }
                             }
                         }
