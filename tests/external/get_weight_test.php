@@ -16,24 +16,24 @@
 
 /**
  * Test that the correct weighting for a given course 'type' is returned.
- * 
- * @package    blocks_newgu_spdetails
+ *
+ * @package    block_newgu_spdetails
  * @copyright  2024
  * @author     Greg Pedder
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace blocks\newgu_spdetails\external;
+namespace blocks_newgu_spdetails\tests\external;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
- 
+
 /**
  * Test get_weight function.
-*/
+ */
 class get_weight_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
 
     public function test_return_weight() {

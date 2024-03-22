@@ -17,19 +17,19 @@
 /**
  * Testing the assessment summary web service and the various
  * stats that are returned. Due to a limitation with the data
- * generators - assignment submissions (made in the base class) 
+ * generators - assignment submissions (made in the base class)
  * only give us an entry in mdl_assign_submissions - there doesn't
  * seem to be a way to generate submitted assignments - i.e.
- * where we can make use of entries that end up in mdl_grade_grades. 
+ * where we can make use of entries that end up in mdl_grade_grades.
  * Therefore testing anything but 'to submit' isn't possible.
- * 
- * @package    blocks_newgu_spdetails
+ *
+ * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Greg Pedder
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace block_newgu_spdetails\external;
+namespace block_newgu_spdetails\tests\external;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,7 +38,7 @@ global $CFG;
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
 class get_assessment_summary_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
-    
+
     /**
      * Test that the assessment summary returns the specific key names.
      */

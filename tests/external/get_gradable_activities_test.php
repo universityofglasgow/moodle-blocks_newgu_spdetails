@@ -23,7 +23,7 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace blocks_newgu_spdetails\external;
+namespace block_newgu_spdetails\tests\external;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -41,11 +41,11 @@ class get_gradable_activities_test extends \blocks_newgu_spdetails\external\newg
     public function test_retrieve_gradable_activities_current_courses() {
         $userid = $this->student1->id;
         $sortorder = 'asc';
-        $gcat_summativecategoryid = $this->gcat_summativecategory->id;
-        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gcat_summativecategoryid);
+        $gcatsummativecategoryid = $this->gcat_summativecategory->id;
+        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gcatsummativecategoryid);
 
         $this->assertIsArray($returned);
-        $this->assertArrayHasKey('coursedata',$returned);
+        $this->assertArrayHasKey('coursedata', $returned);
         $this->assertCount(1, $returned['coursedata']['assessmentitems']);
     }
 
@@ -55,11 +55,11 @@ class get_gradable_activities_test extends \blocks_newgu_spdetails\external\newg
     public function test_retrieve_gradable_activities_past_courses() {
         $userid = $this->student1->id;
         $sortorder = 'asc';
-        $summativecategory_pastid = $this->summativecategory_past->id;
-        $returned = $this->lib->retrieve_gradable_activities('past', $userid, 'duedate', $sortorder, $summativecategory_pastid);
+        $summativecategorypastid = $this->summativecategory_past->id;
+        $returned = $this->lib->retrieve_gradable_activities('past', $userid, 'duedate', $sortorder, $summativecategorypastid);
 
         $this->assertIsArray($returned);
-        $this->assertArrayHasKey('coursedata',$returned);
+        $this->assertArrayHasKey('coursedata', $returned);
         $this->assertCount(1, $returned['coursedata']['assessmentitems']);
     }
 
@@ -70,17 +70,19 @@ class get_gradable_activities_test extends \blocks_newgu_spdetails\external\newg
         $userid = $this->student1->id;
         $sortorder = 'asc';
 
-        /** MyGrades course type */
-        $mygrades_summative_subcategoryid = $this->mygrades_summative_subcategory->id;
-        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $mygrades_summative_subcategoryid);
-        $this->assertEquals($this->mygradescourse->mygradesenabled, $returned['coursedata']['assessmentitems'][0]['mygradesenabled']);
+        // MyGrades course type.
+        $mygradessummativesubcategoryid = $this->mygrades_summative_subcategory->id;
+        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder,
+        $mygradessummativesubcategoryid);
+        $this->assertEquals($this->mygradescourse->mygradesenabled,
+        $returned['coursedata']['assessmentitems'][0]['mygradesenabled']);
 
-        /** GCAT course type */
-        $gcat_summative_subcategory = $this->gcat_summative_subcategory->id;
-        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gcat_summative_subcategory);
+        // GCAT course type.
+        $gcatsummativesubcategory = $this->gcat_summative_subcategory->id;
+        $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gcatsummativesubcategory);
         $this->assertEquals($this->gcatcourse->gcatenabled, $returned['coursedata']['assessmentitems'][0]['gcatenabled']);
 
-        /** Gradebook course type */
+        // Gradebook course type.
         $gradebookcategoryid = $this->gradebookcategory->id;
         $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gradebookcategoryid);
         $this->assertEquals(true, $returned['coursedata']['assessmentitems'][0]['gradebookenabled']);
@@ -90,7 +92,5 @@ class get_gradable_activities_test extends \blocks_newgu_spdetails\external\newg
      * Test of the context checking when viewing the dashboard as the student
      * and as another user, teacher or other member of staff for example
      */
-    public function test_retrieve_gradable_activities_capability_check() {
-
-    }
+    // Public function test_retrieve_gradable_activities_capability_check.
 }

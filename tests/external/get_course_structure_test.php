@@ -16,22 +16,22 @@
 
 /**
  * Test getting the course structure.
- * 
- * @package    blocks_newgu_spdetails
+ *
+ * @package    block_newgu_spdetails
  * @copyright  2024
  * @author     Greg Pedder
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- namespace block_newgu_spdetails\external;
+ namespace block_newgu_spdetails\tests\external;
 
- defined('MOODLE_INTERNAL') || die();
- 
- global $CFG;
- 
- require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
+defined('MOODLE_INTERNAL') || die();
 
- class get_course_structure_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
+global $CFG;
+ 
+require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
+
+class get_course_structure_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
     /**
      * Test of the components of the course that get returned.
      */
@@ -39,14 +39,14 @@
         $returned = $this->courseapi->get_course_structure([$this->gcatcourse], true);
 
         $this->assertIsArray($returned);
-        $this->assertArrayHasKey('coursedata',$returned);
+        $this->assertArrayHasKey('coursedata', $returned);
         $this->assertIsString($returned['coursedata'][0]['coursename']);
         $this->assertEquals($this->gcatcourse->shortname, $returned['coursedata'][0]['coursename']);
 
         $this->assertIsArray($returned['coursedata'][0]['subcategories']);
-        $this->assertArrayHasKey('subcategories',$returned['coursedata'][0]);
+        $this->assertArrayHasKey('subcategories', $returned['coursedata'][0]);
         $this->assertEquals($this->gcat_summativecategory->fullname, $returned['coursedata'][0]['subcategories'][0]['name']);
         $this->assertEquals('Summative', $returned['coursedata'][0]['subcategories'][0]['assessmenttype']);
         $this->assertEquals('—', $returned['coursedata'][0]['subcategories'][0]['subcatweight']);
     }
- }
+}

@@ -16,14 +16,14 @@
 
 /**
  * Test of the assessments due soon feature.
- * 
- * @package    blocks_newgu_spdetails
+ *
+ * @package    block_newgu_spdetails
  * @copyright  2024
  * @author     Greg Pedder
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace blocks\newgu_spdetails\external;
+namespace block_newgu_spdetails\tests\external;
 
 defined('MOODLE_INTERNAL') || die();
  
@@ -32,7 +32,7 @@ global $CFG;
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
 class get_assessments_due_soon_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
-    
+
     /**
      * Test that the returned assessments due date falls into
      * one of the following categories:
@@ -40,7 +40,5 @@ class get_assessments_due_soon_test extends \blocks_newgu_spdetails\external\new
      * 7 days
      * 1 month
      */
-    public function test_get_assessments_due_soon() {
-
-    }
+    // Public function test_get_assessments_due_soon.
 }

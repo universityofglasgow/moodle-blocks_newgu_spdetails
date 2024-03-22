@@ -23,49 +23,51 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- namespace blocks_newgu_spdetails\external;
+namespace block_newgu_spdetails\tests\external;
 
- defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+
+require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
+require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
  
- global $CFG;
- 
- require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
- require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
- 
- class get_grade_status_and_feedback_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
-    
+class get_grade_status_and_feedback_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
+
     /**
-     * Test that for a given assessment, the correct grade, status and 
+     * Test that for a given assessment, the correct grade, status and
      * feedback is returned.
-     * 
-     * For a GCAT type course, the API is called and it should deal 
+     *
+     * For a GCAT type course, the API is called and it should deal
      * with the return values.
      */
     public function test_get_grade_status_and_feedback_gcat() {
         $userid = $this->student1->id;
         $sortorder = 'asc';
 
-        $gcat_summative_subcategory = $this->gcat_summative_subcategory->id;
-        $gcat_graded_items = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gcat_summative_subcategory);
+        $gcatsummativesubcategory = $this->gcat_summative_subcategory->id;
+        $gcatgradeditems = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder,
+        $gcatsummativesubcategory);
         
-        $this->assertIsArray($gcat_graded_items);
-        $this->assertCount(3, $gcat_graded_items['coursedata']['assessmentitems']);
+        $this->assertIsArray($gcatgradeditems);
+        $this->assertCount(3, $gcatgradeditems['coursedata']['assessmentitems']);
         
         // Check for the raw grade/provisional on the first assignment.
-        $this->assertArrayHasKey('grade_provisional', $gcat_graded_items['coursedata']['assessmentitems'][0]);
-        $this->assertTrue($gcat_graded_items['coursedata']['assessmentitems'][0]['grade_provisional']);
+        $this->assertArrayHasKey('grade_provisional', $gcatgradeditems['coursedata']['assessmentitems'][0]);
+        $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
         // Check for the feedback.
-        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'), $gcat_graded_items['coursedata']['assessmentitems'][0]['grade_feedback']);
+        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'),
+        $gcatgradeditems['coursedata']['assessmentitems'][0]['grade_feedback']);
 
         // Check for an overridden grade.
         // Check for the feedback.
 
         // Check for the final grade.
-        $this->assertArrayHasKey('grade_class', $gcat_graded_items['coursedata']['assessmentitems'][1]);
-        $this->assertFalse($gcat_graded_items['coursedata']['assessmentitems'][1]['grade_provisional']);
+        $this->assertArrayHasKey('grade_class', $gcatgradeditems['coursedata']['assessmentitems'][1]);
+        $this->assertFalse($gcatgradeditems['coursedata']['assessmentitems'][1]['grade_provisional']);
         // Check for the feedback.
-        $this->assertStringContainsString(get_string('readfeedback', 'block_gu_spdetails'), $gcat_graded_items['coursedata']['assessmentitems'][1]['grade_feedback']);
-
+        $this->assertStringContainsString(get_string('readfeedback', 'block_gu_spdetails'),
+        $gcatgradeditems['coursedata']['assessmentitems'][1]['grade_feedback']);
     }
 
     /**
@@ -79,26 +81,29 @@
         $userid = $this->student1->id;
         $sortorder = 'asc';
 
-        $mygrades_summative_subcategory2 = $this->mygrades_summative_subcategory2->id;
-        $mygrades_graded_items = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $mygrades_summative_subcategory2);
+        $mygradessummativesubcategory2 = $this->mygrades_summative_subcategory2->id;
+        $mygradesgradeditems = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder,
+        $mygradessummativesubcategory2);
 
-        $this->assertIsArray($mygrades_graded_items);
-        $this->assertCount(2, $mygrades_graded_items['coursedata']['assessmentitems']);
+        $this->assertIsArray($mygradesgradeditems);
+        $this->assertCount(2, $mygradesgradeditems['coursedata']['assessmentitems']);
 
         // Check for the raw grade/provisional on the first assignment.
-        $this->assertArrayHasKey('grade_provisional', $mygrades_graded_items['coursedata']['assessmentitems'][0]);
-        $this->assertTrue($mygrades_graded_items['coursedata']['assessmentitems'][0]['grade_provisional']);
+        $this->assertArrayHasKey('grade_provisional', $mygradesgradeditems['coursedata']['assessmentitems'][0]);
+        $this->assertTrue($mygradesgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
         // Check for the feedback.
-        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'), $mygrades_graded_items['coursedata']['assessmentitems'][0]['grade_feedback']);
+        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'),
+        $mygradesgradeditems['coursedata']['assessmentitems'][0]['grade_feedback']);
 
         // Check for an overridden grade.
         // Check for the feedback.
 
         // Check for the final grade.
-        $this->assertArrayHasKey('grade_class', $mygrades_graded_items['coursedata']['assessmentitems'][1]);
-        $this->assertFalse($mygrades_graded_items['coursedata']['assessmentitems'][1]['grade_provisional']);
+        $this->assertArrayHasKey('grade_class', $mygradesgradeditems['coursedata']['assessmentitems'][1]);
+        $this->assertFalse($mygradesgradeditems['coursedata']['assessmentitems'][1]['grade_provisional']);
         // Check for the feedback.
-        $this->assertStringContainsString(get_string('status_text_viewfeedback', 'block_newgu_spdetails'), $mygrades_graded_items['coursedata']['assessmentitems'][1]['grade_feedback']);
+        $this->assertStringContainsString(get_string('status_text_viewfeedback', 'block_newgu_spdetails'),
+        $mygradesgradeditems['coursedata']['assessmentitems'][1]['grade_feedback']);
     }
 
     /** 
@@ -110,25 +115,27 @@
         $sortorder = 'asc';
 
         $gradebookcategory = $this->gradebookcategory->id;
-        $gradebook_graded_items = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gradebookcategory);
+        $gradebookgradeditems = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder,
+        $gradebookcategory);
 
-        $this->assertIsArray($gradebook_graded_items);
-        $this->assertCount(2, $gradebook_graded_items['coursedata']['assessmentitems']);
+        $this->assertIsArray($gradebookgradeditems);
+        $this->assertCount(2, $gradebookgradeditems['coursedata']['assessmentitems']);
 
         // Check for the raw grade/provisional on the first assignment.
-        $this->assertArrayHasKey('grade_provisional', $gradebook_graded_items['coursedata']['assessmentitems'][0]);
-        $this->assertTrue($gradebook_graded_items['coursedata']['assessmentitems'][0]['grade_provisional']);
+        $this->assertArrayHasKey('grade_provisional', $gradebookgradeditems['coursedata']['assessmentitems'][0]);
+        $this->assertTrue($gradebookgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
         // Check for the feedback.
-        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'), $gradebook_graded_items['coursedata']['assessmentitems'][0]['grade_feedback']);
+        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'),
+        $gradebookgradeditems['coursedata']['assessmentitems'][0]['grade_feedback']);
 
         // Check for an overridden grade.
         // Check for the feedback.
 
         // Check for the final grade.
-        $this->assertArrayHasKey('grade_class', $gradebook_graded_items['coursedata']['assessmentitems'][1]);
-        $this->assertFalse($gradebook_graded_items['coursedata']['assessmentitems'][1]['grade_provisional']);
+        $this->assertArrayHasKey('grade_class', $gradebookgradeditems['coursedata']['assessmentitems'][1]);
+        $this->assertFalse($gradebookgradeditems['coursedata']['assessmentitems'][1]['grade_provisional']);
         // Check for the feedback.
-        $this->assertStringContainsString(get_string('status_text_viewfeedback', 'block_newgu_spdetails'), $gradebook_graded_items['coursedata']['assessmentitems'][1]['grade_feedback']);
-    }
-    
+        $this->assertStringContainsString(get_string('status_text_viewfeedback', 'block_newgu_spdetails'),
+        $gradebookgradeditems['coursedata']['assessmentitems'][1]['grade_feedback']);
+    }    
 }

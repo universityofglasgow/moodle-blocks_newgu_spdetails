@@ -16,23 +16,23 @@
 
 /**
  * Test of the language string settings.
- * 
- * @package    blocks_newgu_spdetails
+ *
+ * @package    block_newgu_spdetails
  * @copyright  2024
  * @author     Greg Pedder
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace blocks\newgu_spdetails\external;
+namespace block_newgu_spdetails\tests\external;
 
 defined('MOODLE_INTERNAL') || die();
- 
+
 global $CFG;
 
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
 class get_assessment_type_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
-    
+
     /**
      * Test of the language string settings against mock assessment types and weighting.
      */

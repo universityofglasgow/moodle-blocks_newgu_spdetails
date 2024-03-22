@@ -22,7 +22,7 @@
  * @copyright  2023 University of Glasgow
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace block_newgu_spdetails\external;
+namespace block_newgu_spdetails\tests\external;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
