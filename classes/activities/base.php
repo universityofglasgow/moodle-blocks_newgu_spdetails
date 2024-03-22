@@ -16,8 +16,8 @@
 
 /**
  * Default class for grade/activity access classes.
- * 
- * @package    blocks_newgu_spdetails
+ *
+ * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Howard Miller/Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -70,7 +70,7 @@ abstract class base {
      * @var string $itemname
      */
     protected string $itemname;
-    
+
     /**
      * @var string $itemscript
      */
@@ -109,7 +109,7 @@ abstract class base {
      * Implement get_first_grade
      * This is currently just the same as a manual grade
      * (this is pulling 'finalgrade' instead of 'rawgrade'. Not sure if this is correct/complete).
-     * 
+     *
      * @param int $userid
      * @return mixed object|bool
      */
@@ -119,7 +119,6 @@ abstract class base {
         $gradeobj->finalgrade = null;
         $gradeobj->rawgrade = null;
         $gradeobj->gradedate = null;
-        
 
         if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'userid' => $userid])) {
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
@@ -142,7 +141,7 @@ abstract class base {
 
     /**
      * Get item type.
-     * 
+     *
      * @return string
      */
     public function get_itemtype(): string {
@@ -151,7 +150,7 @@ abstract class base {
 
     /**
      * Get item module.
-     * 
+     *
      * @return string
      */
     public function get_itemmodule(): string {
@@ -160,7 +159,7 @@ abstract class base {
 
     /**
      * Get item script.
-     * 
+     *
      * @return string
      */
     public function get_itemscript(): string {
@@ -169,7 +168,7 @@ abstract class base {
 
     /**
      * Get item url.
-     * 
+     *
      * @return string
      */
     public function get_itemurl(): string {
@@ -178,7 +177,7 @@ abstract class base {
 
     /**
      * Get item name.
-     * 
+     *
      * @return string
      */
     public function get_itemname(): string {
@@ -188,7 +187,7 @@ abstract class base {
     /**
      * Allow the implementing class to decide how the status
      * should be determined.
-     * 
+     *
      * @param int $userid
      * @return object
      */
@@ -199,7 +198,7 @@ abstract class base {
      * 
      * We need to make this part of the object - currently
      * being called as a static method.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -215,7 +214,7 @@ abstract class base {
             case get_string('status_notsubmitted', 'block_newgu_spdetails') :
                 $feedbackobj->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                 break;
-                
+
             case get_string('status_overdue', 'block_newgu_spdetails'):
                 $feedbackobj->grade_feedback = get_string('status_text_overdue', 'block_newgu_spdetails');
                 break;
@@ -224,7 +223,8 @@ abstract class base {
             case get_string('status_notsubmitted', 'block_newgu_spdetails'):
                 $feedbackobj->grade_feedback = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                 if ($gradestatusobj->due_date > time()) {
-                    $feedbackobj->grade_feedback = get_string('status_text_dueby', 'block_newgu_spdetails', $gradestatusobj->due_date);
+                    $feedbackobj->grade_feedback = get_string('status_text_dueby', 'block_newgu_spdetails',
+                    $gradestatusobj->due_date);
                 }
                 break;
 
@@ -240,7 +240,7 @@ abstract class base {
     /**
      * Allow the implementing class to determine how the due
      * date of assessment submissions are worked out.
-     * 
+     *
      * @return array
      */
     abstract public function get_assessmentsdue(): array;

@@ -16,7 +16,7 @@
 
 /**
  * Concrete implementation for mod_peerwork.
- * 
+ *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -53,7 +53,7 @@ class peerwork_activity extends base {
 
     /**
      * Constructor, set grade itemid.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -68,7 +68,7 @@ class peerwork_activity extends base {
 
     /**
      * Get peerwork object.
-     * 
+     *
      * @param object $cm course module
      * @return object
      */
@@ -82,7 +82,7 @@ class peerwork_activity extends base {
 
     /**
      * Return the grade directly from Gradebook.
-     * 
+     *
      * @param int $userid
      * @return mixed object|bool
      */
@@ -119,7 +119,7 @@ class peerwork_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -128,29 +128,29 @@ class peerwork_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-        
-        $due_date = '';
+
+        $duedate = '';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $due_date = $dateobj->format('jS F Y');
+            $duedate = $dateobj->format('jS F Y');
         }
-        
-        return $due_date;
+
+        return $duedate;
     }
 
     /**
      * Method to return the current status of the assessment item.
-     * 
+     *
      * @param int $userid
      * @return object
      */
     public function get_status(int $userid): object {
-        
+
         global $DB;
 
         $statusobj = new \stdClass();
@@ -167,7 +167,8 @@ class peerwork_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $peerworksubmission = $DB->get_record('peerwork_submission', ['peerworkid' => $this->peerwork->id, 'userid' => $userid]);
+            $peerworksubmission = $DB->get_record('peerwork_submission', ['peerworkid' => $this->peerwork->id,
+            'userid' => $userid]);
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
@@ -206,7 +207,8 @@ class peerwork_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', date('d/m/Y', $gradestatus->due_date));
+                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails',
+                        date('d/m/Y', $gradestatus->due_date));
                     }
                 }
 
@@ -231,7 +233,7 @@ class peerwork_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */
@@ -241,7 +243,7 @@ class peerwork_activity extends base {
 
     /**
      * Return the due date of the peerwork assignment if it hasn't been submitted.
-     * 
+     *
      * @return array
      */
     public function get_assessmentsdue(): array {
@@ -257,20 +259,20 @@ class peerwork_activity extends base {
         $peerworkdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m')-1, date('d'), date('Y'));
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $peerworksubmissions = $DB->get_fieldset_select('peerwork_submission', 'peerworkid', $select,$params);
+            $peerworksubmissions = $DB->get_fieldset_select('peerwork_submission', 'peerworkid', $select, $params);
 
             $submissionsdata = [
                 'updated' => time(),
-                'peerworksubmissions' => $peerworksubmissions
+                'peerworksubmissions' => $peerworksubmissions,
             ];
 
             $cachedata = [
                 $cachekey => [
-                    $submissionsdata
-                ]
+                    $submissionsdata,
+                ],
             ];
             $cache->set_many($cachedata);
 
@@ -280,7 +282,7 @@ class peerwork_activity extends base {
         }
 
         $peerworkassignment = $this->peerwork;
-            
+
         if (!in_array($peerworkassignment->id, $peerworksubmissions) && $peerworkassignment->allowlatesubmissions == 0) {
             if ($peerworkassignment->fromdate < $now) {
                 if ($peerworkassignment->duedate > $now) {

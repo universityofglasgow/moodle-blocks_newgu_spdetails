@@ -144,7 +144,7 @@ class h5p_activity extends base {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
             $duedate = $dateobj->format('jS F Y');
         }
-        
+
         return $duedate;
     }
 
@@ -212,7 +212,7 @@ class h5p_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails', 
+                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails',
                             date('d/m/Y', $gradestatus->due_date)
                         );
                     }

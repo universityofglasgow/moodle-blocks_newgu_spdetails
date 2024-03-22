@@ -395,7 +395,7 @@ function get_startenddateorder($tdr) {
  * Does something.
  */
 function get_ltiinstancenottoinclude() {
-    // FETCH LTI IDs TO BE INCLUDED
+    // FETCH LTI IDs TO BE INCLUDED.
     global $DB;
 
     $strltitoinclude = "99999";

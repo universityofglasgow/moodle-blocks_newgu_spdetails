@@ -329,8 +329,9 @@ class grade {
                 ]);
                 $assessmenturl = $CFG->wwwroot . "/mod/workshop/view.php?id=" . $cmid;
 
-                $workshopsubmissions = $DB->count_records("workshop_submissions", 
-                    ["workshopid" => $iteminstance, "authorid" => $userid
+                $workshopsubmissions = $DB->count_records("workshop_submissions",[
+                    "workshopid" => $iteminstance, 
+                    "authorid" => $userid,
                 ]);
                 if ($workshopsubmissions > 0) {
                     $status = get_string("status_submitted", "block_newgu_spdetails");
@@ -439,7 +440,7 @@ class grade {
         $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
 
         if ($finalgrade != null) {
-            
+
             // I think this is meant to have been 'scale' type and not
             // 'grade' type. This code seems to be trying to determine
             // whether to use the 22 point 'scale' from the grade 'type'
@@ -511,7 +512,7 @@ class grade {
         // here since after the final iteration, when control is returned, $items will
         // contain everything bar the items from the last iteration, thereby having the
         // side effect of inadvertantly losing those last items. Setting $record to
-        // null allows us us to check (after the last iteration and control is returned) 
+        // null allows us us to check (after the last iteration and control is returned)
         // if the object already exist - which it will at the point of last iteration.
         $items = $items;
         $record = null;

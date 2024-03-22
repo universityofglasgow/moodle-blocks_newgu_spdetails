@@ -171,7 +171,7 @@ class workshop_activity extends base {
         if ($statusobj->grade_status == '') {
             $workshopsubmission = $DB->get_record('workshop_submissions', [
                 'workshopid' => $this->workshop->id,
-                'authorid' => $userid
+                'authorid' => $userid,
             ]);
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
@@ -268,7 +268,7 @@ class workshop_activity extends base {
                 'lastmonth' => $lastmonth,
                 'now' => $now,
             ];
-            $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'id', $select,$params);
+            $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'id', $select, $params);
 
             $submissionsdata = [
                 'updated' => time(),

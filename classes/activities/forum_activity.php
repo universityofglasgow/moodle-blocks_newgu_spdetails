@@ -16,7 +16,7 @@
 
 /**
  * Concrete implementation for mod_forum.
- * 
+ *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -51,7 +51,7 @@ class forum_activity extends base {
 
     /**
      * Constructor, set grade itemid.
-     * 
+     *
      * @param int $gradeitemid Grade item id
      * @param int $courseid
      * @param int $groupid
@@ -66,7 +66,7 @@ class forum_activity extends base {
 
     /**
      * Get forum object.
-     * 
+     *
      * @param object $cm course module
      * @return object
      */
@@ -80,7 +80,7 @@ class forum_activity extends base {
 
     /**
      * Return the grade directly from Gradebook.
-     * 
+     *
      * @param int $userid
      * @return mixed object|bool
      */
@@ -117,7 +117,7 @@ class forum_activity extends base {
 
     /**
      * Return the Moodle URL to the item.
-     * 
+     *
      * @return string
      */
     public function get_assessmenturl(): string {
@@ -126,24 +126,24 @@ class forum_activity extends base {
 
     /**
      * Return a formatted date.
-     * 
+     *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-        
-        $due_date = '';
+
+        $duedate = '';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $due_date = $dateobj->format('jS F Y');
+            $duedate = $dateobj->format('jS F Y');
         }
-        
-        return $due_date;
+
+        return $duedate;
     }
 
     /**
      * Method to return the current status of the assessment item.
-     * 
+     *
      * @param int $userid
      * @return object
      */
@@ -173,7 +173,7 @@ class forum_activity extends base {
 
     /**
      * Method to return any feedback provided by the teacher.
-     * 
+     *
      * @param object $gradestatusobj
      * @return object
      */

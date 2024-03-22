@@ -540,7 +540,7 @@ class course {
                                         $cm = $modinfo->get_cm($cm->id);
                                         if ($cm->uservisible) {
                                             if ($item->itemmodule == 'lti') {
-                                                if (is_array($ltiinstancestoexclude) && in_array($item->courseid, 
+                                                if (is_array($ltiinstancestoexclude) && in_array($item->courseid,
                                                 $ltiinstancestoexclude) || $item->courseid == $ltiinstancestoexclude) {
                                                     continue;
                                                 }
@@ -678,7 +678,7 @@ class course {
                                                 $iconalt = $cm->get_module_type_name();
                                             }
                                             $assessmentweight = self::return_weight($item->aggregationcoef);
-                                            $assessment_type = self::return_assessmenttype($subcategory['fullname'],
+                                            $assessmenttype = self::return_assessmenttype($subcategory['fullname'],
                                             $item->aggregationcoef);
                                             $status = $activityitem->get_status($USER->id);
                                             $duedate = '';
@@ -693,7 +693,7 @@ class course {
                                                 'item_icon' => $itemicon,
                                                 'icon_alt' => $iconalt,
                                                 'item_name' => $assessment->name,
-                                                'assessment_type' => $assessment_type,
+                                                'assessment_type' => $assessmenttype,
                                                 'assessment_weight' => $assessmentweight,
                                                 'due_date' => $duedate,
                                                 'grade_status' => $status->grade_status,
@@ -702,7 +702,7 @@ class course {
                                                 'status_text' => $status->status_text,
                                                 'gradebookenabled' => '',
                                             ];
-                                            
+
                                             $assessmentdata[] = $tmp;
                                         }
                                     }
@@ -750,7 +750,7 @@ class course {
                                                         $iconalt = $cm->get_module_type_name();
                                                     }
                                                     $assessmentweight = self::return_weight($item->aggregationcoef);
-                                                    $assessment_type = self::return_assessmenttype($subcategory['fullname'],
+                                                    $assessmenttype = self::return_assessmenttype($subcategory['fullname'],
                                                     $item->aggregationcoef);
                                                     $status = $activityitem->get_status($USER->id);
                                                     $duedate = '';
@@ -765,7 +765,7 @@ class course {
                                                         'item_icon' => $itemicon,
                                                         'icon_alt' => $iconalt,
                                                         'item_name' => $assessment->name,
-                                                        'assessment_type' => $assessment_type,
+                                                        'assessment_type' => $assessmenttype,
                                                         'assessment_weight' => $assessmentweight,
                                                         'due_date' => $duedate,
                                                         'grade_status' => $status->grade_status,
@@ -1073,10 +1073,10 @@ class course {
                                                 $item->grademax,
                                                 '',
                                             );
-        
+
                                             $status = $gradestatus->grade_status;
                                             $date = '';
-                                            
+
                                             if ($status == $whichstatus) {
                                                 $itemicon = '';
                                                 $iconalt = '';
@@ -1084,7 +1084,7 @@ class course {
                                                     $itemicon = $iconurl;
                                                     $iconalt = $cm->get_module_type_name();
                                                 }
-        
+
                                                 switch ($charttype) {
                                                     case 3:
                                                         $date = 'tbc';
@@ -1093,7 +1093,7 @@ class course {
                                                         $date = $gradestatus->due_date;
                                                         break;
                                                 }
-        
+
                                                 $assessmenttype = self::return_assessmenttype($subcategory['fullname'],
                                                 $item->aggregationcoef);
                                                 $assessmentweight = self::return_weight($item->aggregationcoef);

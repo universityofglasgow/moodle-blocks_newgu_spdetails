@@ -131,7 +131,7 @@ class scorm_activity extends base {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
             $duedate = $dateobj->format('jS F Y');
         }
-        
+
         return $duedate;
     }
 

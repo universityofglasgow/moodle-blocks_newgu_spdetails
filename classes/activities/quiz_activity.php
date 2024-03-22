@@ -182,7 +182,7 @@ class quiz_activity extends base {
             $quizattempts = $DB->count_records('quiz_attempts', [
                 'quiz' => $quizinstance->id,
                 'userid' => $userid,
-                'state' => 'finished'
+                'state' => 'finished',
             ]);
             if ($quizattempts > 0) {
                 $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');

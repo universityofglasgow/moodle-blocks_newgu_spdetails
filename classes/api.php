@@ -36,8 +36,7 @@ require_once($CFG->libdir . '/gradelib.php');
 
 define('NUM_ASSESSMENTS_PER_PAGE', 12);
 
-class api extends \external_api
-{
+class api extends \external_api {
 
     /**
      * @param string $activetab
@@ -47,7 +46,8 @@ class api extends \external_api
      * @param int $subcategory
      * @return array $data
      */
-    public static function retrieve_assessments(string $activetab, int $page, string $sortby, string $sortorder, int $subcategory = null): array {
+    public static function retrieve_assessments(string $activetab, int $page, string $sortby, string $sortorder,
+    int $subcategory = null): array {
         global $USER, $OUTPUT, $PAGE;
         $PAGE->set_context(context_system::instance());
 
@@ -55,11 +55,11 @@ class api extends \external_api
         $limit = NUM_ASSESSMENTS_PER_PAGE;
         $offset = $page * $limit;
         $params = [
-            'activetab' => $activetab, 
+            'activetab' => $activetab,
             'page' => $page,
-            'sortby' => $sortby, 
-            'sortorder' => $sortorder, 
-            'subcategory' => $subcategory
+            'sortby' => $sortby,
+            'sortorder' => $sortorder,
+            'subcategory' => $subcategory,
         ];
         $url = new \moodle_url('/index.php', $params);
         $totalassessments = 0;
@@ -70,13 +70,11 @@ class api extends \external_api
         if ($items) {
             $totalassessments = count($items);
             $paginatedassessments = array_splice($items, $offset, $limit);
-            
+
             foreach ($paginatedassessments as $k => $v) {
                 $data[$k] = $v;
             }
 
-            //$pagination = $OUTPUT->paging_bar($totalassessments, $page, $limit, $url);
-            //$data['pagination'] = $pagination;
             $data['pdf_link'] = 'downloadspdetails.php?spdetailstype=pdf&coursestype=' . $activetab;
             $data['excel_link'] = 'downloadspdetails.php?spdetailstype=excel&coursestype=' . $activetab;
         }
@@ -90,11 +88,12 @@ class api extends \external_api
      * @param string $sortby
      * @param string $sortorder
      * @param int $subcategory
-     * 
+     *
      * @return array $gradableactivities
      * @throws dml_exception
      */
-    public static function retrieve_gradable_activities(string $activetab, int $userid, string $sortby = null, string $sortorder, int $subcategory = null): array {
+    public static function retrieve_gradable_activities(string $activetab, int $userid, string $sortby = null, string $sortorder,
+    int $subcategory = null): array {
         $gradableactivities = [];
 
         // Start with getting the top level categories for all courses.
@@ -116,10 +115,11 @@ class api extends \external_api
                 break;
             }
 
-            $courses = \local_gugrades\api::dashboard_get_courses($userid, $currentcourses, $pastcourses, $sortby . " " . $sortorder);                    
+            $courses = \local_gugrades\api::dashboard_get_courses($userid, $currentcourses, $pastcourses, $sortby . " " . $sortorder);
             return \block_newgu_spdetails\course::get_course_structure($courses, $currentcourses);
         } else {
-            $gradableactivities = \block_newgu_spdetails\activity::get_activityitems($subcategory, $userid, $activetab, $sortby, $sortorder);
+            $gradableactivities = \block_newgu_spdetails\activity::get_activityitems($subcategory, $userid, $activetab, $sortby,
+            $sortorder);
         }
 
         return $gradableactivities;
@@ -127,11 +127,11 @@ class api extends \external_api
 
     /**
      * Return the assessments that are due in the next 24 hours, week and month.
-     * 
+     *
      * @return array
      */
     public static function get_assessmentsduesoon(): array {
-        
+
         $stats = \block_newgu_spdetails\course::get_assessmentsduesoon();
 
         return $stats;
@@ -139,7 +139,7 @@ class api extends \external_api
 
     /**
      * Return assessments that are due - filtered by type: 24hrs, 7days etc.
-     * 
+     *
      * @param int $charttype
      * @return array
      */
@@ -151,15 +151,15 @@ class api extends \external_api
 
     /**
      * Return a summary of current assessments for the student
-     * 
+     *
      * @TODO - this needs to be refactored to make better use of
      * \local_gugrades\api::dashboard_get_courses instead of
      * \block_newgu_spdetails\course::return_enrolledcourses
-     * 
+     *
      * @return array
      */
     public static function get_assessmentsummary(): array {
-        
+
         $summary = \block_newgu_spdetails\course::get_assessmentsummary();
 
         return $summary;
@@ -167,7 +167,7 @@ class api extends \external_api
 
     /**
      * Return the assessment summary - filtered by type: submitted, overdue etc.
-     * 
+     *
      * @param int $charttype
      * @return array
      */
@@ -206,8 +206,7 @@ class api extends \external_api
      * @return boolean has_capability
      * @throws coding_exception
      */
-    public static function return_isstudent($courseid, $userid)
-    {
+    public static function return_isstudent($courseid, $userid) {
         $context = context_course::instance($courseid);
         return has_capability('moodle/grade:view', $context, $userid, false);
     }
@@ -221,11 +220,10 @@ class api extends \external_api
      * @return mixed
      * @throws dml_exception
      */
-    public static function checkrole($userid, $courseid)
-    {
+    public static function checkrole($userid, $courseid) {
         global $DB;
 
-        $sql_staff = "SELECT count(*) as cntstaff
+        $sqlstaff = "SELECT count(*) as cntstaff
              FROM {user} u
              JOIN {user_enrolments} ue ON ue.userid = u.id
              JOIN {enrol} e ON e.id = ue.enrolid
@@ -241,12 +239,12 @@ class api extends \external_api
              AND u.deleted = 0
              AND ue.status = 0 ";
         if ($courseid != 0) {
-            $sql_staff .= " AND c.id = " . $courseid;
+            $sqlstaff .= " AND c.id = " . $courseid;
         }
-        $sql_staff .= " AND u.id = " . $userid;
+        $sqlstaff .= " AND u.id = " . $userid;
 
-        $arr_cntstaff = $DB->get_record_sql($sql_staff);
-        $cntstaff = $arr_cntstaff->cntstaff;
+        $arrcntstaff = $DB->get_record_sql($sqlstaff);
+        $cntstaff = $arrcntstaff->cntstaff;
 
         return $cntstaff;
     }
@@ -256,15 +254,14 @@ class api extends \external_api
      * @param $strcourses
      * @return string
      */
-    public static function fetch_itemsnotvisibletouser($userid, $strcourses)
-    {
+    public static function fetch_itemsnotvisibletouser($userid, $strcourses) {
 
         global $DB;
 
         $courses = explode(",", $strcourses);
         $itemsnotvisibletouser = [];
         $itemsnotvisibletouser[] = 0;
-        $str_itemsnotvisibletouser = "";
+        $stritemsnotvisibletouser = "";
 
         if ($strcourses != "") {
             foreach ($courses as $courseid) {
@@ -277,23 +274,25 @@ class api extends \external_api
                     $iscmvisible = $cm->uservisible;
 
                     if (!$iscmvisible) {
-                        $sql_modinstance = 'SELECT cm.id, cm.instance, cm.module, m.name FROM {modules} m, {course_modules} cm WHERE cm.id=' . $cm->id . ' AND cm.module=m.id';
-                        $arr_modinstance = $DB->get_record_sql($sql_modinstance);
-                        $instance = $arr_modinstance->instance;
-                        $modname = $arr_modinstance->name;
+                        $sqlmodinstance = 'SELECT cm.id, cm.instance, cm.module, m.name FROM {modules} m, {course_modules} cm 
+                        WHERE cm.id=' . $cm->id . ' AND cm.module=m.id';
+                        $arrmodinstance = $DB->get_record_sql($sqlmodinstance);
+                        $instance = $arrmodinstance->instance;
+                        $modname = $arrmodinstance->name;
 
-                        $sql_gradeitemtoexclude = "SELECT id FROM {grade_items} WHERE courseid = " . $courseid . " AND itemmodule='" . $modname . "' AND iteminstance=" . $instance;
-                        $arr_gradeitemtoexclude = $DB->get_record_sql($sql_gradeitemtoexclude);
-                        if (!empty($arr_gradeitemtoexclude)) {
-                            $itemsnotvisibletouser[] = $arr_gradeitemtoexclude->id;
+                        $sqlgradeitemtoexclude = "SELECT id FROM {grade_items} WHERE courseid = " . $courseid . " AND itemmodule =
+                        '" . $modname . "' AND iteminstance=" . $instance;
+                        $arrgradeitemtoexclude = $DB->get_record_sql($sqlgradeitemtoexclude);
+                        if (!empty($arrgradeitemtoexclude)) {
+                            $itemsnotvisibletouser[] = $arrgradeitemtoexclude->id;
                         }
                     }
                 }
             }
-            $str_itemsnotvisibletouser = implode(",", $itemsnotvisibletouser);
+            $stritemsnotvisibletouser = implode(",", $itemsnotvisibletouser);
         }
 
-        return $str_itemsnotvisibletouser;
+        return $stritemsnotvisibletouser;
     }
 
     /**
@@ -304,36 +303,30 @@ class api extends \external_api
      * @deprecated as no longer used - to be removed.
      */
 
-    public static function get_statistics_returns()
-    {
+    public static function get_statistics_returns() {
         return new external_multiple_structure(
             new external_single_structure(
                 [
-                    /*
-                    'id' => new external_value(PARAM_INT, 'id'),
-                    'name' => new external_value(PARAM_TEXT, 'name')
-                    */
-                    'stathtml' => new external_value(PARAM_RAW, 'stathtml')
+                    'stathtml' => new external_value(PARAM_RAW, 'stathtml'),
                 ]
             )
         );
     }
 
     /**
-     * 
+     *
      */
-    public static function nogroupusers($courseid)
-    {
+    public static function nogroupusers($courseid) {
         global $DB;
-        $get_groups_sql = "SELECT * FROM {groups} WHERE courseid=" . $courseid;
-        $groups = $DB->get_records_sql($get_groups_sql);
+        $getgroupssql = "SELECT * FROM {groups} WHERE courseid=" . $courseid;
+        $groups = $DB->get_records_sql($getgroupssql);
 
-        $str_groupids = "0";
-        $str_enrolledstudents = "0";
+        $strgroupids = "0";
+        $strenrolledstudents = "0";
 
         if (!empty($groups)) {
             $groupoptions = array();
-            $arr_groupids = array();
+            $arrgroupids = array();
             foreach ($groups as $group) {
                 $groupid = $group->id;
                 $groupname = $group->name;
@@ -342,102 +335,101 @@ class api extends \external_api
                 $groupoptions['0'] = 'No Group';
                 $groupoptions[$groupid] = $groupname;
 
-                $arr_groupids[] = $group->id;
+                $arrgroupids[] = $group->id;
             }
-            $str_groupids = implode(",", $arr_groupids);
+            $strgroupids = implode(",", $arrgroupids);
         }
-        $student_ids = $DB->get_records_sql('SELECT userid FROM {groups_members} WHERE groupid IN (' . $str_groupids . ')');
+        $studentids = $DB->get_records_sql('SELECT userid FROM {groups_members} WHERE groupid IN (' . $strgroupids . ')');
 
-        if (!empty($student_ids)) {
-            $array_enrolledstudents = array();
-            foreach ($student_ids as $student_id) {
-                $array_enrolledstudents[] = $student_id->userid;
+        if (!empty($studentids)) {
+            $arrayenrolledstudents = array();
+            foreach ($studentids as $studentid) {
+                $arrayenrolledstudents[] = $studentid->userid;
             }
 
-            $str_enrolledstudents = implode(",", $array_enrolledstudents);
+            $strenrolledstudents = implode(",", $arrayenrolledstudents);
         }
 
-        $sql_enrolledstudents = 'SELECT DISTINCT u.id as userid, u.firstname, u.lastname
-      FROM {course} c
-      JOIN {context} ct ON c.id = ct.instanceid
-      JOIN {role_assignments} ra ON ra.contextid = ct.id
-      JOIN {user} u ON u.id = ra.userid
-      JOIN {role} r ON r.id = ra.roleid
-      WHERE r.id=5 AND c.id = ' . $courseid . ' AND u.id NOT IN (' . $str_enrolledstudents . ') ORDER BY u.firstname, u.lastname';
+        $sqlenrolledstudents = 'SELECT DISTINCT u.id as userid, u.firstname, u.lastname
+        FROM {course} c
+        JOIN {context} ct ON c.id = ct.instanceid
+        JOIN {role_assignments} ra ON ra.contextid = ct.id
+        JOIN {user} u ON u.id = ra.userid
+        JOIN {role} r ON r.id = ra.roleid
+        WHERE r.id=5 AND c.id = ' . $courseid . ' AND u.id NOT IN (' . $strenrolledstudents . ') ORDER BY u.firstname, u.lastname';
 
-
-        return $sql_enrolledstudents;
+        return $sqlenrolledstudents;
     }
 
     /**
-     * Method to return only LTI's that have "gradable" activities 
+     * Method to return only LTI's that have "gradable" activities
      * associated with them - and have been selected to be included.
-     * 
+     *
      * @throws dml_exception
      * @return mixed array int
      */
     public static function get_ltiinstancenottoinclude() {
         global $DB;
-    
-        $str_ltitoinclude = "99999";
-        $str_ltinottoinclude = "99999";
-        $arr_ltitoinclude = $DB->get_records_sql(
+
+        $strltitoinclude = "99999";
+        $strltinottoinclude = "99999";
+        $arrltitoinclude = $DB->get_records_sql(
             "SELECT name FROM {config} WHERE name LIKE :configname AND value = :configvalue",
             [
                 "configname" => "%block_newgu_spdetails_include_%",
-                "configvalue" => 1
+                "configvalue" => 1,
             ]
         );
-        
-        $array_ltitoinclude = [];
-        foreach ($arr_ltitoinclude as $key_ltitoinclude) {
-            $name = $key_ltitoinclude->name;
+
+        $arrayltitoinclude = [];
+        foreach ($arrltitoinclude as $keyltitoinclude) {
+            $name = $keyltitoinclude->name;
             $name_pieces = explode("block_newgu_spdetails_include_",$name);
             $ltitype = $name_pieces[1];
-            $array_ltitoinclude[] = $ltitype;
+            $arrayltitoinclude[] = $ltitype;
         }
 
-        $str_ltitoinclude = implode(",", $array_ltitoinclude);
-    
-        if ($str_ltitoinclude == "") {
-            $str_ltitoinclude = "99999";
+        $strltitoinclude = implode(",", $arrayltitoinclude);
+
+        if ($strltitoinclude == "") {
+            $strltitoinclude = "99999";
         }
-    
+
         // Not sure how to pass :namedvalue in as an array of values
         // e.g. passing in 1,2,4 seems to get truncated somewhere
         // along the way.
-        $arr_ltitypenottoinclude = $DB->get_records_sql(
-            "SELECT id FROM {lti_types} WHERE id NOT IN ($str_ltitoinclude)"
+        $arrltitypenottoinclude = $DB->get_records_sql(
+            "SELECT id FROM {lti_types} WHERE id NOT IN ($strltitoinclude)"
         );
-    
-        $array_ltitypenottoinclude = [];
-        $array_ltitypenottoinclude[] = 0;
 
-        foreach ($arr_ltitypenottoinclude as $key_ltitypenottoinclude) {
-            $array_ltitypenottoinclude[] = $key_ltitypenottoinclude->id;
+        $arrayltitypenottoinclude = [];
+        $arrayltitypenottoinclude[] = 0;
+
+        foreach ($arrltitypenottoinclude as $keyltitypenottoinclude) {
+            $arrayltitypenottoinclude[] = $keyltitypenottoinclude->id;
         }
-        
-        $str_ltitypenottoinclude = implode(",", $array_ltitypenottoinclude);
-    
+
+        $strltitypenottoinclude = implode(",", $arrayltitypenottoinclude);
+
         // The LTI instance *needs* to have been selected in the assessment,
         // otherwise typeid in mdl_lti will be null
-        $arr_ltiinstancenottoinclude = $DB->get_records_sql(
+        $arrltiinstancenottoinclude = $DB->get_records_sql(
             "SELECT * FROM {lti} WHERE typeid NOT IN ($str_ltitypenottoinclude)"
         );
-    
-        $array_ltiinstancenottoinclude = [];
-        
-        foreach ($arr_ltiinstancenottoinclude as $key_ltiinstancenottoinclude) {
-            $array_ltiinstancenottoinclude[] = $key_ltiinstancenottoinclude->course;
-        }
-        
-        $str_ltiinstancenottoinclude = implode(",", $array_ltiinstancenottoinclude);
-    
-        if ($str_ltiinstancenottoinclude == "") {
-            $str_ltiinstancenottoinclude = 99999;
+
+        $arrayltiinstancenottoinclude = [];
+
+        foreach ($arrltiinstancenottoinclude as $keyltiinstancenottoinclude) {
+            $arrayltiinstancenottoinclude[] = $keyltiinstancenottoinclude->course;
         }
 
-        return $str_ltiinstancenottoinclude;
+        $strltiinstancenottoinclude = implode(",", $arrayltiinstancenottoinclude);
+
+        if ($strltiinstancenottoinclude == "") {
+            $strltiinstancenottoinclude = 99999;
+        }
+
+        return $strltiinstancenottoinclude;
     }
 
 }
