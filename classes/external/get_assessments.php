@@ -17,7 +17,7 @@
 /**
  * Web Service to return the assessments for a given student
  *
- * @package    block/newgu_spdetails
+ * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @copyright  2023 University of Glasgow
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -42,7 +42,7 @@ class get_assessments extends external_api {
             'page' => new external_value(PARAM_INT, 'The page number', VALUE_DEFAULT),
             'sortby' => new external_value(PARAM_ALPHA, 'Sort columns by', VALUE_DEFAULT),
             'sortorder' => new external_value(PARAM_ALPHA, 'Sort by order', VALUE_DEFAULT),
-            'subcategory' => new external_value(PARAM_INT, 'Subcategory id', VALUE_DEFAULT)
+            'subcategory' => new external_value(PARAM_INT, 'Subcategory id', VALUE_DEFAULT),
         ]);
     }
 
@@ -58,7 +58,7 @@ class get_assessments extends external_api {
                 'page' => $page,
                 'sortby' => $sortby,
                 'sortorder' => $sortorder,
-                'subcategory' => $subcategory
+                'subcategory' => $subcategory,
             ]);
         return [
             'result' => json_encode(\block_newgu_spdetails\api::retrieve_assessments(
@@ -66,7 +66,7 @@ class get_assessments extends external_api {
                 $params['page'],
                 $params['sortby'],
                 $params['sortorder'],
-                $params['subcategory']))
+                $params['subcategory'],))
         ];
     }
 
@@ -75,7 +75,7 @@ class get_assessments extends external_api {
      */
     public static function execute_returns(): external_single_structure {
         return new external_single_structure([
-            'result' => new external_value(PARAM_TEXT, 'The course structure in JSON format')
+            'result' => new external_value(PARAM_TEXT, 'The course structure in JSON format'),
         ]);
     }
 }

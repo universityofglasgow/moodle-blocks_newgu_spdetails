@@ -44,7 +44,7 @@ class observer {
      * @return bool
      */
     public static function core_assessable_submitted(\core\event\assessable_submitted $event): bool {
-        
+
         // Invalidate the cache.
         if ((!empty($event->userid)) && $event->userid != 1) {
             return self::delete_key_from_cache($event->userid);
@@ -103,12 +103,12 @@ class observer {
 
     /**
      * Handle the activity type:assignment extension granted event.
-     * 
+     *
      * @param \mod_assign\event\extension_granted $event
      * @return bool
      */
     public static function extension_granted(\mod_assign\event\extension_granted $event) {
-        
+
         // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
@@ -173,7 +173,7 @@ class observer {
      * @return bool
      */
     public static function peerwork_submission_updated(\mod_peerwork\event\submission_updated $event): bool {
-        
+
         // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
@@ -217,7 +217,7 @@ class observer {
 
     /**
      * Handle the activity type:quiz manual grading complete.
-     * 
+     *
      * @param \mod_quiz\event\attempt_manual_grading_completed
      * @return bool
      */
@@ -237,7 +237,7 @@ class observer {
      * @return bool
      */
     public static function scorm_status_submitted(\mod_scorm\event\status_submitted $event): bool {
-        
+
         // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
@@ -251,7 +251,7 @@ class observer {
      * @return bool
      */
     public static function workshop_submission_created(\mod_workshop\event\submission_created $event): bool {
-        
+
         // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
@@ -267,7 +267,7 @@ class observer {
      * @return bool
      */
     public static function workshop_submission_updated(\mod_workshop\event\submission_updated $event): bool {
-        
+
         // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
@@ -299,7 +299,7 @@ class observer {
      * @return bool
      */
     public static function workshop_submission_deleted(\mod_workshop\event\submission_deleted $event): bool {
-        
+
         // Invalidate the cache.
         if (!empty($event->userid)) {
             return self::delete_key_from_cache($event->userid);
@@ -310,7 +310,7 @@ class observer {
 
     /**
      * Handle a logout event.
-     * 
+     *
      * The session data for which tab/category has been selected doesn't get
      * cleared as expected - because the page session remains active as long
      * as the tab/browser is open.

@@ -19,7 +19,7 @@
  *
  * More indepth description.
  *
- * @package    block/newgu_spdetails
+ * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @copyright  2023 University of Glasgow
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -42,8 +42,7 @@ class get_assessmentsummary extends external_api {
      * Returns description of method parameters
      * @return external_function_parameters
      */
-    public static function execute_parameters(): external_function_parameters
-    {
+    public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
             // No params needed at this time.
         ]);
@@ -51,7 +50,7 @@ class get_assessmentsummary extends external_api {
 
     /**
      * Return the assessment summary statistics
-     * 
+     *
      * @return array of assessment summary statistics
      */
     public static function execute(): array {
@@ -66,44 +65,44 @@ class get_assessmentsummary extends external_api {
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['timeupdated'] < $thirtyminutes) {
 
             $assessmentsummary = \block_newgu_spdetails\api::get_assessmentsummary();
-            $total_submissions = $assessmentsummary['total_submissions'];
-            $total_tosubmit = $assessmentsummary['total_tosubmit'];
-            $total_overdue = $assessmentsummary['total_overdue'];
+            $totalsubmissions = $assessmentsummary['total_submissions'];
+            $totaltosubmit = $assessmentsummary['total_tosubmit'];
+            $totaloverdue = $assessmentsummary['total_overdue'];
             $marked = $assessmentsummary['marked'];
 
-            $sub_assess = $total_submissions;
-            $tobe_sub = $total_tosubmit;
+            $subassess = $total_submissions;
+            $tobesub = $total_tosubmit;
             $overdue = $total_overdue;
-            $assess_marked = $marked;
+            $assessmarked = $marked;
 
             $statscount = [
                 "timeupdated" => time(),
-                "sub_assess" => $total_submissions,
-                "tobe_sub" => $total_tosubmit,
-                "overdue" => $total_overdue,
-                "assess_marked" => $marked
+                "sub_assess" => $totalsubmissions,
+                "tobe_sub" => $totaltosubmit,
+                "overdue" => $totaloverdue,
+                "assess_marked" => $marked,
             ];
 
             $cachedata = [
                 $cachekey => [
-                    $statscount
-                ]
+                    $statscount,
+                ],
             ];
             $cache->set_many($cachedata);
 
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $sub_assess = $cachedata[$cachekey][0]["sub_assess"];
-            $tobe_sub = $cachedata[$cachekey][0]["tobe_sub"];
+            $subassess = $cachedata[$cachekey][0]["sub_assess"];
+            $tobesub = $cachedata[$cachekey][0]["tobe_sub"];
             $overdue = $cachedata[$cachekey][0]["overdue"];
-            $assess_marked = $cachedata[$cachekey][0]["assess_marked"];
+            $assessmarked = $cachedata[$cachekey][0]["assess_marked"];
         }
 
         $stats[] = [
-            'sub_assess' => $sub_assess,
-            'tobe_sub' => $tobe_sub,
+            'sub_assess' => $subassess,
+            'tobe_sub' => $tobesub,
             'overdue' => $overdue,
-            'assess_marked' => $assess_marked
+            'assess_marked' => $assessmarked,
         ];
 
         return $stats;
@@ -112,8 +111,7 @@ class get_assessmentsummary extends external_api {
     /**
      * @return external_multiple_structure
      */
-    public static function execute_returns(): external_multiple_structure
-    {
+    public static function execute_returns(): external_multiple_structure {
         return new external_multiple_structure(
             new external_single_structure([
                 'sub_assess' => new external_value(PARAM_INT, 'total submissions'),

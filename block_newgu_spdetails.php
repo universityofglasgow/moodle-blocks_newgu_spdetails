@@ -63,20 +63,9 @@ class block_newgu_spdetails extends block_base {
         $this->content = new \stdClass();
 
         $viewurl = new moodle_url('/blocks/newgu_spdetails/index.php');
-
-        // Variable cntstaff = block_newgu_spdetails_external::checkrole(USER->id, 0)
-        $cntstaff = 0;
-        if ($cntstaff > 0) {
-            $staffurl = new moodle_url('/blocks/newgu_spdetails/sduserdetails.php');
-            $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
-                'link' => $viewurl,
-                'stafflink' => $staffurl,
-            ]);
-        } else {
-            $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
-                'link' => $viewurl,
-            ]);
-        }
+        $this->content->text = $OUTPUT->render_from_template('block_newgu_spdetails/block', [
+            'link' => $viewurl,
+        ]);
 
         $this->page->requires->js_call_amd('block_newgu_spdetails/assessmentsummary', 'init');
 

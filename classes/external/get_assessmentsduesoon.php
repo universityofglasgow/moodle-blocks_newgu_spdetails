@@ -17,7 +17,7 @@
 /**
  * Web Service to return the assessments due soon for a given student
  *
- * @package    block/newgu_spdetails
+ * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @copyright  2024 University of Glasgow
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -40,8 +40,7 @@ class get_assessmentsduesoon extends external_api {
      * Returns description of method parameters
      * @return external_function_parameters
      */
-    public static function execute_parameters(): external_function_parameters
-    {
+    public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
             // No params needed at this time.
         ]);
@@ -49,8 +48,8 @@ class get_assessmentsduesoon extends external_api {
 
     /**
      * Return the assessments due in the next 24 hours, 1 week and 1 month.
-     * 
-     * We probably want to cache this on something like a 5 minute basis, 
+     *
+     * We probably want to cache this on something like a 5 minute basis,
      * given that the service gets called each time the user visits the
      * dashboard.
      * 
@@ -76,13 +75,13 @@ class get_assessmentsduesoon extends external_api {
                 "summaryupdated" => time(),
                 "24hours" => $twentyfourhours,
                 "week" => $week,
-                "month" => $month
+                "month" => $month,
             ];
 
             $cachedata = [
                 $cachekey => [
-                    $statscount
-                ]
+                    $statscount,
+                ],
             ];
             $cache->set_many($cachedata);
         } else {
@@ -104,13 +103,12 @@ class get_assessmentsduesoon extends external_api {
     /**
      * @return external_multiple_structure
      */
-    public static function execute_returns(): external_multiple_structure 
-    {
+    public static function execute_returns(): external_multiple_structure {
         return new external_multiple_structure(
             new external_single_structure([
                 '24hours' => new external_value(PARAM_INT, 'due in 24 hours'),
                 'week' => new external_value(PARAM_INT, 'due in the next week'),
-                'month' => new external_value(PARAM_INT, 'due by the end of the month')
+                'month' => new external_value(PARAM_INT, 'due by the end of the month'),
             ])
         );
     }

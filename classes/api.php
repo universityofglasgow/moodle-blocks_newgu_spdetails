@@ -115,7 +115,8 @@ class api extends \external_api {
                 break;
             }
 
-            $courses = \local_gugrades\api::dashboard_get_courses($userid, $currentcourses, $pastcourses, $sortby . " " . $sortorder);
+            $courses = \local_gugrades\api::dashboard_get_courses($userid, $currentcourses, $pastcourses, $sortby . " " . 
+            $sortorder);
             return \block_newgu_spdetails\course::get_course_structure($courses, $currentcourses);
         } else {
             $gradableactivities = \block_newgu_spdetails\activity::get_activityitems($subcategory, $userid, $activetab, $sortby,
@@ -274,7 +275,7 @@ class api extends \external_api {
                     $iscmvisible = $cm->uservisible;
 
                     if (!$iscmvisible) {
-                        $sqlmodinstance = 'SELECT cm.id, cm.instance, cm.module, m.name FROM {modules} m, {course_modules} cm 
+                        $sqlmodinstance = 'SELECT cm.id, cm.instance, cm.module, m.name FROM {modules} m, {course_modules} cm
                         WHERE cm.id=' . $cm->id . ' AND cm.module=m.id';
                         $arrmodinstance = $DB->get_record_sql($sqlmodinstance);
                         $instance = $arrmodinstance->instance;
@@ -325,8 +326,8 @@ class api extends \external_api {
         $strenrolledstudents = "0";
 
         if (!empty($groups)) {
-            $groupoptions = array();
-            $arrgroupids = array();
+            $groupoptions = [];
+            $arrgroupids = [];
             foreach ($groups as $group) {
                 $groupid = $group->id;
                 $groupname = $group->name;
@@ -342,7 +343,7 @@ class api extends \external_api {
         $studentids = $DB->get_records_sql('SELECT userid FROM {groups_members} WHERE groupid IN (' . $strgroupids . ')');
 
         if (!empty($studentids)) {
-            $arrayenrolledstudents = array();
+            $arrayenrolledstudents = [];
             foreach ($studentids as $studentid) {
                 $arrayenrolledstudents[] = $studentid->userid;
             }
@@ -384,8 +385,8 @@ class api extends \external_api {
         $arrayltitoinclude = [];
         foreach ($arrltitoinclude as $keyltitoinclude) {
             $name = $keyltitoinclude->name;
-            $name_pieces = explode("block_newgu_spdetails_include_",$name);
-            $ltitype = $name_pieces[1];
+            $namepieces = explode("block_newgu_spdetails_include_", $name);
+            $ltitype = $namepieces[1];
             $arrayltitoinclude[] = $ltitype;
         }
 
@@ -412,9 +413,9 @@ class api extends \external_api {
         $strltitypenottoinclude = implode(",", $arrayltitypenottoinclude);
 
         // The LTI instance *needs* to have been selected in the assessment,
-        // otherwise typeid in mdl_lti will be null
+        // otherwise typeid in mdl_lti will be null.
         $arrltiinstancenottoinclude = $DB->get_records_sql(
-            "SELECT * FROM {lti} WHERE typeid NOT IN ($str_ltitypenottoinclude)"
+            "SELECT * FROM {lti} WHERE typeid NOT IN ($strltitypenottoinclude)"
         );
 
         $arrayltiinstancenottoinclude = [];

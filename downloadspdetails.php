@@ -28,36 +28,38 @@ require_once('locallib.php');
 
 defined('MOODLE_INTERNAL') || die();
 
-global $PAGE, $CFG, $DB, $OUTPUT,$USER;
+global $PAGE, $CFG, $DB, $OUTPUT, $USER;
 $PAGE->set_context(context_system::instance());
 require_login();
 $usercontext = context_user::instance($USER->id);
-// FETCH LTI IDs TO BE INCLUDED
-$str_ltiinstancenottoinclude = get_ltiinstancenottoinclude();
+// FETCH LTI IDs TO BE INCLUDED.
+$strltiinstancenottoinclude = get_ltiinstancenottoinclude();
 $spdetailstype = required_param('spdetailstype', PARAM_TEXT);
 $coursestype = required_param('coursestype', PARAM_TEXT);
-$str_coursestype = "";
+$strcoursestype = "";
 $myfirstlastname = $USER->firstname . " " . $USER->lastname;
 
 $currentcourses = \block_newgu_spdetails\course::return_enrolledcourses($USER->id, "current");
-$str_currentcourses = implode(",", $currentcourses);
+$strcurrentcourses = implode(",", $currentcourses);
 
 $pastcourses = \block_newgu_spdetails\course::return_enrolledcourses($USER->id, "past");
-$str_pastcourses = implode(",", $pastcourses);
+$strpastcourses = implode(",", $pastcourses);
 
 $thhd = 'border="1px" height="15" style="text-align:center;background-color: #ccc; border: 3px solid black;"';
 $tdstl = 'border="1px" cellpadding="10" valign="middle" height="22" style="margin-left:10px;"';
 $tdstc = 'border="1px" cellpadding="10" valign="middle" height="22" style="text-align:center;"';
 $spdetailspdf = "No Courses found.";
 
-if ($str_currentcourses!="" && $coursestype=="current") {
-    $str_coursestype = "Current Courses";
+if ($strcurrentcourses != "" && $coursestype == "current") {
+    $strcoursestype = "Current Courses";
 
-    $str_itemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $str_currentcourses);
+    $stritemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $strcurrentcourses);
 
-    $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_currentcourses.') && gi.courseid>1 && gi.itemtype="mod" && ((gi.iteminstance IN (' . $str_ltiinstancenottoinclude . ') && gi.itemmodule="lti") OR gi.itemmodule!="lti") && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
+    $sqlcc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('. $strcurrentcourses .
+    ') && gi.courseid>1 && gi.itemtype="mod" && ((gi.iteminstance IN (' . $strltiinstancenottoinclude .
+    ') && gi.itemmodule="lti") OR gi.itemmodule!="lti") && gi.id not in ('.$stritemsnotvisibletouser.') && gi.courseid=c.id';
 
-    $arr_cc = $DB->get_records_sql($sql_cc);
+    $arrcc = $DB->get_records_sql($sqlcc);
 
     $spdetailspdf = "<table width=100%>";
     $spdetailspdf .= '<tr style="font-weight: bold;">';
@@ -73,584 +75,519 @@ if ($str_currentcourses!="" && $coursestype=="current") {
 
     $row = 6;
 
-    foreach ($arr_cc as $key_cc) {
-        $coursename = $key_cc->coursename;
-        $assessment = $key_cc->itemname;
-        $activitytype = $key_cc->itemmodule;
+    foreach ($arrcc as $keycc) {
+        $coursename = $keycc->coursename;
+        $assessment = $keycc->itemname;
+        $activitytype = $keycc->itemmodule;
 
-        $cmid = $key_cc->id;
-        $modulename = $key_cc->itemmodule;
-        $iteminstance = $key_cc->iteminstance;
-        $courseid = $key_cc->courseid;
-        $categoryid = $key_cc->categoryid;
-        $itemid = $key_cc->id;
-        $itemname = $key_cc->itemname;
-        $aggregationcoef = $key_cc->aggregationcoef;
-        $aggregationcoef2 = $key_cc->aggregationcoef2;
-        $gradetype = $key_cc->gradetype;
+        $cmid = $keycc->id;
+        $modulename = $keycc->itemmodule;
+        $iteminstance = $keycc->iteminstance;
+        $courseid = $keycc->courseid;
+        $categoryid = $keycc->categoryid;
+        $itemid = $keycc->id;
+        $itemname = $keycc->itemname;
+        $aggregationcoef = $keycc->aggregationcoef;
+        $aggregationcoef2 = $keycc->aggregationcoef2;
+        $gradetype = $keycc->gradetype;
 
-        // FETCH ASSESSMENT TYPE
-        $arr_gradecategory = $DB->get_record('grade_categories',array('courseid'=>$courseid, 'id'=>$categoryid));
-        if (!empty($arr_gradecategory)) {
-            $gradecategoryname = $arr_gradecategory->fullname;
+        // FETCH ASSESSMENT TYPE.
+        $arrgradecategory = $DB->get_record('grade_categories', ['courseid' => $courseid, 'id' => $categoryid]);
+        if (!empty($arrgradecategory)) {
+            $gradecategoryname = $arrgradecategory->fullname;
         }
 
         $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
-        // FETCH INCLUDED IN GCAT
+        // FETCH INCLUDED IN GCAT.
         $cfdvalue = 0;
         $inclgcat = "";
-        $arr_customfield = $DB->get_record('customfield_field', array('shortname'=>'show_on_studentdashboard'));
-        $cffid = $arr_customfield->id;
+        $arrcustomfield = $DB->get_record('customfield_field', ['shortname'=>'show_on_studentdashboard']);
+        $cffid = $arrcustomfield->id;
 
-        $arr_customfielddata = $DB->get_record('customfield_data', array('fieldid'=>$cffid, 'instanceid'=>$courseid));
+        $arrcustomfielddata = $DB->get_record('customfield_data', ['fieldid' => $cffid, 'instanceid' => $courseid]);
 
-        if (!empty($arr_customfielddata)) {
-            $cfdvalue = $arr_customfielddata->value;
+        if (!empty($arrcustomfielddata)) {
+            $cfdvalue = $arrcustomfielddata->value;
         }
 
-        if ($cfdvalue==1) {
+        if ($cfdvalue == 1) {
             $inclgcat = "Old";
         }
 
-        // FETCH WEIGHT
-        //$finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
+        // FETCH WEIGHT.
         $finalweight = \block_newgu_spdetails\course::return_weight($aggregationcoef);
 
-        // DUE DATE
+        // DUE DATE.
         $duedate = 0;
         $extspan = "";
         $extensionduedate = 0;
-        $str_duedate = get_string('noduedate', 'block_newgu_spdetails');;
+        $strduedate = get_string('noduedate', 'block_newgu_spdetails');;
 
-        // READ individual TABLE OF ACTIVITY (MODULE)
-        if ($modulename!="") {
-            $arr_duedate = $DB->get_record($modulename,array('course'=>$courseid, 'id'=>$iteminstance));
+        // READ individual TABLE OF ACTIVITY (MODULE).
+        if ($modulename != "") {
+            $arrduedate = $DB->get_record($modulename, ['course' => $courseid, 'id' => $iteminstance]);
 
-            if (!empty($arr_duedate)) {
-                if ($modulename=="assign") {
-                    $duedate = $arr_duedate->duedate;
+            if (!empty($arrduedate)) {
+                if ($modulename == "assign") {
+                    $duedate = $arrduedate->duedate;
 
-                    $arr_userflags = $DB->get_record('assign_user_flags', array('userid'=>$USER->id, 'assignment'=>$iteminstance));
+                    $arruserflags = $DB->get_record('assign_user_flags', [
+                        'userid' => $USER->id,
+                        'assignment' => $iteminstance,
+                    ]);
 
-                    if ($arr_userflags) {
-                        $extensionduedate = $arr_userflags->extensionduedate;
-                        if ($extensionduedate>0) {
-                          $extspan = get_string('extended', 'block_newgu_spdetails') . '" class="extended">*';
+                    if ($arruserflags) {
+                        $extensionduedate = $arruserflags->extensionduedate;
+                        if ($extensionduedate > 0) {
+                            $extspan = get_string('extended', 'block_newgu_spdetails') . '" class="extended">*';
                         }
                     }
                 }
-                if ($modulename=="forum") {
-                    $duedate = $arr_duedate->duedate;
+                if ($modulename == "forum") {
+                    $duedate = $arrduedate->duedate;
                 }
-                if ($modulename=="quiz") {
-                    $duedate = $arr_duedate->timeclose;
+                if ($modulename == "quiz") {
+                    $duedate = $arrduedate->timeclose;
                 }
-                if ($modulename=="workshop") {
-                    $duedate = $arr_duedate->submissionend;
+                if ($modulename == "workshop") {
+                    $duedate = $arrduedate->submissionend;
                 }
             }
         }
 
-        if ($duedate!=0) {
-          $str_duedate = date("d/m/Y", $duedate) . $extspan;
+        if ($duedate != 0) {
+            $strduedate = date("d/m/Y", $duedate) . $extspan;
         }
 
-        // FETCH STATUS
+        // FETCH STATUS.
         $gradestatus = \block_newgu_spdetails\grade::return_gradestatus($modulename, $iteminstance, $courseid, $itemid, $USER->id);
-
-        // $gradestatobj = \block_newgu_spdetails\grade::get_grade_status_and_feedback($courseid, 
-        //                     $itemid, 
-        //                     $modulename, 
-        //                     $iteminstance, 
-        //                     $USER->id, 
-        //                     $gradetype, 
-        //                     $key_cc->scaleid, 
-        //                     $key_cc->grademax, 
-        //                     ''
-        //                 );
 
         $status = $gradestatus["status"];
         $link = $gradestatus["link"];
         $allowsubmissionsfromdate = $gradestatus["allowsubmissionsfromdate"];
         $duedate = $gradestatus["duedate"];
         $cutoffdate = $gradestatus["cutoffdate"];
-
         $finalgrade = $gradestatus["finalgrade"];
-
         $statustodisplay = "";
 
-        if($status == 'tosubmit'){
-          $statustodisplay = get_string('submit');
+        if ($status == 'tosubmit') {
+            $statustodisplay = get_string('submit');
         }
-        if($status == 'notsubmitted'){
-          $statustodisplay = get_string('notsubmitted', 'block_newgu_spdetails');
+        if ($status == 'notsubmitted') {
+            $statustodisplay = get_string('notsubmitted', 'block_newgu_spdetails');
         }
-        if($status == 'submitted'){
-          $statustodisplay = ucwords(trim(get_string('submitted', 'block_newgu_spdetails')));
-          if ($finalgrade!=Null) {
-            $statustodisplay = get_string('graded', 'block_newgu_spdetails');
-          }
+        if ($status == 'submitted') {
+            $statustodisplay = ucwords(trim(get_string('submitted', 'block_newgu_spdetails')));
+            if ($finalgrade != null) {
+                $statustodisplay = get_string('graded', 'block_newgu_spdetails');
+            }
         }
-        if($status == "notopen"){
-          $statustodisplay = get_string('submissionnotopen', 'block_newgu_spdetails');
+        if ($status == "notopen") {
+            $statustodisplay = get_string('submissionnotopen', 'block_newgu_spdetails');
         }
-        if($status == "TO_BE_ASKED"){
-          $statustodisplay = get_string('individualcomponents', 'block_newgu_spdetails');
+        if ($status == "TO_BE_ASKED") {
+            $statustodisplay = get_string('individualcomponents', 'block_newgu_spdetails');
         }
-        if($status == "overdue"){
-          $statustodisplay = get_string('overdue', 'block_newgu_spdetails');
+        if ($status == "overdue") {
+            $statustodisplay = get_string('overdue', 'block_newgu_spdetails');
         }
 
-        // FETCH YOUR Grade
-        $arr_gradetodisplay = get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $USER->id, $key_cc->grademax, $gradetype);
-        $gradetodisplay = $arr_gradetodisplay["gradetodisplay"];
+        // FETCH YOUR Grade.
+        $arrgradetodisplay = get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $USER->id, $keycc->grademax,
+        $gradetype);
+        $gradetodisplay = $arrgradetodisplay["gradetodisplay"];
 
-
-        // FETCH Feedback
+        // FETCH Feedback.
         $link = "";
 
-        $feedback = get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $USER->id, $key_cc->grademax, $gradetype);
+        $feedback = get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $USER->id, $keycc->grademax, $gradetype);
         $link = $feedback["link"];
         $gradetodisplay = $feedback["gradetodisplay"];
 
-        if ($link!="") {
-          $str_gradetodisplay =  get_string('readfeedback', 'block_newgu_spdetails');
+        if ($link != "") {
+            $strgradetodisplay =  get_string('readfeedback', 'block_newgu_spdetails');
         } else {
-          if ($modulename!="quiz") {
-            $str_gradetodisplay = $gradetodisplay;
-          }
+            if ($modulename != "quiz") {
+                $strgradetodisplay = $gradetodisplay;
+            }
         }
 
-
         $spdetailspdf .= "<tr>";
-
         $spdetailspdf .= "<td $tdstl>" . $coursename . "</td>";
         $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $str_duedate . "</td>";
+        $spdetailspdf .= "<td $tdstc>" . $strduedate . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $statustodisplay . "</td>";
         $spdetailspdf .= "<td $tdstc>" . $gradetodisplay . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $str_gradetodisplay . "</td>";
-
+        $spdetailspdf .= "<td $tdstc>" . $strgradetodisplay . "</td>";
         $spdetailspdf .= "</tr>";
 
         $row++;
         $col = 0;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$coursename);
+        $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $coursename];
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessment);
+        $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $assessment];
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessmenttype);
+        $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $assessmenttype];
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$finalweight);
+        $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $finalweight];
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$str_duedate);
+        $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $strduedate];
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$statustodisplay);
+        $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $statustodisplay];
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>strip_tags($gradetodisplay));
+        $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => strip_tags($gradetodisplay)];
         $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>strip_tags($gradetodisplay));
+        $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => strip_tags($gradetodisplay)];
         $col++;
-
     }
     $spdetailspdf .= "</table>";
-
-    //$spdetailspdf = "TESTING 1- TESTING 1- HELLO - HELLO";
 }
-//exit;
 
+if ($coursestype == "past") {
 
-if ($coursestype=="past") {
+    $pastxl = [];
+    if ($strpastcourses != "") {
 
-    $pastxl = array();
+        $strcoursestype = "Past Courses";
+        $stritemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $strpastcourses);
+        $sqlcc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$strpastcourses .
+        ') && gi.courseid>1 && gi.itemtype="mod" && ((gi.iteminstance IN (' . $strltiinstancenottoinclude .
+        ') && gi.itemmodule="lti") OR gi.itemmodule!="lti") && gi.id not in ('.$stritemsnotvisibletouser.') && gi.courseid=c.id';
+        $arrcc = $DB->get_records_sql($sqlcc);
 
-    if ($str_pastcourses!="") {
-
-    $str_coursestype = "Past Courses";
-
-    $str_itemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $str_pastcourses);
-
-//    $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_pastcourses.') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
-
-    $sql_cc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in ('.$str_pastcourses.') && gi.courseid>1 && gi.itemtype="mod" && ((gi.iteminstance IN (' . $str_ltiinstancenottoinclude . ') && gi.itemmodule="lti") OR gi.itemmodule!="lti") && gi.id not in ('.$str_itemsnotvisibletouser.') && gi.courseid=c.id';
-
-    $arr_cc = $DB->get_records_sql($sql_cc);
-
-    $spdetailspdf = "<table width=100%>";
-    $spdetailspdf .= '<tr style="font-weight: bold;">';
-
-    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('course') . '</th>';
-    $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
-    $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('startdate','block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('enddate','block_newgu_spdetails') . "</th>";
-//    $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('viewsubmission','block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="11%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="14%" ' . $thhd . '>' . get_string('feedback') . "</th>";
-
-    $spdetailspdf .= "</tr>";
-
-    $row = 6;
-
-    foreach ($arr_cc as $key_cc) {
-
-        $col = 0;
-
-        $coursename = $key_cc->coursename;
-        $assessment = $key_cc->itemname;
-        $activitytype = $key_cc->itemmodule;
-
-        $cmid = $key_cc->id;
-        $modulename = $key_cc->itemmodule;
-        $iteminstance = $key_cc->iteminstance;
-        $courseid = $key_cc->courseid;
-        $categoryid = $key_cc->categoryid;
-        $itemid = $key_cc->id;
-        $itemname = $key_cc->itemname;
-        $aggregationcoef = $key_cc->aggregationcoef;
-        $aggregationcoef2 = $key_cc->aggregationcoef2;
-        $gradetype = $key_cc->gradetype;
- 
-        // FETCH ASSESSMENT TYPE
-        $arr_gradecategory = $DB->get_record('grade_categories',array('courseid'=>$courseid, 'id'=>$categoryid));
-        if (!empty($arr_gradecategory)) {
-          $gradecategoryname = $arr_gradecategory->fullname;
-        }
-
-        $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
-
-
-        // FETCH INCLUDED IN GCAT
-        $cfdvalue = 0;
-        $inclgcat = "";
-        $arr_customfield = $DB->get_record('customfield_field', array('shortname'=>'show_on_studentdashboard'));
-        $cffid = $arr_customfield->id;
-
-        $arr_customfielddata = $DB->get_record('customfield_data', array('fieldid'=>$cffid, 'instanceid'=>$courseid));
-
-        if (!empty($arr_customfielddata)) {
-              $cfdvalue = $arr_customfielddata->value;
-        }
-
-        if ($cfdvalue==1) {
-            $inclgcat = "Old";
-        }
-
-        // FETCH WEIGHT
-        $finalweight = get_weight($courseid,$categoryid,$aggregationcoef,$aggregationcoef2);
-
-        // START DATE
-        $submissionstartdate = 0;
-        $startdate = "";
-
-        // READ individual TABLE OF ACTIVITY (MODULE)
-        if ($modulename!="") {
-          $arr_submissionstartdate = $DB->get_record($modulename,array('course'=>$courseid, 'id'=>$iteminstance));
-
-        if (!empty($arr_submissionstartdate)) {
-          if ($modulename=="assign") {
-            $submissionstartdate = $arr_submissionstartdate->allowsubmissionsfromdate;
-          }
-          if ($modulename=="forum") {
-            $submissionstartdate = $arr_submissionstartdate->assesstimestart;
-          }
-          if ($modulename=="quiz") {
-            $submissionstartdate = $arr_submissionstartdate->timeopen;
-          }
-          if ($modulename=="workshop") {
-            $submissionstartdate = $arr_submissionstartdate->submissionstart;
-          }
-        }
-      }
-
-        if ($submissionstartdate!=0) {
-          $startdate = date("d/m/Y", $submissionstartdate);
-        }
-
-        // END DATE
-        $duedate = 0;
-        $enddate = "";
-
-        // READ individual TABLE OF ACTIVITY (MODULE)
-        if ($modulename!="") {
-          $arr_duedate = $DB->get_record($modulename,array('course'=>$courseid, 'id'=>$iteminstance));
-
-
-        if (!empty($arr_duedate)) {
-          if ($modulename=="assign" || $modulename=="forum") {
-            $duedate = $arr_duedate->duedate;
-          }
-          if ($modulename=="quiz") {
-            $duedate = $arr_duedate->timeclose;
-          }
-          if ($modulename=="workshop") {
-            $duedate = $arr_duedate->submissionend;
-          }
-        }
-      }
-
-        if ($duedate!=0) {
-          $enddate = date("d/m/Y", $duedate);
-        }
-
-        // VIEW SUBMISSIONS
-        $link = "";
-
-        $status="";
-
-        $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
-
-        $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
-
-        if (!empty($link)) {
-            $viewsubmission = get_string('viewsubmission', 'block_newgu_spdetails');
-            $viewsubmission_xls = '';
-        }
-
-
-        // FETCH YOUR Grade
-        $arr_gradetodisplay = get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $USER->id, $key_cc->grademax, $gradetype);
-        $gradetodisplay = $arr_gradetodisplay["gradetodisplay"];
-
-
-        // FETCH Feedback
-        $link = "";
-
-        $feedback = get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $USER->id, $key_cc->grademax, $gradetype);
-        $link = $feedback["link"];
-        $gradetodisplay = $feedback["gradetodisplay"];
-
-        if ($link!="") {
-          $str_gradetodisplay = get_string('readfeedback', 'block_newgu_spdetails');
-        } else {
-          if ($modulename!="quiz") {
-            $str_gradetodisplay = $gradetodisplay;
-          }
-        }
-
-
-        $spdetailspdf .= "<tr>";
-
-        $spdetailspdf .= "<td $tdstl>" . $coursename . "</td>";
-        $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $startdate . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $enddate . "</td>";
-//        $spdetailspdf .= "<td $tdstc>" . $viewsubmission . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $gradetodisplay . "</td>";
-        $spdetailspdf .= "<td $tdstc>" . $str_gradetodisplay . "</td>";
-
+        $spdetailspdf = "<table width=100%>";
+        $spdetailspdf .= '<tr style="font-weight: bold;">';
+        $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('course') . '</th>';
+        $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
+        $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
+        $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
+        $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('startdate','block_newgu_spdetails') . "</th>";
+        $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('enddate','block_newgu_spdetails') . "</th>";
+        $spdetailspdf .= '<th width="11%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
+        $spdetailspdf .= '<th width="14%" ' . $thhd . '>' . get_string('feedback') . "</th>";
         $spdetailspdf .= "</tr>";
 
-        $row++;
-        $col = 0;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$coursename);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessment);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$assessmenttype);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$finalweight);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$startdate);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>$enddate);
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>strip_tags($gradetodisplay));
-        $col++;
-        $pastxl[$row][$col] = array("row"=>$row, "col"=>$col, "text"=>strip_tags($gradetodisplay));
-        $col++;
+        $row = 6;
+        foreach ($arrcc as $keycc) {
+            $col = 0;
+            $coursename = $keycc->coursename;
+            $assessment = $keycc->itemname;
+            $activitytype = $keycc->itemmodule;
+            $cmid = $keycc->id;
+            $modulename = $keycc->itemmodule;
+            $iteminstance = $keycc->iteminstance;
+            $courseid = $keycc->courseid;
+            $categoryid = $keycc->categoryid;
+            $itemid = $keycc->id;
+            $itemname = $keycc->itemname;
+            $aggregationcoef = $keycc->aggregationcoef;
+            $aggregationcoef2 = $keycc->aggregationcoef2;
+            $gradetype = $keycc->gradetype;
+    
+            // FETCH ASSESSMENT TYPE.
+            $arrgradecategory = $DB->get_record('grade_categories', ['courseid' => $courseid, 'id' => $categoryid]);
+            if (!empty($arrgradecategory)) {
+                $gradecategoryname = $arrgradecategory->fullname;
+            }
+
+            $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
+
+            // FETCH INCLUDED IN GCAT.
+            $cfdvalue = 0;
+            $inclgcat = "";
+            $arrcustomfield = $DB->get_record('customfield_field', ['shortname' => 'show_on_studentdashboard']);
+            $cffid = $arrcustomfield->id;
+
+            $arrcustomfielddata = $DB->get_record('customfield_data', ['fieldid' => $cffid, 'instanceid' => $courseid]);
+
+            if (!empty($arrcustomfielddata)) {
+                $cfdvalue = $arrcustomfielddata->value;
+            }
+
+            if ($cfdvalue == 1) {
+                $inclgcat = "Old";
+            }
+
+            // FETCH WEIGHT.
+            $finalweight = get_weight($courseid, $categoryid, $aggregationcoef, $aggregationcoef2);
+
+            // START DATE.
+            $submissionstartdate = 0;
+            $startdate = "";
+
+            // READ individual TABLE OF ACTIVITY (MODULE).
+            if ($modulename != "") {
+                $arrsubmissionstartdate = $DB->get_record($modulename, ['course' => $courseid, 'id' => $iteminstance]);
+
+                if (!empty($arrsubmissionstartdate)) {
+                    if ($modulename == "assign") {
+                        $submissionstartdate = $arrsubmissionstartdate->allowsubmissionsfromdate;
+                    }
+                    if ($modulename == "forum") {
+                        $submissionstartdate = $arrsubmissionstartdate->assesstimestart;
+                    }
+                    if ($modulename == "quiz") {
+                        $submissionstartdate = $arrsubmissionstartdate->timeopen;
+                    }
+                    if ($modulename == "workshop") {
+                        $submissionstartdate = $arrsubmissionstartdate->submissionstart;
+                    }
+                }
+            }
+
+            if ($submissionstartdate != 0) {
+                $startdate = date("d/m/Y", $submissionstartdate);
+            }
+
+            // END DATE.
+            $duedate = 0;
+            $enddate = "";
+
+            // READ individual TABLE OF ACTIVITY (MODULE).
+            if ($modulename != "") {
+                $arrduedate = $DB->get_record($modulename, ['course' => $courseid, 'id' => $iteminstance]);
+                if (!empty($arrduedate)) {
+                    if ($modulename == "assign" || $modulename == "forum") {
+                        $duedate = $arrduedate->duedate;
+                    }
+                    if ($modulename == "quiz") {
+                        $duedate = $arrduedate->timeclose;
+                    }
+                    if ($modulename == "workshop") {
+                        $duedate = $arrduedate->submissionend;
+                    }
+                }
+            }
+
+            if ($duedate != 0) {
+                $enddate = date("d/m/Y", $duedate);
+            }
+
+            // VIEW SUBMISSIONS.
+            $link = "";
+            $status="";
+            $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
+            $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
+            if (!empty($link)) {
+                $viewsubmission = get_string('viewsubmission', 'block_newgu_spdetails');
+                $viewsubmissionxls = '';
+            }
+
+            // FETCH YOUR Grade.
+            $arrgradetodisplay = get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $USER->id, $keycc->grademax,
+            $gradetype);
+            $gradetodisplay = $arrgradetodisplay["gradetodisplay"];
+
+            // FETCH Feedback.
+            $link = "";
+            $feedback = get_gradefeedback($modulename, $iteminstance, $courseid, $itemid, $USER->id, $keycc->grademax, $gradetype);
+            $link = $feedback["link"];
+            $gradetodisplay = $feedback["gradetodisplay"];
+
+            if ($link != "") {
+                $strgradetodisplay = get_string('readfeedback', 'block_newgu_spdetails');
+            } else {
+                if ($modulename != "quiz") {
+                    $strgradetodisplay = $gradetodisplay;
+                }
+            }
+
+            $spdetailspdf .= "<tr>";
+            $spdetailspdf .= "<td $tdstl>" . $coursename . "</td>";
+            $spdetailspdf .= "<td $tdstl>" . $assessment . "</td>";
+            $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
+            $spdetailspdf .= "<td $tdstc>" . $finalweight . "</td>";
+            $spdetailspdf .= "<td $tdstc>" . $startdate . "</td>";
+            $spdetailspdf .= "<td $tdstc>" . $enddate . "</td>";
+            $spdetailspdf .= "<td $tdstc>" . $gradetodisplay . "</td>";
+            $spdetailspdf .= "<td $tdstc>" . $strgradetodisplay . "</td>";
+            $spdetailspdf .= "</tr>";
+
+            $row++;
+            $col = 0;
+            $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $coursename];
+            $col++;
+            $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $assessment];
+            $col++;
+            $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $assessmenttype];
+            $col++;
+            $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $finalweight];
+            $col++;
+            $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $startdate];
+            $col++;
+            $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => $enddate];
+            $col++;
+            $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => strip_tags($gradetodisplay)];
+            $col++;
+            $pastxl[$row][$col] = ["row" => $row, "col" => $col, "text" => strip_tags($gradetodisplay)];
+            $col++;
+        }
+
+        $spdetailspdf .= "</table>";
     }
-    $spdetailspdf .= "</table>";
-  }
 }
 
-if ($spdetailstype=="pdf" && $spdetailspdf!="" && $str_coursestype!="") {
+if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
 
     require_once($CFG->libdir . '/pdflib.php');
 
     $doc = new pdf();
-
     $pathsw1b = 'img/uglogo03.png';
     $type = pathinfo($pathsw1b, PATHINFO_EXTENSION);
     $sw1bdata = file_get_contents($pathsw1b);
-
     $doc->SetFont('helvetica', '', 10);
 
-// set default footer data
+    // Set default footer data.
     $doc->setFooterData();
 
-// set header and footer fonts
-    $doc->setHeaderFont(Array('helvetica', 'b', 18));
+    // Set header and footer fonts.
+    $doc->setHeaderFont(['helvetica', 'b', 18,]);
 
-
-// set margins
+    // Set margins.
     $doc->SetMargins(5, 20, 5);
     $doc->SetHeaderMargin(50);
     $doc->setFooterMargin(10);
 
-// set auto page breaks
+    // Set auto page breaks.
     $doc->SetAutoPageBreak(TRUE, 15);
 
-// set image scale factor
+    // Set image scale factor.
     $doc->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
     $doc->AddPage('L', 'A4');
-
     $doc->SetXY(5, 2);
-
     $doc->SetFont('helvetica', '', 20);
     $doc->SetXY(215, 15);
     $doc->Cell(25, 10, $myfirstlastname, 0, $ln=0, 'C', 0, '', 0, false, 'B', 'B');
-
     $doc->SetFont('helvetica', '', 9);
-
     $doc->SetXY(245, 20);
-    $doc->Cell(25, 10, $str_coursestype . " Report Date : " . date("d-m-Y"), 0, $ln=0, 'C', 0, '', 0, false, 'B', 'B');
-
+    $doc->Cell(25, 10, $strcoursestype . " Report Date : " . date("d-m-Y"), 0, $ln=0, 'C', 0, '', 0, false, 'B', 'B');
     $doc->SetMargins(5, 20, 5);
-
     $doc->SetFont('helvetica', '', 10);
     $doc->SetXY(5, 23);
-
-// ----------------------------------------------------------------------------- -->
-
     $thtml = <<<EOD
 $spdetailspdf
 EOD;
 
-    $c = $thtml ;
+    $c = $thtml;
 
     $doc->writeHTML($c, true, false, false, false, '');
-
-    $doc->Output($str_coursestype . " Report - " . $myfirstlastname . '_' . date("d-m-Y") . '.pdf', 'D');
+    $doc->Output($strcoursestype . " Report - " . $myfirstlastname . '_' . date("d-m-Y") . '.pdf', 'D');
 
     exit();
-
-
 }
 
-if ($spdetailstype=="excel" && $spdetailspdf!="" && $str_coursestype!="") {
+if ($spdetailstype == "excel" && $spdetailspdf != "" && $strcoursestype != "") {
 
-  $filename = clean_filename($str_coursestype . " Report - " . $myfirstlastname . "_" . date("d-M-Y") . '.xls');
+    $filename = clean_filename($strcoursestype . " Report - " . $myfirstlastname . "_" . date("d-M-Y") . '.xls');
 
-  /// Creating a workbook
-  $workbook = new MoodleExcelWorkbook("-");
-  /// Send HTTP headers
-  $workbook->send($filename);
+    // Creating a workbook.
+    $workbook = new MoodleExcelWorkbook("-");
+    // Send HTTP headers.
+    $workbook->send($filename);
 
-  $formatsetcenter = $workbook->add_format();
-  $formatsetcenter->set_align('center');
-  $formatsetcenter->set_v_align('center');
+    $formatsetcenter = $workbook->add_format();
+    $formatsetcenter->set_align('center');
+    $formatsetcenter->set_v_align('center');
+    $formatsetvcenter = $workbook->add_format();
+    $formatsetvcenter->set_v_align('center');
 
-  $formatsetvcenter = $workbook->add_format();
-  $formatsetvcenter->set_v_align('center');
+    /// Creating the first worksheet.
+    $myxls = $workbook->add_worksheet("Sheet-1");
 
-  /// Creating the first worksheet
-  $myxls = $workbook->add_worksheet("Sheet-1");
+    $formatuname = $workbook->add_format();
+    $formatuname->set_size(18);
+    $formatbgcol = $workbook->add_format();
+    $formatbgcol->set_align('center');
+    $formatbgcol->set_v_align('center');
+    $formatbgcol->set_border(0);
+    $formatbgcol->set_color('white');
+    $formatbgcol->set_bg_color('black');
+    $formatbgcol->set_text_wrap();
 
-  $formatuname = $workbook->add_format();
-  $formatuname->set_size(18);
+    $bitmap = 'img/uglogo03.png';
+    $myxls->insert_bitmap(0, 0, $bitmap, 2, 2, 1, 1);
+    $myxls->merge_cells(0, 0, 3, 0);
+    $myxls->write_string(2, 4, $myfirstlastname, $formatuname);
+    $myxls->set_column(0, 1, 40);
+    $myxls->set_column(2, 2, 15);
+    $myxls->set_column(3, 4, 10);
+    $myxls->write_string(4, 0, $strcoursestype . ' Report - ' . date("d/m/Y"));
 
-  $formatbgcol = $workbook->add_format();
-  $formatbgcol->set_align('center');
-  $formatbgcol->set_v_align('center');
-  $formatbgcol->set_border(0);
-  $formatbgcol->set_color('white');
-  $formatbgcol->set_bg_color('black');
-  $formatbgcol->set_text_wrap();
+    if ($coursestype == "current") {
 
-  $bitmap = 'img/uglogo03.png';
-  $myxls->insert_bitmap(0, 0, $bitmap, 2, 2, 1, 1);
+      $rowhd = 6;
+      $col = 0;
+      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('course')];
+      $col++;
+      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string("assessment")];
+      $col++;
+      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string("assessmenttype", "block_newgu_spdetails")];
+      $col++;
+      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('weight', 'block_newgu_spdetails')];
+      $col++;
+      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('duedate','block_newgu_spdetails')];
+      $col++;
+      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('status')];
+      $col++;
+      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('yourgrade', 'block_newgu_spdetails')];
+      $col++;
+      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('feedback')];
+      $col++;
 
-  $myxls->merge_cells(0, 0, 3, 0);
-  $myxls->write_string(2, 4, $myfirstlastname, $formatuname);
-
-  $myxls->set_column(0, 1, 40);
-  $myxls->set_column(2, 2, 15);
-  $myxls->set_column(3, 4, 10);
-
-  $myxls->write_string(4, 0, $str_coursestype . ' Report - ' . date("d/m/Y"));
-
-  if ($coursestype=="current") {
-
-    $rowhd = 6;
-    $col = 0;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('course'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessment"));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessmenttype", "block_newgu_spdetails"));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('weight', 'block_newgu_spdetails'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('duedate','block_newgu_spdetails'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('status'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('yourgrade', 'block_newgu_spdetails'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('feedback'));
-    $col++;
-
-    $myxls->set_column(5, 5, 15);
-    $myxls->set_column(6, 6, 20);
-    $myxls->set_column(7, 8, 25);
-
-  }
-
-  if ($coursestype=="past") {
-    $row++;
-    $rowhd = 6;
-    $col = 0;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('course'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessment"));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string("assessmenttype", "block_newgu_spdetails"));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('weight', 'block_newgu_spdetails'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('startdate','block_newgu_spdetails'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('enddate','block_newgu_spdetails'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('yourgrade', 'block_newgu_spdetails'));
-    $col++;
-    $pastxl[$row][$col] = array("row"=>$rowhd, "col"=>$col, "text"=>get_string('feedback'));
-    $col++;
-
-    $myxls->set_column(5, 6, 15);
-    $myxls->set_column(7, 8, 25);
-  }
-
-  $rowheight = 22;
-
-  foreach ($pastxl as $key_pastxl) {
-
-    foreach($key_pastxl as $keykey_pastxl) {
-
-      if ($keykey_pastxl["row"]==6) {
-          $cellformat = $formatbgcol;
-      } else {
-          if ($keykey_pastxl["col"]>=2 && $keykey_pastxl["col"]<=7) {
-            $cellformat = $formatsetcenter;
-          } else {
-            $cellformat = $formatsetvcenter;
-          }
-      }
-
-      $myxls->set_row($keykey_pastxl["row"], $rowheight, null, false);
-      $myxls->write_string($keykey_pastxl["row"], $keykey_pastxl["col"], $keykey_pastxl["text"], $cellformat);
+      $myxls->set_column(5, 5, 15);
+      $myxls->set_column(6, 6, 20);
+      $myxls->set_column(7, 8, 25);
     }
 
-  }
+    if ($coursestype == "past") {
+        $row++;
+        $rowhd = 6;
+        $col = 0;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('course')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string("assessment")];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string("assessmenttype", "block_newgu_spdetails")];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('weight', 'block_newgu_spdetails')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('startdate','block_newgu_spdetails')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('enddate','block_newgu_spdetails')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('yourgrade', 'block_newgu_spdetails')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('feedback')];
+        $col++;
 
-  /// Close the workbook
-  $workbook->close();
+        $myxls->set_column(5, 6, 15);
+        $myxls->set_column(7, 8, 25);
+    }
+
+    $rowheight = 22;
+
+    foreach ($pastxl as $keypastxl) {
+        foreach ($keypastxl as $keykeypastxl) {
+
+            if ($keykeypastxl["row"] == 6) {
+                $cellformat = $formatbgcol;
+            } else {
+                if ($keykeypastxl["col"] >= 2 && $keykeypastxl["col"] <= 7) {
+                  $cellformat = $formatsetcenter;
+                } else {
+                  $cellformat = $formatsetvcenter;
+                }
+            }
+
+            $myxls->set_row($keykeypastxl["row"], $rowheight, null, false);
+            $myxls->write_string($keykeypastxl["row"], $keykeypastxl["col"], $keykeypastxl["text"], $cellformat);
+        }
+    }
+
+    // Close the workbook.
+    $workbook->close();
 }

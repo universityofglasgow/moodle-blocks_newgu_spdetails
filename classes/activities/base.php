@@ -195,7 +195,7 @@ abstract class base {
 
     /**
      * Return the feedback for a given graded activity.
-     * 
+     *
      * We need to make this part of the object - currently
      * being called as a static method.
      *

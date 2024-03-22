@@ -329,8 +329,8 @@ class grade {
                 ]);
                 $assessmenturl = $CFG->wwwroot . "/mod/workshop/view.php?id=" . $cmid;
 
-                $workshopsubmissions = $DB->count_records("workshop_submissions",[
-                    "workshopid" => $iteminstance, 
+                $workshopsubmissions = $DB->count_records("workshop_submissions", [
+                    "workshopid" => $iteminstance,
                     "authorid" => $userid,
                 ]);
                 if ($workshopsubmissions > 0) {
