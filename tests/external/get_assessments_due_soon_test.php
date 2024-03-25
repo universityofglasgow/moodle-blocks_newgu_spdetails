@@ -54,5 +54,11 @@ class get_assessments_due_soon_test extends \block_newgu_spdetails\external\newg
         $this->assertArrayHasKey('24hours', $stats[0]);
         $this->assertArrayHasKey('week', $stats[0]);
         $this->assertArrayHasKey('month', $stats[0]);
+
+        $this->assertIsNumeric($stats[0]['24hours']);
+
+        $this->assertEquals(1, $stats[0]['24hours']);
+        $this->assertEquals(2, $stats[0]['week']);
+        $this->assertEquals(3, $stats[0]['month']);
     }
 }

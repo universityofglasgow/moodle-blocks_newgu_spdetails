@@ -498,7 +498,6 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $duedate4 = mktime(date("H"), date("i"), date("s"), date("m"), date("d") + 1, date("Y"));
         $duedate5 = mktime(date("H"), date("i"), date("s"), date("m"), date("d") + 7, date("Y"));
         $duedate6 = mktime(date("H"), date("i"), date("s"), date("m"), date("d") + 14, date("Y"));
-        $duedate7 = mktime(date("H"), date("i"), date("s"), date("m"), date("d") + 25, date("Y"));
         $assignment4 = $this->getDataGenerator()->create_module('assign', [
             'name' => 'Assessment A - Month 1',
             'itemtype' => 'mod',
@@ -577,7 +576,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'itemtype' => 'mod',
             'itemmodule' => 'assign',
             'course' => $mygradescourse->id,
-            'duedate' => $duedate7,
+            'duedate' => $duedate6,
             'gradetype' => 2,
             'grademax' => 100,
             'scaleid' => $mygradesscale1->id,
@@ -671,6 +670,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'itemtype' => 'mod',
             'itemmodule' => 'assign',
             'course' => $gradebookcourse->id,
+            'duedate' => $duedate7,
             'grademax' => 100.00000,
             'gradetype' => 2,
             'scaleid' => $gradebookscale1->id,
