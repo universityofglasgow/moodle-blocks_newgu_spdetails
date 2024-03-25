@@ -247,7 +247,7 @@ const fetchAssessmentSummary = () => {
 
     }).fail(function(err) {
         document.querySelector('.loader').remove();
-        tempPanel.insertAdjacentHTML("afterbegin","<div class='d-flex justify-content-center'>\n" +
+        tempPanel.insertAdjacentHTML("afterbegin", "<div class='d-flex justify-content-center'>\n" +
             err.message + "</div>");
         Log.debug(err);
     });
