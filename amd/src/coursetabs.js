@@ -257,7 +257,6 @@ const sortingHeaders = (object, activetab, page, subcategory) => {
 const sortingStatus = function(sortby, sortorder) {
     let sortByShortName = document.querySelector('#sortby_shortname');
     let sortByFullName = document.querySelector('#sortby_fullname');
-    let sortByAssessmentType = document.querySelector('#sortby_assessmenttype');
     let sortByWeight = document.querySelector('#sortby_weight');
     let sortByDueDate = document.querySelector('#sortby_duedate');
     let sortByStatus = document.querySelector('#sortby_status');
@@ -287,19 +286,6 @@ const sortingStatus = function(sortby, sortorder) {
                     sortByFullName.classList.add('th-sort-desc');
                     sortByFullName.classList.remove('th-sort-asc');
                     sortByFullName.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'assessmenttype':
-            if (sortByAssessmentType) {
-                if (sortorder == 'asc') {
-                    sortByAssessmentType.classList.add('th-sort-asc');
-                    sortByAssessmentType.classList.remove('th-sort-desc');
-                    sortByAssessmentType.setAttribute('data-value', 'asc');
-                } else {
-                    sortByAssessmentType.classList.add('th-sort-desc');
-                    sortByAssessmentType.classList.remove('th-sort-asc');
-                    sortByAssessmentType.setAttribute('data-value', 'desc');
                 }
             }
             break;

@@ -241,7 +241,7 @@ const fetchAssessmentSummary = () => {
 
             if (points.length) {
                 const firstPoint = points[0];
-                viewAssessmentSummaryByChartType(evt,null,firstPoint.index);
+                viewAssessmentSummaryByChartType(evt, null, firstPoint.index);
             }
           };
 
