@@ -56,53 +56,17 @@ class get_assessmentsummary extends external_api {
     public static function execute(): array {
         global $USER;
 
-        $cache = cache::make('block_newgu_spdetails', 'studentdashboarddata');
-        $currenttime = time();
-        $thirtyminutes = $currenttime - 1800;
-        $cachekey = self::CACHE_KEY . $USER->id;
-        $cachedata = $cache->get_many([$cachekey]);
-
-        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['timeupdated'] < $thirtyminutes) {
-
-            $assessmentsummary = \block_newgu_spdetails\api::get_assessmentsummary();
-            $totalsubmissions = $assessmentsummary['total_submissions'];
-            $totaltosubmit = $assessmentsummary['total_tosubmit'];
-            $totaloverdue = $assessmentsummary['total_overdue'];
-            $marked = $assessmentsummary['marked'];
-
-            $subassess = $totalsubmissions;
-            $tobesub = $totaltosubmit;
-            $overdue = $totaloverdue;
-            $assessmarked = $marked;
-
-            $statscount = [
-                "timeupdated" => time(),
-                "sub_assess" => $totalsubmissions,
-                "tobe_sub" => $totaltosubmit,
-                "overdue" => $totaloverdue,
-                "assess_marked" => $marked,
-            ];
-
-            $cachedata = [
-                $cachekey => [
-                    $statscount,
-                ],
-            ];
-            $cache->set_many($cachedata);
-
-        } else {
-            $cachedata = $cache->get_many([$cachekey]);
-            $subassess = $cachedata[$cachekey][0]["sub_assess"];
-            $tobesub = $cachedata[$cachekey][0]["tobe_sub"];
-            $overdue = $cachedata[$cachekey][0]["overdue"];
-            $assessmarked = $cachedata[$cachekey][0]["assess_marked"];
-        }
+        $assessmentsummary = \block_newgu_spdetails\api::get_assessmentsummary();
+        $totalsubmissions = $assessmentsummary['total_submissions'];
+        $totaltosubmit = $assessmentsummary['total_tosubmit'];
+        $totaloverdue = $assessmentsummary['total_overdue'];
+        $marked = $assessmentsummary['marked'];
 
         $stats[] = [
-            'sub_assess' => $subassess,
-            'tobe_sub' => $tobesub,
-            'overdue' => $overdue,
-            'assess_marked' => $assessmarked,
+            'sub_assess' => $totalsubmissions,
+            'tobe_sub' => $totaltosubmit,
+            'overdue' => $totaloverdue,
+            'assess_marked' => $marked,
         ];
 
         return $stats;

@@ -59,37 +59,10 @@ class get_assessmentsduesoon extends external_api {
     public static function execute(): array {
         global $USER;
 
-        $cache = cache::make('block_newgu_spdetails', 'studentdashboarddata');
-        $currenttime = time();
-        $fiveminutes = $currenttime - 300;
-        $cachekey = self::CACHE_KEY . $USER->id;
-        $cachedata = $cache->get_many([$cachekey]);
-
-        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['summaryupdated'] < $fiveminutes) {
-            $assessmentsduesoon = \block_newgu_spdetails\api::get_assessmentsduesoon();
-            $twentyfourhours = $assessmentsduesoon['24hours'];
-            $week = $assessmentsduesoon['week'];
-            $month = $assessmentsduesoon['month'];
-
-            $statscount = [
-                "summaryupdated" => time(),
-                "24hours" => $twentyfourhours,
-                "week" => $week,
-                "month" => $month,
-            ];
-
-            $cachedata = [
-                $cachekey => [
-                    $statscount,
-                ],
-            ];
-            $cache->set_many($cachedata);
-        } else {
-            $cachedata = $cache->get_many([$cachekey]);
-            $twentyfourhours = $cachedata[$cachekey][0]["24hours"];
-            $week = $cachedata[$cachekey][0]["week"];
-            $month = $cachedata[$cachekey][0]["month"];
-        }
+        $assessmentsduesoon = \block_newgu_spdetails\api::get_assessmentsduesoon();
+        $twentyfourhours = $assessmentsduesoon['24hours'];
+        $week = $assessmentsduesoon['week'];
+        $month = $assessmentsduesoon['month'];
 
         $stats[] = [
             '24hours' => $twentyfourhours,
