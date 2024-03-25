@@ -782,7 +782,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $DB->execute("UPDATE {grade_items} SET categoryid = ? WHERE iteminstance = ?", $params);
 
         // Add a past assignment grade.
-        $assignmentgrade1_past = $this->add_assignment_grade($assignmentpast->id, $student1->id, $teacher->id, 95.5,
+        $assignmentgrade1past = $this->add_assignment_grade($assignmentpast->id, $student1->id, $teacher->id, 95.5,
         ASSIGN_SUBMISSION_STATUS_SUBMITTED);
 
         // This assignment has been given a final grade...
@@ -845,7 +845,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
     public function get_roleid($archetype = 'student') {
         global $DB;
 
-        $role = $DB->get_record("role", ['archetype' => $archetype,]);
+        $role = $DB->get_record("role", ['archetype' => $archetype]);
         return $role->id;
     }
 }
