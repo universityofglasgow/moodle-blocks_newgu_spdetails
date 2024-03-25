@@ -23,10 +23,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace block_newgu_spdetails\tests\external;
+namespace block_newgu_spdetails\external;
 
 defined('MOODLE_INTERNAL') || die();
- 
+
 global $CFG;
 
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
@@ -40,5 +40,19 @@ class get_assessments_due_soon_test extends \blocks_newgu_spdetails\external\new
      * 7 days
      * 1 month
      */
-    // Public function test_get_assessments_due_soon.
+    public function test_get_assessments_due_soon() {
+        // We're the test student.
+        $this->setUser($this->student1->id);
+
+        // Check that our stats values are returned as expected.
+        $stats = get_assessmentsduesoon::execute();
+        $stats = \external_api::clean_returnvalue(
+            get_assessmentsduesoon::execute_returns(),
+            $stats
+        );
+        $this->assertIsArray($stats);
+        $this->assertArrayHasKey('24hours', $stats[0]);
+        $this->assertArrayHasKey('week', $stats[0]);
+        $this->assertArrayHasKey('month', $stats[0]);
+    }
 }

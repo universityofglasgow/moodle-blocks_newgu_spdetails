@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace block_newgu_spdetails\tests\external;
+namespace block_newgu_spdetails\external;
 
 defined('MOODLE_INTERNAL') || die();
 

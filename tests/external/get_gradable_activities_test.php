@@ -23,7 +23,7 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace block_newgu_spdetails\tests\external;
+namespace block_newgu_spdetails\external;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -87,10 +87,4 @@ class get_gradable_activities_test extends \blocks_newgu_spdetails\external\newg
         $returned = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder, $gradebookcategoryid);
         $this->assertEquals(true, $returned['coursedata']['assessmentitems'][0]['gradebookenabled']);
     }
-
-    /**
-     * Test of the context checking when viewing the dashboard as the student
-     * and as another user, teacher or other member of staff for example
-     */
-    // Public function test_retrieve_gradable_activities_capability_check.
 }

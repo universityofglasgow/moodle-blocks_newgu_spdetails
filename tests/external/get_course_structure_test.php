@@ -23,12 +23,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- namespace block_newgu_spdetails\tests\external;
+ namespace block_newgu_spdetails\external;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
- 
+
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
 class get_course_structure_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {

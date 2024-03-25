@@ -67,7 +67,7 @@ if ($strcurrentcourses != "" && $coursestype == "current") {
     $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
     $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="5%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
-    $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('duedate','block_newgu_spdetails') . "</th>";
+    $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('duedate', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="10%" ' . $thhd . '>' . get_string('status') . "</th>";
     $spdetailspdf .= '<th width="11%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
     $spdetailspdf .= '<th width="15%" ' . $thhd . '>' . get_string('feedback') . "</th>";
@@ -102,7 +102,7 @@ if ($strcurrentcourses != "" && $coursestype == "current") {
         // FETCH INCLUDED IN GCAT.
         $cfdvalue = 0;
         $inclgcat = "";
-        $arrcustomfield = $DB->get_record('customfield_field', ['shortname'=>'show_on_studentdashboard']);
+        $arrcustomfield = $DB->get_record('customfield_field', ['shortname' => 'show_on_studentdashboard']);
         $cffid = $arrcustomfield->id;
 
         $arrcustomfielddata = $DB->get_record('customfield_data', ['fieldid' => $cffid, 'instanceid' => $courseid]);
@@ -206,7 +206,7 @@ if ($strcurrentcourses != "" && $coursestype == "current") {
         $gradetodisplay = $feedback["gradetodisplay"];
 
         if ($link != "") {
-            $strgradetodisplay =  get_string('readfeedback', 'block_newgu_spdetails');
+            $strgradetodisplay = get_string('readfeedback', 'block_newgu_spdetails');
         } else {
             if ($modulename != "quiz") {
                 $strgradetodisplay = $gradetodisplay;
@@ -264,8 +264,8 @@ if ($coursestype == "past") {
         $spdetailspdf .= '<th width="22%"' . $thhd . '>' . get_string('assessment') . '</th>';
         $spdetailspdf .= '<th width="8%" ' . $thhd . '>' . get_string('assessmenttype', 'block_newgu_spdetails') . "</th>";
         $spdetailspdf .= '<th width="6%" ' . $thhd . '>' . get_string('weight', 'block_newgu_spdetails') . "</th>";
-        $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('startdate','block_newgu_spdetails') . "</th>";
-        $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('enddate','block_newgu_spdetails') . "</th>";
+        $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('startdate', 'block_newgu_spdetails') . "</th>";
+        $spdetailspdf .= '<th width="7%" ' . $thhd . '>' . get_string('enddate', 'block_newgu_spdetails') . "</th>";
         $spdetailspdf .= '<th width="11%" ' . $thhd . '>' . get_string('yourgrade', 'block_newgu_spdetails') . "</th>";
         $spdetailspdf .= '<th width="14%" ' . $thhd . '>' . get_string('feedback') . "</th>";
         $spdetailspdf .= "</tr>";
@@ -286,7 +286,7 @@ if ($coursestype == "past") {
             $aggregationcoef = $keycc->aggregationcoef;
             $aggregationcoef2 = $keycc->aggregationcoef2;
             $gradetype = $keycc->gradetype;
-    
+
             // FETCH ASSESSMENT TYPE.
             $arrgradecategory = $DB->get_record('grade_categories', ['courseid' => $courseid, 'id' => $categoryid]);
             if (!empty($arrgradecategory)) {
@@ -368,7 +368,7 @@ if ($coursestype == "past") {
 
             // VIEW SUBMISSIONS.
             $link = "";
-            $status="";
+            $status = "";
             $cmid = \block_newgu_spdetails\course::get_cmid($modulename, $courseid, $iteminstance);
             $link = $CFG->wwwroot . '/mod/' . $modulename . '/view.php?id=' . $cmid;
             if (!empty($link)) {
@@ -444,7 +444,7 @@ if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
     $doc->setFooterData();
 
     // Set header and footer fonts.
-    $doc->setHeaderFont(['helvetica', 'b', 18,]);
+    $doc->setHeaderFont(['helvetica', 'b', 18]);
 
     // Set margins.
     $doc->SetMargins(5, 20, 5);
@@ -452,7 +452,7 @@ if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
     $doc->setFooterMargin(10);
 
     // Set auto page breaks.
-    $doc->SetAutoPageBreak(TRUE, 15);
+    $doc->SetAutoPageBreak(true, 15);
 
     // Set image scale factor.
     $doc->setImageScale(PDF_IMAGE_SCALE_RATIO);
@@ -461,10 +461,10 @@ if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
     $doc->SetXY(5, 2);
     $doc->SetFont('helvetica', '', 20);
     $doc->SetXY(215, 15);
-    $doc->Cell(25, 10, $myfirstlastname, 0, $ln=0, 'C', 0, '', 0, false, 'B', 'B');
+    $doc->Cell(25, 10, $myfirstlastname, 0, $ln = 0, 'C', 0, '', 0, false, 'B', 'B');
     $doc->SetFont('helvetica', '', 9);
     $doc->SetXY(245, 20);
-    $doc->Cell(25, 10, $strcoursestype . " Report Date : " . date("d-m-Y"), 0, $ln=0, 'C', 0, '', 0, false, 'B', 'B');
+    $doc->Cell(25, 10, $strcoursestype . " Report Date : " . date("d-m-Y"), 0, $ln = 0, 'C', 0, '', 0, false, 'B', 'B');
     $doc->SetMargins(5, 20, 5);
     $doc->SetFont('helvetica', '', 10);
     $doc->SetXY(5, 23);
@@ -495,7 +495,7 @@ if ($spdetailstype == "excel" && $spdetailspdf != "" && $strcoursestype != "") {
     $formatsetvcenter = $workbook->add_format();
     $formatsetvcenter->set_v_align('center');
 
-    /// Creating the first worksheet.
+    // Creating the first worksheet.
     $myxls = $workbook->add_worksheet("Sheet-1");
 
     $formatuname = $workbook->add_format();
@@ -519,28 +519,28 @@ if ($spdetailstype == "excel" && $spdetailspdf != "" && $strcoursestype != "") {
 
     if ($coursestype == "current") {
 
-      $rowhd = 6;
-      $col = 0;
-      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('course')];
-      $col++;
-      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string("assessment")];
-      $col++;
-      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string("assessmenttype", "block_newgu_spdetails")];
-      $col++;
-      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('weight', 'block_newgu_spdetails')];
-      $col++;
-      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('duedate','block_newgu_spdetails')];
-      $col++;
-      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('status')];
-      $col++;
-      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('yourgrade', 'block_newgu_spdetails')];
-      $col++;
-      $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('feedback')];
-      $col++;
+        $rowhd = 6;
+        $col = 0;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('course')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string("assessment")];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string("assessmenttype", "block_newgu_spdetails")];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('weight', 'block_newgu_spdetails')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('duedate', 'block_newgu_spdetails')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('status')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('yourgrade', 'block_newgu_spdetails')];
+        $col++;
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('feedback')];
+        $col++;
 
-      $myxls->set_column(5, 5, 15);
-      $myxls->set_column(6, 6, 20);
-      $myxls->set_column(7, 8, 25);
+        $myxls->set_column(5, 5, 15);
+        $myxls->set_column(6, 6, 20);
+        $myxls->set_column(7, 8, 25);
     }
 
     if ($coursestype == "past") {
@@ -555,9 +555,9 @@ if ($spdetailstype == "excel" && $spdetailspdf != "" && $strcoursestype != "") {
         $col++;
         $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('weight', 'block_newgu_spdetails')];
         $col++;
-        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('startdate','block_newgu_spdetails')];
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('startdate', 'block_newgu_spdetails')];
         $col++;
-        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('enddate','block_newgu_spdetails')];
+        $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('enddate', 'block_newgu_spdetails')];
         $col++;
         $pastxl[$row][$col] = ["row" => $rowhd, "col" => $col, "text" => get_string('yourgrade', 'block_newgu_spdetails')];
         $col++;
@@ -577,9 +577,9 @@ if ($spdetailstype == "excel" && $spdetailspdf != "" && $strcoursestype != "") {
                 $cellformat = $formatbgcol;
             } else {
                 if ($keykeypastxl["col"] >= 2 && $keykeypastxl["col"] <= 7) {
-                  $cellformat = $formatsetcenter;
+                    $cellformat = $formatsetcenter;
                 } else {
-                  $cellformat = $formatsetvcenter;
+                    $cellformat = $formatsetvcenter;
                 }
             }
 

@@ -23,7 +23,7 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace block_newgu_spdetails\tests\external;
+namespace block_newgu_spdetails\external;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -31,7 +31,7 @@ global $CFG;
 
 require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
- 
+
 class get_grade_status_and_feedback_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
 
     /**
@@ -48,10 +48,10 @@ class get_grade_status_and_feedback_test extends \blocks_newgu_spdetails\externa
         $gcatsummativesubcategory = $this->gcat_summative_subcategory->id;
         $gcatgradeditems = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder,
         $gcatsummativesubcategory);
-        
+
         $this->assertIsArray($gcatgradeditems);
         $this->assertCount(3, $gcatgradeditems['coursedata']['assessmentitems']);
-        
+
         // Check for the raw grade/provisional on the first assignment.
         $this->assertArrayHasKey('grade_provisional', $gcatgradeditems['coursedata']['assessmentitems'][0]);
         $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
@@ -106,7 +106,7 @@ class get_grade_status_and_feedback_test extends \blocks_newgu_spdetails\externa
         $mygradesgradeditems['coursedata']['assessmentitems'][1]['grade_feedback']);
     }
 
-    /** 
+    /**
      * For generic Gradebook courses, the data should be coming directly
      * from gradebook.
      */
@@ -137,5 +137,5 @@ class get_grade_status_and_feedback_test extends \blocks_newgu_spdetails\externa
         // Check for the feedback.
         $this->assertStringContainsString(get_string('status_text_viewfeedback', 'block_newgu_spdetails'),
         $gradebookgradeditems['coursedata']['assessmentitems'][1]['grade_feedback']);
-    }    
+    }
 }

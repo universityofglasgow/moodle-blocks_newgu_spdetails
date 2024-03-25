@@ -70,9 +70,9 @@ class get_assessmentsummary extends external_api {
             $totaloverdue = $assessmentsummary['total_overdue'];
             $marked = $assessmentsummary['marked'];
 
-            $subassess = $total_submissions;
-            $tobesub = $total_tosubmit;
-            $overdue = $total_overdue;
+            $subassess = $totalsubmissions;
+            $tobesub = $totaltosubmit;
+            $overdue = $totaloverdue;
             $assessmarked = $marked;
 
             $statscount = [

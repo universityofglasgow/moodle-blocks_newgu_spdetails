@@ -52,7 +52,7 @@ class get_assessmentsduesoon extends external_api {
      * We probably want to cache this on something like a 5 minute basis,
      * given that the service gets called each time the user visits the
      * dashboard.
-     * 
+     *
      * @return array of assessments, grouped by return time.
      * @throws \invalid_parameter_exception
      */
@@ -90,7 +90,7 @@ class get_assessmentsduesoon extends external_api {
             $week = $cachedata[$cachekey][0]["week"];
             $month = $cachedata[$cachekey][0]["month"];
         }
-        
+
         $stats[] = [
             '24hours' => $twentyfourhours,
             'week' => $week,

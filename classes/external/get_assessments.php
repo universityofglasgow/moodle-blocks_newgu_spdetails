@@ -66,7 +66,7 @@ class get_assessments extends external_api {
                 $params['page'],
                 $params['sortby'],
                 $params['sortorder'],
-                $params['subcategory'],))
+                $params['subcategory']))
         ];
     }
 

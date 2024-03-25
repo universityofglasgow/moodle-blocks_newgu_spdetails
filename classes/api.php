@@ -115,7 +115,7 @@ class api extends \external_api {
                 break;
             }
 
-            $courses = \local_gugrades\api::dashboard_get_courses($userid, $currentcourses, $pastcourses, $sortby . " " . 
+            $courses = \local_gugrades\api::dashboard_get_courses($userid, $currentcourses, $pastcourses, $sortby . " " .
             $sortorder);
             return \block_newgu_spdetails\course::get_course_structure($courses, $currentcourses);
         } else {
