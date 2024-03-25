@@ -34,7 +34,7 @@ require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdet
 /**
  * Test get_weight function.
  */
-class get_weight_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
+class get_weight_test extends \block_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
 
     public function test_return_weight() {
         $aggregationcoef = 10;

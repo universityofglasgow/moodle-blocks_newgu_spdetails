@@ -31,7 +31,7 @@ global $CFG;
 
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
-class get_course_structure_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
+class get_course_structure_test extends \block_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
     /**
      * Test of the components of the course that get returned.
      */

@@ -37,7 +37,7 @@ global $CFG;
 
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
-class get_assessment_summary_test extends \blocks_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
+class get_assessment_summary_test extends \block_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
 
     /**
      * Test that the assessment summary returns the specific key names.
