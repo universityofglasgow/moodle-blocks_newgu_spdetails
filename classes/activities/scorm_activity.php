@@ -25,6 +25,8 @@
 
 namespace block_newgu_spdetails\activities;
 
+use cache;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/scorm/locallib.php');
@@ -43,6 +45,11 @@ class scorm_activity extends base {
      * @var object $scorm
      */
     private $scorm;
+
+    /**
+     * @var constant CACHE_KEY
+     */
+    const CACHE_KEY = 'studentid_scormduesoon:';
 
     /**
      * For this activity, get just the basic course module info.
