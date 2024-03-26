@@ -184,11 +184,12 @@ class activity {
             
             foreach ($tmp as $mygradesitem) {
                 
-                $cm = get_coursemodule_from_instance($mygradesitem->itemmodule, $mygradesitem->iteminstance, $mygradesitem->courseid, false, MUST_EXIST);
+                $cm = get_coursemodule_from_instance($mygradesitem->itemmodule, $mygradesitem->iteminstance,
+                $mygradesitem->courseid, false, MUST_EXIST);
                 $modinfo = get_fast_modinfo($mygradesitem->courseid);
                 $cm = $modinfo->get_cm($cm->id);
 
-                // MGU-631 - Honour hidden grades and hidden activities. Having discussed with HM, if the activity is hidden, don't 
+                // MGU-631 - Honour hidden grades and hidden activities. Having discussed with HM, if the activity is hidden, don't
                 // show it full stop. This code may not be correct - if - it should only hide the grade if either condition is true.
                 if ($cm->uservisible) {
 
@@ -226,17 +227,17 @@ class activity {
                     ];
                     if ($usergrades = $DB->get_records('local_gugrades_grade', $params)) {
                         // @todo - swap all of this for the relevant mygrades API calls - if/when one exists.
-                        $dateobj = \DateTime::createFromFormat('U', $cm->customdata['duedate']);
-                        $duedate = $dateobj->format('jS F Y');
-                        
                         foreach ($usergrades as $usergrade) {
                             switch ($usergrade->gradetype) {
                                 case 'RELEASED':
+                                    $dateobj = \DateTime::createFromFormat('U', $cm->customdata['duedate']);
+                                    $duedate = $dateobj->format('jS F Y');
                                     $statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
                                     $statustext = get_string('status_text_graded', 'block_newgu_spdetails');
                                     // MGU-631 - Honour hidden grades and hidden activities.
-                                    $grade = ((!$mygradesitem->hidden) ? $usergrade->displaygrade :
-                                    get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'));
+                                    $gradeishidden = \local_gugrades\api::is_grade_hidden($mygradesitem->id, $USER->id);
+                                    $grade = (($gradeishidden) ? get_string('status_text_tobeconfirmed', 'block_newgu_spdetails') :
+                                    $usergrade->displaygrade);
                                     $gradeclass = true;
                                     $gradestatus = get_string('status_graded', 'block_newgu_spdetails');
                                     $gradefeedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
@@ -246,11 +247,17 @@ class activity {
                                 case 'PROVISIONAL':
                                     $gradeprovisional = true;
                                     break;
+
+                                default:
+                                $activity = \block_newgu_spdetails\activity::activity_factory($mygradesitem->id, $courseid, 0);
+                                $grade = $activity->get_grading_duedate();
+                                break;
                             }
                         }
                     } else {
-                        // MyGrades data hasn't been released yet, revert to getting data from Gradebook,
-                        // but don't include Grade, or Feedback data - this should remain empty.
+                        // MyGrades data hasn't been imported OR released yet, revert to getting the data from Gradebook.
+                        // By default, items that have been graded will appear - however, if Marking Workflow has been
+                        // enabled - we need to consider the grade display options as dictated by those settings.
                         $gradestatobj = \block_newgu_spdetails\grade::get_grade_status_and_feedback($mygradesitem->courseid,
                             $mygradesitem->id,
                             $mygradesitem->itemmodule,
@@ -262,15 +269,18 @@ class activity {
                             'mygradesenabled'
                         );
 
-                        $assessmenturl = $gradestatobj->assessment_url;
                         $duedate = $gradestatobj->due_date;
-                        // MGU-631 - Honour hidden grades and hidden activities.
-                        $grade = ((!$mygradesitem->hidden) ? $gradestatobj->grade_to_display :
-                        get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'));
                         $gradestatus = $gradestatobj->grade_status;
                         $statuslink = $gradestatobj->status_link;
                         $statusclass = $gradestatobj->status_class;
                         $statustext = $gradestatobj->status_text;
+                        // MGU-631 - Honour hidden grades and hidden activities.
+                        $grade = (($mygradesitem->hidden) ? get_string('status_text_tobeconfirmed', 'block_newgu_spdetails') :
+                        $gradestatobj->grade_to_display);
+                        $gradeclass = $gradestatobj->grade_class;
+                        $gradeprovisional = $gradestatobj->grade_provisional;
+                        $gradefeedback = $gradestatobj->grade_feedback;
+                        $gradefeedbacklink = $gradestatobj->grade_feedback_link;
                     }
 
                     $tmp = [

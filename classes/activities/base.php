@@ -212,6 +212,7 @@ abstract class base {
             case get_string('status_notopen', 'block_newgu_spdetails'):
             case get_string('status_submissionnotopen', 'block_newgu_spdetails'):
             case get_string('status_notsubmitted', 'block_newgu_spdetails') :
+            case get_string('status_draft', 'block_newgu_spdetails') :
                 $feedbackobj->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                 break;
 
@@ -223,8 +224,11 @@ abstract class base {
             case get_string('status_notsubmitted', 'block_newgu_spdetails'):
                 $feedbackobj->grade_feedback = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                 if ($gradestatusobj->due_date > time()) {
-                    $feedbackobj->grade_feedback = get_string('status_text_dueby', 'block_newgu_spdetails',
-                    $gradestatusobj->due_date);
+                    $feedbackobj->grade_feedback = get_string(
+                        'status_text_dueby',
+                        'block_newgu_spdetails',
+                        date('jS F Y', $gradestatusobj->grading_due_date)
+                    );
                 }
                 break;
 

@@ -142,6 +142,22 @@ class assign_activity extends base {
     }
 
     /**
+     * Return the 'Remind me to grade by' date if one exists.
+     *
+     * @return string
+     */
+    public function get_grading_duedate(): string {
+        $assigninstance = $this->assign->get_instance();
+        $gradingduedate = '';
+
+        if ($assigninstance->grading_due_date) {
+            $dateobj = \DateTime::createFromFormat('U', $assigninstance->grading_due_date);
+            $grading_due_date = $dateobj->format('jS F Y');
+        }
+        return $gradingduedate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -180,6 +196,8 @@ class assign_activity extends base {
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $assigninstance->duedate;
+        $statusobj->cutoff_date = $assigninstance->cutoffdate;
+        $statusobj->grading_due_date = $assigninstance->gradingduedate;
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);
@@ -211,7 +229,10 @@ class assign_activity extends base {
                 // There is a bug in class assign->get_user_grade() where get_user_submission() is called
                 // and an assignment entry is created regardless -i.e. "true" is passed instead of an arg.
                 // This will always result in an assign_submission entry with a status of "new".
-                if ($statusobj->grade_status == 'new') {
+                // We also cater for status 'draft' here as essay 'submissions' begin life in that state.
+                if ($statusobj->grade_status == get_string('status_new', 'block_newgu_spdetails') ||
+                    $statusobj->grade_status == get_string('status_draft', 'block_newgu_spdetails')) {
+
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
@@ -238,6 +259,14 @@ class assign_activity extends base {
                     $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
+                    // This might not have been set, use the default grade_to_display otherwise.
+                    if ($statusobj->grading_due_date) {
+                        $statusobj->grade_to_display = get_string(
+                            'status_text_dueby',
+                            'block_newgu_spdetails',
+                            date('jS F Y', $statusobj->grading_due_date)
+                        );
+                    }
                 }
 
             } else {
@@ -252,11 +281,14 @@ class assign_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string(
-                            'status_text_dueby',
-                            'block_newgu_spdetails',
-                            date('d/m/Y', $gradestatus->due_date)
-                        );
+                        // This might not have been set, use the default grade_to_display otherwise.
+                        if ($statusobj->grading_due_date) {
+                            $statusobj->grade_to_display = get_string(
+                                'status_text_dueby',
+                                'block_newgu_spdetails',
+                                date('jS F Y', $statusobj->grading_due_date)
+                            );
+                        }
                     }
                 }
 

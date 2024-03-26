@@ -103,9 +103,11 @@ $string['chart_24hrs'] = '24 hours';
 $string['chart_7days'] = '7 days';
 $string['chart_1mth'] = 'month';
 
+$string['status_new'] = 'new';
 $string['status_tobeconfirmed'] = 'To be confirmed';
 $string['status_notopen'] = 'notopen';
 $string['status_submissionnotopen'] = 'submissionnotopen';
+$string['status_draft'] = 'draft';
 $string['status_submit'] = 'submit';
 $string['status_submitted'] = 'submitted';
 $string['status_overdue'] = 'overdue';
@@ -114,6 +116,7 @@ $string['status_unavailable'] = 'unavailable';
 $string['status_provisional'] = 'provisional';
 $string['status_graded'] = 'graded';
 
+$string['status_class_draft'] = 'status-draft';
 $string['status_class_submit'] = 'status-submit';
 $string['status_class_submitted'] = 'status-submitted';
 $string['status_class_overdue'] = 'status-overdue';

@@ -130,6 +130,17 @@ class workshop_activity extends base {
     }
 
     /**
+     * Return the 'Remind me to grade by' date if one exists.
+     *
+     * @return string
+     */
+    public function get_grading_duedate(): string {
+        $gradingduedate = '';
+
+        return $gradingduedate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
