@@ -89,7 +89,7 @@ jobs:
 
       - name: Grunt
         if: ${{ !cancelled() }}
-        run: moodle-plugin-ci grunt --max-lint-warnings 0 -t eslint:amd
+        run: moodle-plugin-ci grunt --max-lint-warnings 0 --base . -t eslint:amd
 
       - name: PHPUnit tests
         if: ${{ !cancelled() }}
