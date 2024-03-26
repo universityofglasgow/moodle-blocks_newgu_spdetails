@@ -136,7 +136,7 @@ class activity {
             $activitydata = [];
             if ($mygradesenabled) {
                 $activitydata = self::process_mygrades_items($activityitems->items, $activetab, $ltiinstancestoexclude,
-                $assessmenttype, $sortorder);
+                $assessmenttype, $sortby, $sortorder);
             }
 
             if ($gcatenabled) {
@@ -147,7 +147,7 @@ class activity {
 
             if (!$mygradesenabled && !$gcatenabled) {
                 $activitydata = self::process_default_items($activityitems->items, $activetab, $ltiinstancestoexclude,
-                $assessmenttype, $sortorder);
+                $assessmenttype, $sortby, $sortorder);
             }
 
             $data['assessmentitems'] = $activitydata;
@@ -168,18 +168,19 @@ class activity {
      * @param string $activetab
      * @param array|string $ltiinstancestoexclude
      * @param string $assessmenttype
+     * @param string $sortby
      * @param string $sortorder
      * @return array
      */
     public static function process_mygrades_items(array $mygradesitems, string $activetab, array|string $ltiinstancestoexclude,
-    string $assessmenttype, string $sortorder): array {
+    string $assessmenttype, string $sortby, string $sortorder): array {
 
         global $DB, $USER;
         $mygradesdata = [];
 
         if ($mygradesitems && count($mygradesitems) > 0) {
 
-            $tmp = self::sort_items($mygradesitems, $sortorder);
+            $tmp = self::sort_items($mygradesitems, $sortby, $sortorder);
             
             foreach ($tmp as $mygradesitem) {
                 
@@ -357,7 +358,7 @@ class activity {
         // $tmp = grade_aggregation::get_rows($course, $activities, $studentarr);
         if ($gcatitems && count($gcatitems) > 0) {
 
-            $tmp = self::sort_items($gcatitems, $sortorder);
+            $tmp = self::sort_items($gcatitems, $sortby, $sortorder);
 
             foreach ($tmp as $gcatitem) {
                 
@@ -440,18 +441,19 @@ class activity {
      * @param array $defaultitems
      * @param array|string $ltiinstancestoexclude
      * @param string $assessmenttype
+     * @param string $sortby
      * @param string $sortorder
      * @return array
      */
     public static function process_default_items(array $defaultitems, string $activetab, array|string $ltiinstancestoexclude,
-    string $assessmenttype, string $sortorder): array {
+    string $assessmenttype, string $sortby, string $sortorder): array {
 
         global $USER;
         $defaultdata = [];
 
         if ($defaultitems && count($defaultitems) > 0) {
 
-            $tmp = self::sort_items($defaultitems, $sortorder);
+            $tmp = self::sort_items($defaultitems, $sortby, $sortorder);
 
             foreach ($tmp as $defaultitem) {
 
@@ -577,20 +579,21 @@ class activity {
      * that will do this for us, we need to manually implement this feature.
      *
      * @param array $itemstosort
+     * @param string $sortby
      * @param string $sortorder
      * @return array
      */
-    public static function sort_items(array $itemstosort, string $sortorder): array {
+    public static function sort_items(array $itemstosort, string $sortby, string $sortorder): array {
         switch ($sortorder) {
             case "asc":
                 uasort($itemstosort, function($a, $b) {
 
                     // Account for GCAT uniqueness.
                     if (property_exists($a, 'assessmentname')) {
-                        return strcmp($a->assessmentname, $b->assessmentname);
+                        return strcasecmp($a->assessmentname, $b->assessmentname);
                     }
 
-                    return strcmp($a->itemname, $b->itemname);
+                    return strcasecmp($a->itemname, $b->itemname);
                 });
                 break;
 
@@ -599,10 +602,10 @@ class activity {
 
                     // Account for GCAT uniqueness.
                     if (property_exists($a, 'assessmentname')) {
-                        return strcmp($b->assessmentname, $a->assessmentname);
+                        return strcasecmp($b->assessmentname, $a->assessmentname);
                     }
 
-                    return strcmp($b->itemname, $a->itemname);
+                    return strcasecmp($b->itemname, $a->itemname);
                 });
                 break;
         }
