@@ -43,7 +43,7 @@ class api extends \external_api {
 
     /**
      * This method returns the processed list of gradable activities.
-     * 
+     *
      * @param string $activetab
      * @param int $page
      * @param string $sortby
@@ -89,7 +89,7 @@ class api extends \external_api {
 
     /**
      * This method returns either the top level categories for a course, or the activities within that course.
-     * 
+     *
      * @param string $activetab
      * @param int $userid
      * @param string $sortby
@@ -255,7 +255,7 @@ class api extends \external_api {
 
     /**
      * This method does something.
-     * 
+     *
      * @param $userid
      * @param $strcourses
      * @return string
@@ -303,7 +303,7 @@ class api extends \external_api {
 
     /**
      * This method does something.
-     * 
+     *
      * @param $courseid
      */
     public static function nogroupusers($courseid) {

@@ -75,7 +75,7 @@ class get_assessmentsummary extends external_api {
 
     /**
      * Describes what will be returned to the caller.
-     * 
+     *
      * @return external_multiple_structure
      */
     public static function execute_returns(): external_multiple_structure {

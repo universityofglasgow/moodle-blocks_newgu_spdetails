@@ -403,8 +403,8 @@ class activity {
                 /**
                  * Commented out for now as we need to figure out how to get this in a GCAT context.
                  * if ($iconurl = $cm->get_icon_url()->out(false)) {
-                 *   $itemicon = $iconurl;
-                 *   $iconalt = $cm->get_module_type_name();
+                 * $itemicon = $iconurl;
+                 * $iconalt = $cm->get_module_type_name();
                  * }
                  */
                 $duedate = \DateTime::createFromFormat('U', $gcatitem->duedate);

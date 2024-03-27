@@ -364,7 +364,7 @@ class course {
 
     /**
      * Returns the course module id and relevant attributes.
-     * 
+     *
      * @param string $cmodule
      * @param int $courseid
      * @param int $instance

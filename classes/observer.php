@@ -315,7 +315,7 @@ class observer {
 
     /**
      * Handle a logout event.
-     * 
+     *
      * @param \core\event\user_loggedout $event
      *
      * The session data for which tab/category has been selected doesn't get
