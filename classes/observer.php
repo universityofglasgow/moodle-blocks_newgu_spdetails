@@ -31,6 +31,11 @@ namespace block_newgu_spdetails;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * This class handles the subscriber events we need in order to maintain the cache.
+ * We are trying to prevent expensive database queries, thus these events allow us
+ * flush the cache only at certain points.
+ */
 class observer {
 
     /** @var string Our key in the cache. */
@@ -218,7 +223,7 @@ class observer {
     /**
      * Handle the activity type:quiz manual grading complete.
      *
-     * @param \mod_quiz\event\attempt_manual_grading_completed
+     * @param \mod_quiz\event\attempt_manual_grading_completed $event
      * @return bool
      */
     public static function attempt_manual_grading_completed(\mod_quiz\event\attempt_manual_grading_completed $event): bool {
@@ -233,7 +238,7 @@ class observer {
 
     /**
      * Handle the activity type:SCORM status submitted event.
-     * @param \mod_scorm\event\status_submitted
+     * @param \mod_scorm\event\status_submitted $event
      * @return bool
      */
     public static function scorm_status_submitted(\mod_scorm\event\status_submitted $event): bool {
@@ -310,6 +315,8 @@ class observer {
 
     /**
      * Handle a logout event.
+     * 
+     * @param \core\event\user_loggedout $event
      *
      * The session data for which tab/category has been selected doesn't get
      * cleared as expected - because the page session remains active as long
@@ -325,7 +332,7 @@ class observer {
      * @param int $userid
      * @return bool
      */
-    public static function delete_key_from_cache($userid): bool {
+    public static function delete_key_from_cache(int $userid): bool {
 
         $cache = \cache::make('block_newgu_spdetails', 'studentdashboarddata');
         $cachekey = self::CACHE_KEY . $userid;

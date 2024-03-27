@@ -30,6 +30,9 @@ use external_function_parameters;
 use external_single_structure;
 use external_value;
 
+/**
+ * This class provides the web service description for returning assessments that are due, by chart type (24hrs, 7 days etc).
+ */
 class get_assessmentsduebytype extends external_api {
 
     /**
@@ -46,10 +49,11 @@ class get_assessmentsduebytype extends external_api {
     /**
      * Return the assessments.
      *
+     * @param int $charttype
      * @return array of assessments.
      * @throws \invalid_parameter_exception
      */
-    public static function execute($charttype): array {
+    public static function execute(int $charttype): array {
         $params = self::validate_parameters(self::execute_parameters(),
             [
                 'charttype' => $charttype,
@@ -61,6 +65,8 @@ class get_assessmentsduebytype extends external_api {
     }
 
     /**
+     * Describes what will be returned to the caller.
+     *
      * @return external_single_structure
      */
     public static function execute_returns(): external_single_structure {

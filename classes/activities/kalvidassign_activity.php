@@ -82,6 +82,7 @@ class kalvidassign_activity extends base {
     /**
      * Return the grade directly from Gradebook.
      *
+     * @param int $userid
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {

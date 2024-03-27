@@ -32,7 +32,7 @@ require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot .'/blocks/newgu_spdetails/block_newgu_spdetails.php');
 
 /**
- * Test(s) for block_newgu_spdetails
+ * Unit tests for block_newgu_spdetails
  */
 class block_newgu_spdetails_test extends \advanced_testcase {
 
@@ -59,6 +59,8 @@ class block_newgu_spdetails_test extends \advanced_testcase {
     }
 
     /**
+     * Test the applicable_formats() method.
+     *
      * @return void
      */
     public function test_applicable_formats() {
@@ -67,6 +69,8 @@ class block_newgu_spdetails_test extends \advanced_testcase {
     }
 
     /**
+     * Test the get_content() method.
+     *
      * @return void
      * @throws dml_exception
      */

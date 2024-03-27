@@ -68,7 +68,6 @@ class glossary_activity extends base {
     /**
      * Get glossary object.
      *
-     * @param object $cm course module
      * @return object
      */
     public function get_glossary(): object {
@@ -80,6 +79,7 @@ class glossary_activity extends base {
     /**
      * Return the grade directly from Gradebook.
      *
+     * @param int $userid
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {

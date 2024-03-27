@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class to provide utility methods for grading attributes
+ * Class to provide utility methods for grading attributes.
  *
  * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -25,6 +25,9 @@
 
 namespace block_newgu_spdetails;
 
+/**
+ * This class provides utility methods for grading attributes.
+ */
 class grade {
     /**
      * Reimplementation of return_gradestatus as it misses the mark on a
@@ -417,7 +420,7 @@ class grade {
      * @param int $userid
      * @param int $grademax
      * @param string $gradetype
-     * @param return array
+     * @return array
      */
     public static function get_gradefeedback(string $modulename, int $iteminstance, int $courseid, int $itemid, int $userid,
     int $grademax, string $gradetype) {
@@ -503,10 +506,12 @@ class grade {
      *
      * @param object $category
      * @param array $gradeitems
+     * @param array $items
      * @param array $gradecategories
      * @return object
      */
-    public static function recurse_categorytree($category, $gradeitems, $items, $gradecategories): object {
+    public static function recurse_categorytree(object $category, array $gradeitems, array $items,
+    array $gradecategories): object {
         // While this looks odd, when we call this method recursively, we are in fact
         // passing in the previously built up array of $items. We also (re)set $record
         // here since after the final iteration, when control is returned, $items will

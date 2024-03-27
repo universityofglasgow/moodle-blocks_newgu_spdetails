@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class to describe the structure of a course
+ * Provides generic activity related methods.
  *
  * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -27,6 +27,12 @@ namespace block_newgu_spdetails;
 
 define('ITEM_URL', $CFG->wwwroot . '/');
 define('ITEM_SCRIPT', '/view.php?id=');
+
+/**
+ * This class processes activities for MyGrades, GCAT and Gradebook course types.
+ * It provides a factory method for instantiating the relevant activity which can
+ * then be used to provide further functionality.
+ */
 class activity {
 
     /**
@@ -43,7 +49,7 @@ class activity {
     string $sortorder): array {
         $activitydata = [];
         $coursedata = [];
-        
+
         // What's my parent?
         // I need the parent of the parent in order to be able to always
         // step 'up' a level. \local_gugrades\grades::get_activitytree only
@@ -80,8 +86,10 @@ class activity {
         $activities = \local_gugrades\api::get_activities($course->id, $subcategory);
         $activitiesdata = self::process_get_activities($activities, $course->id, $subcategory, $userid, $activetab,
         $assessmenttype, $sortby, $sortorder);
-        $coursedata['subcategories'] = ((array_key_exists('subcategories', $activitiesdata)) ? $activitiesdata['subcategories'] : '');
-        $coursedata['assessmentitems'] = ((array_key_exists('assessmentitems', $activitiesdata)) ? $activitiesdata['assessmentitems'] : '');
+        $coursedata['subcategories'] = ((array_key_exists('subcategories', $activitiesdata)) ?
+        $activitiesdata['subcategories'] : '');
+        $coursedata['assessmentitems'] = ((array_key_exists('assessmentitems', $activitiesdata)) ?
+        $activitiesdata['assessmentitems'] : '');
         $activitydata['coursedata'] = $coursedata;
 
         return $activitydata;
@@ -112,7 +120,8 @@ class activity {
         if ($activityitems->categories) {
             $categorydata = [];
             if ($mygradesenabled) {
-                $categorydata = \block_newgu_spdetails\course::process_mygrades_subcategories($courseid,$activityitems->categories,
+                $categorydata = \block_newgu_spdetails\course::process_mygrades_subcategories($courseid,
+                $activityitems->categories,
                 $assessmenttype, $sortorder);
             }
 
@@ -132,7 +141,7 @@ class activity {
         if ($activityitems->items) {
             // Temp fix for working out which LTI activities to exclude...
             $ltiinstancestoexclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
-            
+
             $activitydata = [];
             if ($mygradesenabled) {
                 $activitydata = self::process_mygrades_items($activityitems->items, $activetab, $ltiinstancestoexclude,
@@ -181,16 +190,16 @@ class activity {
         if ($mygradesitems && count($mygradesitems) > 0) {
 
             $tmp = self::sort_items($mygradesitems, $sortby, $sortorder);
-            
+
             foreach ($tmp as $mygradesitem) {
-                
+
                 $cm = get_coursemodule_from_instance($mygradesitem->itemmodule, $mygradesitem->iteminstance,
                 $mygradesitem->courseid, false, MUST_EXIST);
                 $modinfo = get_fast_modinfo($mygradesitem->courseid);
                 $cm = $modinfo->get_cm($cm->id);
 
                 // MGU-631 - Honour hidden grades and hidden activities. Having discussed with HM, if the activity is hidden, don't
-                // show it full stop. This code may not be correct - if - it should only hide the grade if either condition is true.
+                // show it full stop. This code may not be correct -if- it should only hide the grade if either condition is true.
                 if ($cm->uservisible) {
 
                     if ($mygradesitem->itemmodule == 'lti') {
@@ -249,8 +258,8 @@ class activity {
                                     break;
 
                                 default:
-                                $activity = \block_newgu_spdetails\activity::activity_factory($mygradesitem->id, $courseid, 0);
-                                $grade = $activity->get_grading_duedate();
+                                    $activity = self::activity_factory($mygradesitem->id, $courseid, 0);
+                                    $grade = $activity->get_grading_duedate();
                                 break;
                             }
                         }
@@ -323,9 +332,13 @@ class activity {
      * are visible - so if an assessment has been graded a then the item
      * hidden - this will not display. No further checks for hidden grades
      * are being done - based on how Moodle currenly does things.
-     * 
+     *
      * @param int $subcategory
      * @param array|string $ltiinstancestoexclude
+     * @param int $userid
+     * @param string $activetab
+     * @param string $assessmenttype
+     * @param string $sortby
      * @param string $sortorder
      * @return array
      */
@@ -335,12 +348,12 @@ class activity {
 
         /**
          * Use the grade category id, get from grade_items where iteminstance=gc.categoryid (check gc.id=167)
-         * and courseid=? and itemtype = category get from grade_grades where itemid = 167 and userid = ? - dig 
+         * and courseid=? and itemtype = category get from grade_grades where itemid = 167 and userid = ? - dig
          * out the rest and pass to sanitize_recordss this should give us the overall grade for this category.
          */
         /**
          * $item = $DB->get_record('grade_items', ['iteminstance' => $subcategory, 'itemtype' => 'category'], '*', MUST_EXIST);
-         * $gradeitem = $DB->get_record('grade_grades', ['itemid' => $item->id, 'userid' => $userid], '*', MUST_EXIST);    
+         * $gradeitem = $DB->get_record('grade_grades', ['itemid' => $item->id, 'userid' => $userid], '*', MUST_EXIST);
          * $gradeitem->id = $subcategory;
          * $gradeitem->courseid = $item->courseid;
          * $gradeitem->gradetype = $item->gradetype;
@@ -371,8 +384,8 @@ class activity {
             $tmp = self::sort_items($gcatitems, $sortby, $sortorder);
 
             foreach ($tmp as $gcatitem) {
-                
-                // MGU-631 - GCAT seems to take care of checking if the activity item and grade is 
+
+                // MGU-631 - GCAT seems to take care of checking if the activity item and grade is
                 // visible to the user in the API call above. The only issue is whether, for grade
                 // items that were hidden, should the rest of the activity information be displayed.
                 // The above call currently will not return records where gi.hidden = 1.
@@ -388,6 +401,7 @@ class activity {
                 $itemicon = '';
                 $iconalt = '';
                 /**
+                 * Commented out for now as we need to figure out how to get this in a GCAT context.
                  * if ($iconurl = $cm->get_icon_url()->out(false)) {
                  *   $itemicon = $iconurl;
                  *   $iconalt = $cm->get_module_type_name();
@@ -416,7 +430,7 @@ class activity {
                     'assessment_type' => $gcatitem->assessmenttype,
                     'assessment_weight' => $gcatitem->weight,
                     'due_date' => $duedate->format('jS F Y'),
-                    'grade_status' =>  get_string("status_" . $class, "block_newgu_spdetails"),
+                    'grade_status' => get_string("status_" . $class, "block_newgu_spdetails"),
                     'status_link' => $statuslink,
                     'status_class' => $gcatitem->status->class,
                     'status_text' => $gcatitem->status->statustext,
@@ -449,6 +463,7 @@ class activity {
      * are being done - based on how Moodle currenly does things.
      *
      * @param array $defaultitems
+     * @param string $activetab
      * @param array|string $ltiinstancestoexclude
      * @param string $assessmenttype
      * @param string $sortby

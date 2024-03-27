@@ -31,6 +31,9 @@ global $CFG;
 
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
+/**
+ * Unit tests for activity types.
+ */
 class get_assessment_type_test extends \block_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
 
     /**

@@ -26,6 +26,9 @@
 
 defined('MOODLE_INTERNAL') || die('No Direct Access');
 
+/**
+ * Block class for plugin.
+ */
 class block_newgu_spdetails extends block_base {
 
     /**

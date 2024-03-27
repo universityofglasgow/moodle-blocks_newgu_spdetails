@@ -69,7 +69,7 @@ class quiz_activity extends base {
 
     /**
      * Get quiz object
-     * @param object $gradeitemid
+     * @param int $gradeitemid
      * @param object $cm course module
      * @return object
      */
@@ -88,6 +88,7 @@ class quiz_activity extends base {
     /**
      * Return the grade directly from Gradebook.
      *
+     * @param int $userid
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {

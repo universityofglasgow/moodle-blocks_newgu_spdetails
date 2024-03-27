@@ -85,6 +85,7 @@ class assign_activity extends base {
      * Return the grade either from the assignment or
      * directly from Gradebook otherwise.
      *
+     * @param int $userid
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
@@ -152,7 +153,7 @@ class assign_activity extends base {
 
         if ($assigninstance->grading_due_date) {
             $dateobj = \DateTime::createFromFormat('U', $assigninstance->grading_due_date);
-            $grading_due_date = $dateobj->format('jS F Y');
+            $gradingduedate = $dateobj->format('jS F Y');
         }
         return $gradingduedate;
     }

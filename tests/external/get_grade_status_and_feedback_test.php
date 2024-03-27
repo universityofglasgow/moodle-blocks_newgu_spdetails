@@ -32,6 +32,9 @@ global $CFG;
 require_once($CFG->dirroot .'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdetails_advanced_testcase.php');
 
+/**
+ * Unit tests for retrieving grade, status and feedback.
+ */
 class get_grade_status_and_feedback_test extends \block_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
 
     /**

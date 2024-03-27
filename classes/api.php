@@ -36,9 +36,14 @@ require_once($CFG->libdir . '/gradelib.php');
 
 define('NUM_ASSESSMENTS_PER_PAGE', 12);
 
+/**
+ * This class provides the API for the plugin.
+ */
 class api extends \external_api {
 
     /**
+     * This method returns the processed list of gradable activities.
+     * 
      * @param string $activetab
      * @param int $page
      * @param string $sortby
@@ -83,6 +88,8 @@ class api extends \external_api {
     }
 
     /**
+     * This method returns either the top level categories for a course, or the activities within that course.
+     * 
      * @param string $activetab
      * @param int $userid
      * @param string $sortby
@@ -152,10 +159,6 @@ class api extends \external_api {
 
     /**
      * Return a summary of current assessments for the student
-     *
-     * @TODO - this needs to be refactored to make better use of
-     * \local_gugrades\api::dashboard_get_courses instead of
-     * \block_newgu_spdetails\course::return_enrolledcourses
      *
      * @return array
      */
@@ -251,6 +254,8 @@ class api extends \external_api {
     }
 
     /**
+     * This method does something.
+     * 
      * @param $userid
      * @param $strcourses
      * @return string
@@ -297,25 +302,9 @@ class api extends \external_api {
     }
 
     /**
-     * Returns description of method result value
-     *
-     * @return external_description
-     * @since Moodle 3.6
-     * @deprecated as no longer used - to be removed.
-     */
-
-    public static function get_statistics_returns() {
-        return new external_multiple_structure(
-            new external_single_structure(
-                [
-                    'stathtml' => new external_value(PARAM_RAW, 'stathtml'),
-                ]
-            )
-        );
-    }
-
-    /**
-     *
+     * This method does something.
+     * 
+     * @param $courseid
      */
     public static function nogroupusers($courseid) {
         global $DB;

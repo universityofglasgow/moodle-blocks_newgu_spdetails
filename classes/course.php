@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class to describe the structure of a course.
+ * Class to describe course attributes.
  *
  * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -25,6 +25,9 @@
 
  namespace block_newgu_spdetails;
 
+/**
+ * This class provides methods for extracting course attributes.
+ */
 class course {
 
     /**
@@ -341,7 +344,7 @@ class course {
      * a weighting value - then we consider it to be a summative assessment.
      *
      * @param string $gradecategoryname
-     * @param int $aggregationcoef
+     * @param float $aggregationcoef
      * @return string 'Formative', 'Summative', or '—'
      */
     public static function return_assessmenttype(string $gradecategoryname, float $aggregationcoef): string {
@@ -360,7 +363,9 @@ class course {
     }
 
     /**
-     * @param string $cmdodule
+     * Returns the course module id and relevant attributes.
+     * 
+     * @param string $cmodule
      * @param int $courseid
      * @param int $instance
      * @return int
@@ -795,6 +800,9 @@ class course {
     /**
      * Return the summary of assessments that have been marked, submitted, are
      * outstanding or are overdue.
+     * Todo - this needs to be refactored to make better use of
+     * \local_gugrades\api::dashboard_get_courses instead of
+     * \block_newgu_spdetails\course::return_enrolledcourses
      *
      * @return array
      */

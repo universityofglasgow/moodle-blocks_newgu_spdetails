@@ -30,6 +30,9 @@ use external_function_parameters;
 use external_single_structure;
 use external_value;
 
+/**
+ * This class provides the web service description for returning assessments, otherwise known as activities.
+ */
 class get_assessments extends external_api {
 
     /**
@@ -47,11 +50,17 @@ class get_assessments extends external_api {
     }
 
     /**
-     * Return the assessments
+     * Return the assessments.
+     *
+     * @param string $activetab
+     * @param int $page
+     * @param string $sortby
+     * @param string $sortorder
+     * @param int $subcategory
      * @return array of assessments, grouped by course.
      * @throws \invalid_parameter_exception
      */
-    public static function execute($activetab, $page, $sortby, $sortorder, $subcategory): array {
+    public static function execute(string $activetab, int $page, string $sortby, string $sortorder, int $subcategory): array {
         $params = self::validate_parameters(self::execute_parameters(),
             [
                 'activetab' => $activetab,
@@ -61,16 +70,17 @@ class get_assessments extends external_api {
                 'subcategory' => $subcategory,
             ]);
         return [
-            'result' => json_encode(\block_newgu_spdetails\api::retrieve_assessments(
-                $params['activetab'],
-                $params['page'],
+            'result' => json_encode(\block_newgu_spdetails\api::retrieve_assessments($params['activetab'], $params['page'],
                 $params['sortby'],
                 $params['sortorder'],
-                $params['subcategory']))
+                $params['subcategory']
+            ))
         ];
     }
 
     /**
+     * Describes what will be returned to the caller.
+     *
      * @return external_single_structure
      */
     public static function execute_returns(): external_single_structure {

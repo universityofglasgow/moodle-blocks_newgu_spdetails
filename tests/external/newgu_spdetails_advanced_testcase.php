@@ -836,13 +836,13 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
     }
 
     /**
-     * Utility function to provide the roleId
+     * Utility function to provide the roleId.
      *
-     * @param $archetype
-     * @return mixed
+     * @param string $archetype
+     * @return int
      * @throws dml_exception
      */
-    public function get_roleid($archetype = 'student') {
+    public function get_roleid(string $archetype = 'student'): int {
         global $DB;
 
         $role = $DB->get_record("role", ['archetype' => $archetype]);

@@ -34,9 +34,10 @@ use external_single_structure;
 use external_value;
 use cache;
 
+/**
+ * This class provides the web service description for returning an assessment summary.
+ */
 class get_assessmentsummary extends external_api {
-
-    const CACHE_KEY = 'studentid_summary:';
 
     /**
      * Returns description of method parameters
@@ -73,6 +74,8 @@ class get_assessmentsummary extends external_api {
     }
 
     /**
+     * Describes what will be returned to the caller.
+     * 
      * @return external_multiple_structure
      */
     public static function execute_returns(): external_multiple_structure {
