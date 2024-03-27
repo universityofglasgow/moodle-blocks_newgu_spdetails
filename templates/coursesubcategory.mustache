@@ -94,7 +94,7 @@
                 <th class="td5">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
                 {{#data.coursedata}}
                     {{#assessmentitems.length}}
-                <th id="sortby_duedate" data-sortby="duedate" class="td10 th-sortable">{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_duedate" data-sortby="duedate" class="td10 th-sortable"{{#data.coursedata}}{{#hidestatuscol}} colspan="2"{{/hidestatuscol}}{{/data.coursedata}}>{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
                 <th id="sortby_status" data-sortby="status" class="td15 th-sortable">{{#str}} header_status, block_newgu_spdetails {{/str}}</th>
                 <th id="sortby_grade" data-sortby="grade" class="td10 th-sortable">{{#str}} header_grade, block_newgu_spdetails {{/str}}</th>
                 <th class="td10">{{#str}} header_feedback, block_newgu_spdetails {{/str}}</th>
@@ -106,7 +106,7 @@
         {{#data.coursedata}}
             {{#subcategories}}
             <tr data-id="{{id}}">
-                <td class="td50 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder-open"></i><strong>{{name}}</strong></a></td>
+                <td class="td50 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder"></i><strong>{{name}}</strong></a></td>
                 <td class="td15 subcategory-row">{{assessment_type}}</td>
                 <td class="td5 subcategory-row" colspan="5">{{subcatweight}}</td>
             </tr>
@@ -116,9 +116,10 @@
                 <td class="td50"><a href="{{assessment_url}}">{{#item_icon}}<img class="icon itemicon" src="{{item_icon}}" alt="{{icon_alt}}" />{{/item_icon}}{{item_name}}</a></td>
                 <td class="td10">{{assessment_type}}</td>
                 <td class="td5">{{assessment_weight}}</td>
-                <td class="td15"{{^grade_status}} colspan="2"{{/grade_status}}>{{due_date}}</td>
-                {{#grade_status}}
+                <td class="td15"{{#data.coursedata}}{{#hidestatuscol}} colspan="2"{{/hidestatuscol}}{{/data.coursedata}}>{{due_date}}</td>
+                {{#data.coursedata}}{{^hidestatuscol}}
                 <td class="td15">
+                {{#grade_status}}
                     {{#status_link}}
                         <a href="{{status_link}}">
                     {{/status_link}}
@@ -126,8 +127,9 @@
                     {{#status_link}}
                         </a>
                     {{/status_link}}
-                </td>
                 {{/grade_status}}
+                </td>
+                {{/hidestatuscol}}{{/data.coursedata}}
                 <td class="td10">{{#grade_class}}<span class="{{#str}} status_graded, block_newgu_spdetails {{/str}}">{{/grade_class}}{{grade}}{{#grade_class}}</span>{{/grade_class}}{{#grade_provisional}} ({{#str}} status_text_provisional, block_newgu_spdetails {{/str}}){{/grade_provisional}}
                 </td>
                 <td class="td10">

@@ -68,7 +68,7 @@ class activity {
 
         $course = get_course($courseid);
         $coursedata['coursename'] = $course->shortname;
-        $coursedata['subcatfullname'] = $subcat->fullname;
+        $coursedata['subcatfullname'] = ($subcat->fullname != '?' ? $subcat->fullname : '');
 
         // The assessment type is derived from the parent - which works only
         // as long as the parent name contains 'Formative' or 'Summative'.
@@ -81,6 +81,9 @@ class activity {
         // coefficient value of the grade item, only if it's been set in the gradebook however.
         $weight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
         $coursedata['weight'] = $weight;
+
+        // We don't need the status column for past courses.
+        $coursedata['hidestatuscol'] = (($activetab == 'past') ? true : false);
 
         // We'll need to merge these next two arrays at some point, to allow the sorting to
         // to work on all items, rather than just by category/activity item as it currently does.

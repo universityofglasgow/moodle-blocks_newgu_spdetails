@@ -76,8 +76,8 @@ class course {
                     ];
                 }
             } else {
-                // Our course appears to contain no sub categories :-( ...
-                $gradecat = \grade_category::fetch_all(['courseid' => $course->id]);
+                // Our course appears to contain no sub categories. We want to filter out PLUGIN RELATED items.
+                $gradecat = \grade_category::fetch_all(['courseid' => $course->id, 'hidden' => 0]);
                 if ($gradecat) {
                     $item = \grade_item::fetch(['courseid' => $course->id, 'itemtype' => 'course']);
                     $assessmenttype = self::return_assessmenttype($course->fullname, $item->aggregationcoef);
@@ -205,7 +205,7 @@ class course {
     }
 
     /**
-     * Process and prepare for display MyGrades specific sub categories.
+     * Process and prepare for display Gradebook specific sub categories.
      *
      * @param int $courseid
      * @param array $subcategories
@@ -219,6 +219,10 @@ class course {
         $tmp = [];
 
         foreach ($subcategories as $obj) {
+            // We've no way of filtering out the PLUGIN RELATED DATA items by this point, so we need to do this.
+            if ($obj->category->hidden) {
+                continue;
+            }
             $item = \grade_item::fetch(['courseid' => $courseid, 'iteminstance' => $obj->category->id, 'itemtype' => 'category']);
             $subcatweight = self::return_weight($item->aggregationcoef);
             $subcat = new \stdClass();
