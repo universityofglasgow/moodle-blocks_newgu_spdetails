@@ -25,8 +25,6 @@
 
 namespace block_newgu_spdetails\activities;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Implementation for a default activity type.
  */
@@ -143,16 +141,6 @@ class default_activity extends base {
         $statusobj->status_link = '';
 
         return $statusobj;
-    }
-
-    /**
-     * Method to return any feedback provided by the teacher.
-     *
-     * @param object $gradestatusobj
-     * @return object
-     */
-    public function get_feedback(object $gradestatusobj): object {
-        return parent::get_feedback($gradestatusobj);
     }
 
     /**

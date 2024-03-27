@@ -27,8 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-defined('MOODLE_INTERNAL') || die();
-
 require_once($CFG->dirroot . '/mod/workshop/locallib.php');
 
 /**
@@ -242,16 +240,6 @@ class workshop_activity extends base {
         }
 
         return $statusobj;
-    }
-
-    /**
-     * Method to return any feedback provided by the teacher.
-     *
-     * @param object $gradestatusobj
-     * @return object
-     */
-    public function get_feedback(object $gradestatusobj): object {
-        return parent::get_feedback($gradestatusobj);
     }
 
     /**

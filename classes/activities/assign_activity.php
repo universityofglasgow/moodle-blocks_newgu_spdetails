@@ -26,8 +26,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-defined('MOODLE_INTERNAL') || die();
-
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
 /**
@@ -207,10 +205,13 @@ class assign_activity extends base {
             $statusobj->due_date = $overrides->duedate;
         }
 
+        // This table appears to contain entries for when Marking Workflow is enabled.
         $userflags = $DB->get_record('assign_user_flags', ['assignment' => $assigninstance->id, 'userid' => $userid]);
         if (!empty($userflags)) {
             if ($userflags->extensionduedate > 0) {
                 $statusobj->due_date = $userflags->extensionduedate;
+            } else {
+                $workflowstate = $userflags->workflowstate;
             }
         }
 
@@ -310,16 +311,6 @@ class assign_activity extends base {
         }
 
         return $statusobj;
-    }
-
-    /**
-     * Method to return any feedback provided by the teacher.
-     *
-     * @param object $gradestatusobj
-     * @return object
-     */
-    public function get_feedback(object $gradestatusobj): object {
-        return parent::get_feedback($gradestatusobj);
     }
 
     /**

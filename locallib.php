@@ -22,7 +22,6 @@
  * @author     Shubhendra Diophode <shubhendra.doiphode@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Return an array of graded items.

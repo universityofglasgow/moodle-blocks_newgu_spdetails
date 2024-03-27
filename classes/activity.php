@@ -239,7 +239,7 @@ class activity {
                         'iscurrent' => 1,
                     ];
                     if ($usergrades = $DB->get_records('local_gugrades_grade', $params)) {
-                        // @todo - swap all of this for the relevant mygrades API calls - if/when one exists.
+                        // Swap all of this for the relevant mygrades API calls - if/when one exists.
                         foreach ($usergrades as $usergrade) {
                             switch ($usergrade->gradetype) {
                                 case 'RELEASED':
@@ -380,9 +380,8 @@ class activity {
         // Course fullname isn't referenced in the query, it's known as coursetitle - find and replace for now.
         $sortby = preg_replace('/(full|short)name/', 'coursetitle, activityname', $sortby);
         $gcatitems = \assessments_details::retrieve_gradable_activities($activetab, $userid, $sortby, $sortorder, $subcategory);
-        // $overallgrade = \assessments_details::sanitize_records([$gradeitem], null, $userid);
         $gcatdata = [];
-        // $tmp = grade_aggregation::get_rows($course, $activities, $studentarr);
+
         if ($gcatitems && count($gcatitems) > 0) {
 
             $tmp = self::sort_items($gcatitems, $sortby, $sortorder);
