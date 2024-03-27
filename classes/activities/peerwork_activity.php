@@ -27,8 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-require_once($CFG->dirroot . '/mod/peerwork/locallib.php');
-
 /**
  * Implementation for a peerwork activity.
  */

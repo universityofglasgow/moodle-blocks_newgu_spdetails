@@ -27,8 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-require_once($CFG->dirroot . '/lib/datalib.php');
-
 /**
  * Implementation for a h5p activity.
  */
@@ -69,8 +67,9 @@ class h5p_activity extends base {
      * @return object
      */
     public function get_h5passign(): object {
-        global $DB;
+        global $DB, $CFG;
 
+        require_once($CFG->dirroot . '/lib/datalib.php');
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $h5pactivities = get_all_instances_in_course('h5pactivity', $course);
         $instance = null;

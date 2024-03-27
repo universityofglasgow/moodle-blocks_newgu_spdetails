@@ -25,8 +25,6 @@
 
 namespace block_newgu_spdetails\activities;
 
-require_once($CFG->dirroot . '/mod/forum/locallib.php');
-
 /**
  * Implementation for a forum activity.
  */

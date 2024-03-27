@@ -794,18 +794,6 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'feedback' => 'You have attained the required level according to the Gradebook formula.',
         ]);
 
-        // Quiz_past = this->getDataGenerator()->create_module('quiz', ['course' => $coursepast->id]);
-        // Forum_past = this->getDataGenerator()->create_module('forum', ['course' => $coursepast->id, 'grade_forum' => 100]);
-
-        // This->getDataGenerator()->create_grade_item([
-        // 'itemtype' => 'mod',
-        // 'itemmodule' => 'forum',
-        // 'courseid' => course->id,
-        // 'categoryid' => summativecategory->id,
-        // 'iteminstance' => forum->id,
-        // 'itemnumber' => 0
-        // ]);
-
         $this->student1 = $student1;
         $this->teacher = $teacher;
 

@@ -27,9 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
-
 /**
  * Implementation for a quiz activity.
  */
@@ -72,8 +69,10 @@ class quiz_activity extends base {
      * @return object
      */
     private function get_quiz(int $gradeitemid, object $cm) {
-        global $DB;
+        global $DB, $CFG;
 
+        require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
+        require_once($CFG->dirroot . '/mod/quiz/lib.php');
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $coursemodulecontext = \context_module::instance($cm->id);
         $gradeitem = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);

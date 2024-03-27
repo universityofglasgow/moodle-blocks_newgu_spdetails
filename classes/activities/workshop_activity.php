@@ -27,8 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-require_once($CFG->dirroot . '/mod/workshop/locallib.php');
-
 /**
  * Implementation for a workshop activity.
  */
@@ -71,8 +69,9 @@ class workshop_activity extends base {
      * @return object
      */
     private function get_workshop(object $cm) {
-        global $DB;
+        global $DB, $CFG;
 
+        require_once($CFG->dirroot . '/mod/workshop/locallib.php');
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $workshoprecord = $DB->get_record('workshop', ['course' => $this->courseid], '*', MUST_EXIST);
         $coursemodulecontext = \context_module::instance($cm->id);

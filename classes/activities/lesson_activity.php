@@ -27,9 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-require_once($CFG->dirroot . '/mod/lesson/lib.php');
-require_once($CFG->dirroot . '/mod/lesson/locallib.php');
-
 /**
  * Implementation for a lesson activity.
  */
@@ -71,7 +68,10 @@ class lesson_activity extends base {
      * @return object
      */
     public function get_lesson() {
-        global $DB;
+        global $DB, $CFG;
+
+        require_once($CFG->dirroot . '/mod/lesson/lib.php');
+        require_once($CFG->dirroot . '/mod/lesson/locallib.php');
         $lessonid = $this->gradeitem->iteminstance;
         $lessonrecord = $DB->get_record('lesson', ['id' => $lessonid]);
         $lesson = new \lesson($lessonrecord);

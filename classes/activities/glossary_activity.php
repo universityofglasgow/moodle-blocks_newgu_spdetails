@@ -27,8 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-require_once($CFG->dirroot . '/mod/glossary/lib.php');
-
 /**
  * Implementation for a glossary activity.
  */
@@ -69,6 +67,9 @@ class glossary_activity extends base {
      * @return object
      */
     public function get_glossary(): object {
+        global $CFG;
+
+        require_once($CFG->dirroot . '/mod/glossary/lib.php');
         $glossary = glossary_get_entry_by_id($this->gradeitem->iteminstance);
 
         return $glossary;

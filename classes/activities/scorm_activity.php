@@ -27,8 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-require_once($CFG->dirroot . '/mod/scorm/locallib.php');
-
 /**
  * Implementation for a SCORM activity type.
  */

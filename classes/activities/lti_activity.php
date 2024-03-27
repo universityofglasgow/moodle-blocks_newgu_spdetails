@@ -25,8 +25,6 @@
 
 namespace block_newgu_spdetails\activities;
 
-require_once($CFG->dirroot . '/mod/lti/locallib.php');
-
 /**
  * Implementation for a LTI activity.
  */
@@ -64,8 +62,9 @@ class lti_activity extends base {
      * @return object
      */
     public function get_lti(object $cm): object {
-        global $DB;
+        global $DB, $CFG;
 
+        require_once($CFG->dirroot . '/mod/lti/locallib.php');
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
         $coursemodulecontext = \context_module::instance($cm->id);
         $lti = new \lti($coursemodulecontext, $cm, $course);

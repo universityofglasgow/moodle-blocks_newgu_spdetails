@@ -27,8 +27,6 @@ namespace block_newgu_spdetails\activities;
 
 use cache;
 
-require_once($CFG->dirroot . '/mod/kalvidassign/locallib.php');
-
 /**
  * Implementation for a Kaltura Video activity.
  */
@@ -71,7 +69,9 @@ class kalvidassign_activity extends base {
      * @return array
      */
     public function get_kalvidassign(object $cm): array {
+        global $CFG;
 
+        require_once($CFG->dirroot . '/mod/kalvidassign/locallib.php');
         $kalvidassign = kalvidassign_validate_cmid($cm->id);
 
         return $kalvidassign;

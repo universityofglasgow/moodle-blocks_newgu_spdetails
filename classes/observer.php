@@ -29,8 +29,6 @@
 
 namespace block_newgu_spdetails;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * This class handles the subscriber events we need in order to maintain the cache.
  *

@@ -168,7 +168,7 @@ function get_assessmenttypeorder($coursetype, $tdr, $userid) {
         // READ individual TABLE OF ACTIVITY (MODULE).
         if ($modulename != "") {
 
-            $arrgradecategory = $DB->get_record('grade_categories', array('courseid' => $courseid, 'id' => $categoryid));
+            $arrgradecategory = $DB->get_record('grade_categories', ['courseid' => $courseid, 'id' => $categoryid]);
             if (!empty($arrgradecategory)) {
                   $gradecategoryname = $arrgradecategory->fullname;
             }
