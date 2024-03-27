@@ -504,13 +504,13 @@ class grade {
      * Recursive routine to reduce items from all categories
      * to a flat list of items that can then be iterated over.
      *
-     * @param object $category
+     * @param string $category
      * @param array $gradeitems
      * @param array $items
      * @param array $gradecategories
      * @return object
      */
-    public static function recurse_categorytree(object $category, array $gradeitems, array $items,
+    public static function recurse_categorytree(string $category, array $gradeitems, array $items,
     array $gradecategories): object {
         // While this looks odd, when we call this method recursively, we are in fact
         // passing in the previously built up array of $items. We also (re)set $record

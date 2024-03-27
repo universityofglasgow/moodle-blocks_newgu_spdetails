@@ -219,12 +219,12 @@ class api extends \external_api {
      * This function checks that, for a given userid, the user
      * is enrolled on a given course (passed in as courseid).
      *
-     * @param $userid
-     * @param $courseid
+     * @param int $userid
+     * @param int $courseid
      * @return mixed
      * @throws dml_exception
      */
-    public static function checkrole($userid, $courseid) {
+    public static function checkrole(int $userid, int $courseid) {
         global $DB;
 
         $sqlstaff = "SELECT count(*) as cntstaff
@@ -256,11 +256,11 @@ class api extends \external_api {
     /**
      * This method does something.
      *
-     * @param $userid
-     * @param $strcourses
+     * @param int $userid
+     * @param string $strcourses
      * @return string
      */
-    public static function fetch_itemsnotvisibletouser($userid, $strcourses) {
+    public static function fetch_itemsnotvisibletouser(int $userid, string $strcourses) {
 
         global $DB;
 
@@ -304,9 +304,10 @@ class api extends \external_api {
     /**
      * This method does something.
      *
-     * @param $courseid
+     * @param int $courseid
+     * @return string
      */
-    public static function nogroupusers($courseid) {
+    public static function nogroupusers(int $courseid): string {
         global $DB;
         $getgroupssql = "SELECT * FROM {groups} WHERE courseid=" . $courseid;
         $groups = $DB->get_records_sql($getgroupssql);

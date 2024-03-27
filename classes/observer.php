@@ -33,6 +33,7 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * This class handles the subscriber events we need in order to maintain the cache.
+ *
  * We are trying to prevent expensive database queries, thus these events allow us
  * flush the cache only at certain points.
  */

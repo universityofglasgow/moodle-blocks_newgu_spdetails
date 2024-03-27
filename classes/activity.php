@@ -30,6 +30,7 @@ define('ITEM_SCRIPT', '/view.php?id=');
 
 /**
  * This class processes activities for MyGrades, GCAT and Gradebook course types.
+ *
  * It provides a factory method for instantiating the relevant activity which can
  * then be used to provide further functionality.
  */
