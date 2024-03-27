@@ -406,6 +406,8 @@ class activity {
                 $iconalt = '';
                 /**
                  * Commented out for now as we need to figure out how to get this in a GCAT context.
+                 * Somehow the validator doesn't like this inline code and the commented out code below.
+                 * Which seems odd as the inline code a few lines back seems to pass ok.
                  */
                 /**
                  * if ($iconurl = $cm->get_icon_url()->out(false)) {
