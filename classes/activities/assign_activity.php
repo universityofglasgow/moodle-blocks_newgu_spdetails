@@ -148,8 +148,8 @@ class assign_activity extends base {
         $assigninstance = $this->assign->get_instance();
         $gradingduedate = '';
 
-        if ($assigninstance->grading_due_date) {
-            $dateobj = \DateTime::createFromFormat('U', $assigninstance->grading_due_date);
+        if ($assigninstance->gradingduedate) {
+            $dateobj = \DateTime::createFromFormat('U', $assigninstance->gradingduedate);
             $gradingduedate = $dateobj->format('jS F Y');
         }
         return $gradingduedate;
@@ -195,7 +195,6 @@ class assign_activity extends base {
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $assigninstance->duedate;
         $statusobj->cutoff_date = $assigninstance->cutoffdate;
-        $statusobj->grading_due_date = $assigninstance->gradingduedate;
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);
@@ -260,14 +259,6 @@ class assign_activity extends base {
                     $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
-                    // This might not have been set, use the default grade_to_display otherwise.
-                    if ($statusobj->grading_due_date) {
-                        $statusobj->grade_to_display = get_string(
-                            'status_text_dueby',
-                            'block_newgu_spdetails',
-                            date('jS F Y', $statusobj->grading_due_date)
-                        );
-                    }
                 }
 
             } else {
@@ -281,16 +272,6 @@ class assign_activity extends base {
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                    if ($statusobj->due_date > time()) {
-                        // This might not have been set, use the default grade_to_display otherwise.
-                        if ($statusobj->grading_due_date) {
-                            $statusobj->grade_to_display = get_string(
-                                'status_text_dueby',
-                                'block_newgu_spdetails',
-                                date('jS F Y', $statusobj->grading_due_date)
-                            );
-                        }
-                    }
                 }
 
                 if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {

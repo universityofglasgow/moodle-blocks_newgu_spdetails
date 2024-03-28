@@ -262,8 +262,9 @@ class activity {
                                     break;
 
                                 default:
-                                    $activity = self::activity_factory($mygradesitem->id, $mygradesitem->courseid, 0);
-                                    $grade = $activity->get_grading_duedate();
+                                    $statusclass = get_string('status_class_submitted', 'block_newgu_spdetails');
+                                    $gradestatus = get_string('status_submitted', 'block_newgu_spdetails');
+                                    $statustext = get_string('status_text_submitted', 'block_newgu_spdetails');
                                 break;
                             }
                         }

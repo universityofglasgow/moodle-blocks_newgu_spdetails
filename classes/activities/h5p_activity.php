@@ -220,11 +220,6 @@ class h5p_activity extends base {
                     $statusobj->status_class = '';
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                    if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails',
-                            date('d/m/Y', $gradestatus->due_date)
-                        );
-                    }
                 }
 
                 if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {

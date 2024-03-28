@@ -162,10 +162,13 @@ class peerwork_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->due_date = $this->peerwork->duedate;
-        $statusobj->grade_status = '';
-        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $allowsubmissionsfromdate = $this->peerwork->fromdate;
+        $statusobj->grade_status = '';
+        $statusobj->status_text = '';
+        $statusobj->status_class = '';
+        $statusobj->status_link = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->due_date = $this->peerwork->duedate;
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
@@ -186,10 +189,9 @@ class peerwork_activity extends base {
                 $statusobj->grade_status = $peerworksubmission->releasedby;
 
                 if ($statusobj->grade_status == null) {
+                    $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
-                    $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                    $statusobj->status_link = '';
                 }
 
                 if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
@@ -214,8 +216,11 @@ class peerwork_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     if ($statusobj->due_date > time()) {
-                        $statusobj->grade_to_display = get_string('status_text_dueby', 'block_newgu_spdetails',
-                        date('d/m/Y', $gradestatus->due_date));
+                        $statusobj->grade_to_display = get_string(
+                            'status_text_dueby',
+                            'block_newgu_spdetails',
+                            date('jS F Y', $gradestatus->due_date)
+                        );
                     }
                 }
 
