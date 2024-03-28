@@ -262,7 +262,7 @@ class activity {
                                     break;
 
                                 default:
-                                    $activity = self::activity_factory($mygradesitem->id, $courseid, 0);
+                                    $activity = self::activity_factory($mygradesitem->id, $mygradesitem->courseid, 0);
                                     $grade = $activity->get_grading_duedate();
                                 break;
                             }
