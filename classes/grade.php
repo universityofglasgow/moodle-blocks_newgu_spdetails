@@ -121,20 +121,20 @@ class grade {
      * This method returns the grade using the format that was set
      * in the Assessment settings page, i.e. Point, Scale or None.
      *
-     * @param int $grade
+     * @param int|float $grade
      * @param int $gradetype
      * @param int $scaleid
      * @param int $grademax
      * @return string
      */
-    public static function get_formatted_grade_from_grade_type(int $grade, int $gradetype, int $scaleid = null,
+    public static function get_formatted_grade_from_grade_type(int|float $grade, int $gradetype, int $scaleid = null,
     int $grademax): string {
 
         $returngrade = null;
         switch ($gradetype) {
             // Point Scale.
             case GRADE_TYPE_VALUE:
-                $returngrade = number_format($grade, 3) . " / " . $grademax;
+                $returngrade = number_format($grade, 2) . " / " . $grademax;
                 break;
 
             case GRADE_TYPE_SCALE:
