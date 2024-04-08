@@ -260,12 +260,6 @@ class activity {
                                 case 'PROVISIONAL':
                                     $gradeprovisional = true;
                                     break;
-
-                                default:
-                                    $statusclass = get_string('status_class_submitted', 'block_newgu_spdetails');
-                                    $gradestatus = get_string('status_submitted', 'block_newgu_spdetails');
-                                    $statustext = get_string('status_text_submitted', 'block_newgu_spdetails');
-                                break;
                             }
                         }
                     } else {

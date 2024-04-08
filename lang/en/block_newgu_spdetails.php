@@ -139,5 +139,12 @@ $string['status_text_provisional'] = 'Provisional';
 $string['status_text_graded'] = 'Graded';
 $string['status_text_viewfeedback'] = 'View Feedback';
 
+$string['notmarked'] = 'Not marked';
+$string['inmarking'] = 'In marking';
+$string['inreview'] = 'In review';
+$string['readyforreview'] = 'Marking completed';
+$string['readyforrelease'] = 'Ready for release';
+$string['released'] = 'Released';
+
 $string['tab_current'] = 'Currently enrolled in';
 $string['tab_past'] = 'Past courses';

@@ -222,6 +222,13 @@ abstract class base {
 
             case get_string('status_submitted', 'block_newgu_spdetails'):
                 $feedbackobj->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+
+                // When Marking Workflow is enabled, feedback becomes available when the status is 'Released',
+                // even if Reveal Identities hasn't been triggered.
+                if ($gradestatusobj->markingworkflow && $gradestatusobj->workflowstate == 'released') {
+                    $feedbackobj->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
+                    $feedbackobj->grade_feedback_link = $gradestatusobj->assessment_url . '#page-footer';
+                }
                 break;
             case get_string('status_notsubmitted', 'block_newgu_spdetails'):
                 $feedbackobj->grade_feedback = get_string('status_text_notsubmitted', 'block_newgu_spdetails');

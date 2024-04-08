@@ -195,6 +195,7 @@ class assign_activity extends base {
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $assigninstance->duedate;
         $statusobj->cutoff_date = $assigninstance->cutoffdate;
+        $statusobj->markingworkflow = $assigninstance->markingworkflow;
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);
@@ -259,6 +260,37 @@ class assign_activity extends base {
                     $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
+                    // If Marking Workflow has been enabled, what stage are we at?
+                    if ($assigninstance->markingworkflow) {
+                        $gtd = '';
+                        switch($workflowstate) {
+                            case "notmarked":
+                                $gtd = get_string('notmarked', 'block_newgu_spdetails');
+                                break;
+
+                            case "inmarking":
+                                $gtd = get_string('inmarking', 'block_newgu_spdetails');
+                                break;
+
+                            case "inreview":
+                                $gtd = get_string('inreview', 'block_newgu_spdetails');
+                                break;
+
+                            case "readyforreview":
+                                $gtd = get_string('readyforreview', 'block_newgu_spdetails');
+                                break;
+
+                            case "readyforrelease":
+                                $gtd = get_string('readyforrelease', 'block_newgu_spdetails');
+                                break;
+
+                            case "released":
+                                $gtd = get_string('released', 'block_newgu_spdetails');
+                                $statusobj->workflowstate = $workflowstate;
+                                break;
+                        }
+                        $statusobj->grade_to_display = $gtd;
+                    }
                 }
 
             } else {
