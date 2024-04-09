@@ -59,21 +59,23 @@ class workshop_activity extends base {
 
         // Get the assignment object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->workshop = $this->get_workshop($this->cm);
+        $this->workshop = $this->get_workshop($gradeitemid, $this->cm);
     }
 
     /**
      * Get workshop object.
      *
+     * @param int $gradeitemid
      * @param object $cm course module
      * @return object
      */
-    private function get_workshop(object $cm) {
+    private function get_workshop(int $gradeitemid, object $cm) {
         global $DB, $CFG;
 
         require_once($CFG->dirroot . '/mod/workshop/locallib.php');
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
-        $workshoprecord = $DB->get_record('workshop', ['course' => $this->courseid], '*', MUST_EXIST);
+        $gradeitem = $DB->get_record('grade_items', ['id' => $gradeitemid], '*', MUST_EXIST);
+        $workshoprecord = $DB->get_record('workshop', ['id' => $gradeitem->iteminstance], '*', MUST_EXIST);
         $coursemodulecontext = \context_module::instance($cm->id);
         $workshop = new \workshop($workshoprecord, $cm, $course, $coursemodulecontext);
 
@@ -158,6 +160,8 @@ class workshop_activity extends base {
      * Workshop creates 2 entries in Gradebook - one for an assessment and one for
      * a submission. Not entirely clear which one we should be using at the moment...
      *
+     * gradeitem->itemnumber appears to denote 0 for submission and 1 for the assessment.
+     *
      * @param int $userid
      * @return object
      */
@@ -166,8 +170,18 @@ class workshop_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $allowsubmissionsfromdate = $this->workshop->submissionstart;
-        $statusobj->due_date = $this->workshop->submissionend;
+
+        switch ($this->gradeitem->itemnumber) {
+            case 0:
+                $allowsubmissionsfromdate = $this->workshop->submissionstart;
+                $statusobj->due_date = $this->workshop->submissionend;
+            break;
+            case 1:
+                $allowsubmissionsfromdate = $this->workshop->assessmentstart;
+                $statusobj->due_date = $this->workshop->assessmentend;
+            break;
+        }
+
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
