@@ -303,7 +303,6 @@ class assign_activity extends base {
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
-                    $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                 }
 
                 if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {

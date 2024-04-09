@@ -170,9 +170,12 @@ class quiz_activity extends base {
         $statusobj->assessment_url = $this->get_assessmenturl();
         $quizinstance = $this->quiz->get_quiz();
         $allowsubmissionsfromdate = $quizinstance->timeopen;
-        $statusobj->due_date = $this->get_formattedduedate($quizinstance->timeclose);
         $statusobj->grade_status = '';
+        $statusobj->status_text = '';
+        $statusobj->status_class = '';
+        $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->due_date = $this->get_formattedduedate($quizinstance->timeclose);
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizinstance->id, 'userid' => $userid]);
@@ -212,6 +215,16 @@ class quiz_activity extends base {
                 $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
                 $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
                 $statusobj->status_link = $statusobj->assessment_url;
+                $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+
+                if ($quizinstance->timeclose != 0) {
+                    if (time() > $quizinstance->timeclose) {
+                        $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                        $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                        $statusobj->status_class = '';
+                        $statusobj->status_link = '';
+                    }
+                }
             }
         }
 
