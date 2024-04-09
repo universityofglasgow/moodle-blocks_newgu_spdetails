@@ -1093,7 +1093,8 @@ class course {
 
                                         switch ($charttype) {
                                             case 3:
-                                                $date = 'tbc';
+                                                $dateobj = \DateTime::createFromFormat('U', $gradestatus->grade_date);
+                                                $date = $dateobj->format('jS F Y');
                                                 break;
                                             default:
                                                 $date = $gradestatus->due_date;
