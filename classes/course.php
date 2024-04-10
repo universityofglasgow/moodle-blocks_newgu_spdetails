@@ -505,8 +505,8 @@ class course {
                         $activities = \local_gugrades\api::get_activities($course->id, $subcategoryid);
 
                         if ($activities) {
-                            $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($subcategoryid, $activities->items, [],
-                            $activities->categories);
+                            $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($subcategoryid, $activities->items,
+                            [], $activities->categories);
 
                             // This is now a flat list of all items associated with this course...
                             if ($categoryitems) {
@@ -517,14 +517,16 @@ class course {
                                     $cm = $modinfo->get_cm($cm->id);
                                     if ($cm->uservisible) {
                                         if ($item->itemmodule == 'lti') {
-                                            if (is_array($ltiinstancestoexclude) && in_array($item->courseid, $ltiinstancestoexclude)
-                                            || $item->courseid == $ltiinstancestoexclude) {
+                                            if (is_array($ltiinstancestoexclude) &&
+                                            in_array($item->courseid, $ltiinstancestoexclude) ||
+                                            $item->courseid == $ltiinstancestoexclude) {
                                                 continue;
                                             }
                                         }
 
                                         // Get the activity based on its type...
-                                        $activity = \block_newgu_spdetails\activity::activity_factory($item->id, $item->courseid, 0);
+                                        $activity = \block_newgu_spdetails\activity::activity_factory($item->id, $item->courseid,
+                                        0);
                                         if ($records = $activity->get_assessmentsdue()) {
                                             $assignmentdata[] = $records[0];
                                         }
@@ -1052,8 +1054,8 @@ class course {
                         $activities = \local_gugrades\api::get_activities($course->id, $subcategoryid);
 
                         if ($activities) {
-                            $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($subcategoryid, $activities->items, [],
-                            $activities->categories);
+                            $categoryitems = \block_newgu_spdetails\grade::recurse_categorytree($subcategoryid, $activities->items,
+                            [], $activities->categories);
 
                             // This is now a flat list of all items associated with this course...
                             if ($categoryitems) {
@@ -1064,8 +1066,9 @@ class course {
                                     $cm = $modinfo->get_cm($cm->id);
                                     if ($cm->uservisible) {
                                         if ($item->itemmodule == 'lti') {
-                                            if (is_array($ltiinstancestoexclude) && in_array($item->courseid, $ltiinstancestoexclude)
-                                            || $item->courseid == $ltiinstancestoexclude) {
+                                            if (is_array($ltiinstancestoexclude) &&
+                                            in_array($item->courseid, $ltiinstancestoexclude) ||
+                                            $item->courseid == $ltiinstancestoexclude) {
                                                 continue;
                                             }
                                         }
