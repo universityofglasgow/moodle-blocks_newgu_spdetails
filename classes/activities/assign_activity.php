@@ -343,9 +343,9 @@ class assign_activity extends base {
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'id', $select, $params);
+            $select = 'userid = :userid AND (timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND :tnow)';
+            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now, 'tlastmonth' => $lastmonth, 'tnow' => $now];
+            $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'assignment', $select, $params);
 
             $submissionsdata = [
                 'updated' => time(),
