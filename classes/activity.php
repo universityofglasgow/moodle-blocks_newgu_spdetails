@@ -248,12 +248,13 @@ class activity {
                                     $statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
                                     $statustext = get_string('status_text_graded', 'block_newgu_spdetails');
                                     // MGU-631 - Honour hidden grades and hidden activities.
-                                    $gradeishidden = \local_gugrades\api::is_grade_hidden($mygradesitem->id, $USER->id);
-                                    $grade = (($gradeishidden) ? get_string('status_text_tobeconfirmed', 'block_newgu_spdetails') :
+                                    $isgradehidden = \local_gugrades\api::is_grade_hidden($mygradesitem->id, $USER->id);
+                                    $grade = (($isgradehidden) ? get_string('status_text_tobeconfirmed', 'block_newgu_spdetails') :
                                     $usergrade->displaygrade);
                                     $gradeclass = true;
                                     $gradestatus = get_string('status_graded', 'block_newgu_spdetails');
-                                    if (!$gradeishidden) {
+                                    if (!$isgradehidden) {
+                                        $gradeclass = false;
                                         $gradefeedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                                         $gradefeedbacklink = $assessmenturl . '#page-footer';
                                     }
@@ -290,6 +291,7 @@ class activity {
                         $gradeclass = $gradestatobj->grade_class;
                         $gradeprovisional = $gradestatobj->grade_provisional;
                         if (!$mygradesitem->hidden) {
+                            $gradeclass = false;
                             $gradefeedback = $gradestatobj->grade_feedback;
                             $gradefeedbacklink = $gradestatobj->grade_feedback_link;
                         }
