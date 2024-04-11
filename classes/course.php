@@ -68,7 +68,8 @@ class course {
                         $subcatname = '';
                         $subcatid = $subcategory['id'];
                         $subcatname = $subcategory['fullname'];
-                        $item = \grade_item::fetch(['courseid' => $course->id, 'iteminstance' => $subcatid, 'itemtype' => 'category']);
+                        $item = \grade_item::fetch(['courseid' => $course->id, 'iteminstance' => $subcatid,
+                        'itemtype' => 'category']);
                         $assessmenttype = self::return_assessmenttype($subcatname, $item->aggregationcoef);
                         $subcatweight = self::return_weight($item->aggregationcoef);
                         $subcatdata[] = [
