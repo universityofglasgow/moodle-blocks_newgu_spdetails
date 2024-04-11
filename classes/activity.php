@@ -253,8 +253,10 @@ class activity {
                                     $usergrade->displaygrade);
                                     $gradeclass = true;
                                     $gradestatus = get_string('status_graded', 'block_newgu_spdetails');
-                                    $gradefeedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
-                                    $gradefeedbacklink = $assessmenturl . '#page-footer';
+                                    if (!$gradeishidden) {
+                                        $gradefeedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
+                                        $gradefeedbacklink = $assessmenturl . '#page-footer';
+                                    }
                                     break;
 
                                 case 'PROVISIONAL':
@@ -287,8 +289,10 @@ class activity {
                         $gradestatobj->grade_to_display);
                         $gradeclass = $gradestatobj->grade_class;
                         $gradeprovisional = $gradestatobj->grade_provisional;
-                        $gradefeedback = $gradestatobj->grade_feedback;
-                        $gradefeedbacklink = $gradestatobj->grade_feedback_link;
+                        if (!$mygradesitem->hidden) {
+                            $gradefeedback = $gradestatobj->grade_feedback;
+                            $gradefeedbacklink = $gradestatobj->grade_feedback_link;
+                        }
                     }
 
                     $tmp = [
