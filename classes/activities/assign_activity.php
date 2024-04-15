@@ -116,10 +116,10 @@ class assign_activity extends base {
             }
         }
 
-        // This just pulls the grade from assign. Not sure it's that simple
-        // False, means do not create grade if it does not exist
+        // This just pulls the grade from assign. Not sure it's that simple False, means do not create grade if it does not exist.
         // This is the grade object from mdl_assign_grades (check negative values).
-        $assigngrade = $this->assign->get_user_grade($userid, false);
+        // Added the last parameter as w/o it, a mdl_assign_submission entry is created - a side effect I don't think we want here.
+        $assigngrade = $this->assign->get_user_grade($userid, false, 0);
 
         if ($assigngrade !== false) {
             $activitygrade->grade = $assigngrade->grade;
@@ -229,17 +229,20 @@ class assign_activity extends base {
 
                 // There is a bug in class assign->get_user_grade() where get_user_submission() is called
                 // and an assignment entry is created regardless -i.e. "true" is passed instead of an arg.
-                // This will always result in an assign_submission entry with a status of "new".
-                // We also cater for status 'draft' here as essay 'submissions' begin life in that state.
+                // This will always result in a mdl_assign_submission entry with a status of "new" created.
+                // We also have to cater for status 'draft' here as essay 'submissions' begin life in that state.
                 if ($statusobj->grade_status == get_string('status_new', 'block_newgu_spdetails') ||
                     $statusobj->grade_status == get_string('status_draft', 'block_newgu_spdetails')) {
 
+                    $draftstatus = ($statusobj->grade_status == get_string('status_draft', 'block_newgu_spdetails') ? true
+                    : false);
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
-                    if ($statusobj->due_date != 0 && $statusobj->due_date > time()) {
+                    if ((($statusobj->due_date != 0 && $statusobj->due_date > time()) || $statusobj->due_date == 0) ||
+                    $draftstatus == true) {
                         $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
                         $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
                         $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
@@ -247,12 +250,12 @@ class assign_activity extends base {
                         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     }
 
-                    if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
+                    if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0 &&
+                    $statusobj->cutoff_date > time()) {
                         $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                         $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
                         $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
                         $statusobj->status_link = $statusobj->assessment_url;
-                        $statusobj->grade_to_display = get_string('status_text_overdue', 'block_newgu_spdetails');
                     }
                 }
 
@@ -296,16 +299,18 @@ class assign_activity extends base {
             } else {
                 $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
                 $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
                 $statusobj->status_link = $statusobj->assessment_url;
                 $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
-                if (time() > $statusobj->due_date && $statusobj->due_date != 0) {
+                if (time() > $statusobj->due_date && $statusobj->due_date != 0 && $statusobj->cutoff_date < time()) {
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
                 }
 
-                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
+                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0 && $statusobj->cutoff_date > time()) {
                     $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');

@@ -70,7 +70,8 @@ class grade {
             $gradestatus->assessment_url = $activity->get_assessmenturl();
             $gradestatus->due_date = $activity->get_formattedduedate();
 
-            if (property_exists($activitygrade, 'finalgrade') && $activitygrade->finalgrade > 0) {
+            if (property_exists($activitygrade, 'finalgrade') && $activitygrade->finalgrade != null &&
+            $activitygrade->finalgrade >= 0) {
                 $grade = self::get_formatted_grade_from_grade_type($activitygrade->finalgrade, $gradetype, $scaleid, $grademax);
                 $gradestatus->grade_date = $activitygrade->gradedate;
                 $gradestatus->grade_status = get_string('status_graded', 'block_newgu_spdetails');
@@ -80,11 +81,16 @@ class grade {
                 $gradestatus->grade_class = true;
                 $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                 $gradestatus->grade_feedback_link = $activity->get_assessmenturl() . '#page-footer';
+
+                if (property_exists($activitygrade, 'feedbackcolumn') && !$activitygrade->feedbackcolumn) {
+                    $gradestatus->grade_feedback = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
+                    $gradestatus->grade_feedback_link = '';
+                }
                 return $gradestatus;
             }
 
             // It's not been mentioned/specced w/regards provisional grades - do we treat rawgrades as such?
-            if (property_exists($activitygrade, 'rawgrade') && $activitygrade->rawgrade > 0) {
+            if (property_exists($activitygrade, 'rawgrade') && $activitygrade->rawgrade != null && $activitygrade->rawgrade > 0) {
                 $grade = self::get_formatted_grade_from_grade_type($activitygrade->rawgrade, $gradetype,
                 $scaleid, $grademax);
                 $gradestatus->grade_status = get_string('status_provisional', 'block_newgu_spdetails');
@@ -101,7 +107,9 @@ class grade {
         }
 
         // We either don't have a grade record, or the grade may not have been
-        // released. Let's work backwards to determine the status and feedback.
+        // released. Let's work backwards to determine the status. Without making
+        // things complicated - at this stage, Grade and Feedback should only
+        // need to display 'To be confirmed'.
         $statusobj = $activity->get_status($userid);
         $feedbackobj = $activity->get_feedback($statusobj);
         $gradestatus->due_date = $statusobj->due_date;

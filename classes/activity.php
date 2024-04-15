@@ -251,10 +251,9 @@ class activity {
                                     $isgradehidden = \local_gugrades\api::is_grade_hidden($mygradesitem->id, $USER->id);
                                     $grade = (($isgradehidden) ? get_string('status_text_tobeconfirmed', 'block_newgu_spdetails') :
                                     $usergrade->displaygrade);
-                                    $gradeclass = true;
                                     $gradestatus = get_string('status_graded', 'block_newgu_spdetails');
                                     if (!$isgradehidden) {
-                                        $gradeclass = false;
+                                        $gradeclass = true;
                                         $gradefeedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                                         $gradefeedbacklink = $assessmenturl . '#page-footer';
                                     }

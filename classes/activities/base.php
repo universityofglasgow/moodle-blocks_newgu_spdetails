@@ -213,18 +213,13 @@ abstract class base {
             case get_string('status_submissionnotopen', 'block_newgu_spdetails'):
             case get_string('status_notsubmitted', 'block_newgu_spdetails') :
             case get_string('status_draft', 'block_newgu_spdetails') :
-                $feedbackobj->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                break;
-
             case get_string('status_overdue', 'block_newgu_spdetails'):
-                $feedbackobj->grade_feedback = get_string('status_text_overdue', 'block_newgu_spdetails');
-                break;
-
             case get_string('status_submitted', 'block_newgu_spdetails'):
                 $feedbackobj->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
-                // When Marking Workflow is enabled, feedback becomes available when the status is 'Released',
-                // even if Reveal Identities hasn't been triggered.
+                // For activity type 'assignment', when Marking Workflow is enabled, feedback becomes available for the
+                // student when the status is set to 'Released', even ^if^ Reveal Identities hasn't been triggered.
+                // Honour this same behaviour here.
                 if ($gradestatusobj->markingworkflow && $gradestatusobj->workflowstate == 'released') {
                     $feedbackobj->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                     $feedbackobj->grade_feedback_link = $gradestatusobj->assessment_url . '#page-footer';
@@ -235,8 +230,14 @@ abstract class base {
                 break;
 
             case get_string('status_graded', 'block_newgu_spdetails'):
-                $feedbackobj->grade_feedback = get_string('status_text_graded', 'block_newgu_spdetails');
+                $feedbackobj->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
                 $feedbackobj->grade_feedback_link = $gradestatusobj->assessment_url . '#page-footer';
+
+                // For activity type 'quiz', there are settings which prevent the display of any feedback.
+                if (property_exists($gradestatusobj, 'feedbackcolumn') && !$gradestatusobj->feedbackcolumn) {
+                    $feedbackobj->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                    $feedbackobj->grade_feedback_link = '';
+                }
                 break;
         }
 

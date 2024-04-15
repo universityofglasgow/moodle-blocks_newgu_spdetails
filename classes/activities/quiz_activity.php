@@ -63,7 +63,9 @@ class quiz_activity extends base {
     }
 
     /**
-     * Get quiz object
+     * Local get quiz object method.
+     * There is a get_quiz method on a quiz object also.
+     *
      * @param int $gradeitemid
      * @param object $cm course module
      * @return object
@@ -89,31 +91,51 @@ class quiz_activity extends base {
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
-        global $DB;
+        global $DB, $USER;
 
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
         $activitygrade->rawgrade = null;
         $activitygrade->gradedate = null;
+        $activitygrade->gradecolumn = false;
+        $activitygrade->feedbackcolumn = false;
 
-        // If the grade is overridden in the Gradebook then we can
-        // revert to the base - i.e., get the grade from the Gradebook.
-        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
-            if ($grade->overridden) {
-                return parent::get_first_grade($userid);
+        // Quiz setup has a feature which controls the visibility of grades.
+        // We need to check this first.
+        $attempts = quiz_get_user_attempts($this->quiz->get_quiz()->id, $USER->id, 'finished', true);
+
+        if ($attempts) {
+            // Work out if we can display the grade, taking account what data is available in each attempt.
+            list($someoptions, $alloptions) = quiz_get_combined_reviewoptions($this->quiz->get_quiz(), $attempts);
+            $activitygrade->gradecolumn = $someoptions->marks >= \question_display_options::MARK_AND_MAX &&
+            quiz_has_grades($this->quiz->get_quiz());
+            $activitygrade->feedbackcolumn = quiz_has_feedback($this->quiz->get_quiz()) && $alloptions->overallfeedback;
+
+            // If the user is able to view the grade...
+            if ($activitygrade->gradecolumn) {
+                // If the grade is overridden in the Gradebook then we can
+                // revert to the base - i.e., get the grade from the Gradebook.
+                if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid]))
+                {
+                    if ($grade->overridden) {
+                        return parent::get_first_grade($userid);
+                    }
+
+                    // We want access to other properties, hence the returns...
+                    if ($grade->finalgrade != null && $grade->finalgrade >= 0) {
+                        $activitygrade->finalgrade = $grade->finalgrade;
+                        $activitygrade->gradedate = $grade->timemodified;
+                        return $activitygrade;
+                    }
+
+                    if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                        $activitygrade->rawgrade = $grade->rawgrade;
+                        return $activitygrade;
+                    }
+                }
             }
 
-            // We want access to other properties, hence the returns...
-            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
-                $activitygrade->finalgrade = $grade->finalgrade;
-                $activitygrade->gradedate = $grade->timemodified;
-                return $activitygrade;
-            }
-
-            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
-                $activitygrade->rawgrade = $grade->rawgrade;
-                return $activitygrade;
-            }
+            return $activitygrade;
         }
 
         return false;
@@ -176,6 +198,8 @@ class quiz_activity extends base {
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $this->get_formattedduedate($quizinstance->timeclose);
+        $statusobj->gradecolumn = false;
+        $statusobj->feedbackcolumn = false;
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizinstance->id, 'userid' => $userid]);
@@ -191,23 +215,34 @@ class quiz_activity extends base {
         }
 
         if ($statusobj->grade_status == '') {
-            $quizattempts = $DB->count_records('quiz_attempts', [
-                'quiz' => $quizinstance->id,
-                'userid' => $userid,
-                'state' => 'finished',
-            ]);
-            if ($quizattempts > 0) {
+            // Quiz setup has a feature which controls the visibility of grades.
+            // We need to check this here also.
+            $attempts = quiz_get_user_attempts($quizinstance->id, $userid, 'finished', true);
+
+            if ($attempts) {
+                // Work out if we can display the grade, taking account what data is available in each attempt.
+                list($someoptions, $alloptions) = quiz_get_combined_reviewoptions($quizinstance, $attempts);
+                $statusobj->gradecolumn = $someoptions->marks >= \question_display_options::MARK_AND_MAX &&
+                quiz_has_grades($quizinstance->id);
+                $statusobj->feedbackcolumn = quiz_has_feedback($quizinstance) && $alloptions->overallfeedback;
+    
                 $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');
                 $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                 $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
-                $statusobj->assessment_url = '';
 
-                if ($quizgrades = $DB->count_records('quiz_grades', ['quiz' => $quizinstance->id, 'userid' => $userid])) {
+                // This ^should^ be just one record.
+                if ($quizgrade = $DB->get_record('quiz_grades', ['quiz' => $quizinstance->id, 'userid' => $userid], '*', MUST_EXIST)) {
                     $statusobj->grade_status = get_string('status_graded', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
-                    $statusobj->grade_to_display = $quizgrades->grade;
-                    $statusobj->assessment_url = '';
+                    // If the user is able to view the grade...
+                    if ($statusobj->gradecolumn) {
+                        $statusobj->grade_to_display = $quizgrade->grade;
+                    }
+
+                    if ($statusobj->feedbackcolumn) {
+                        $statusobj->feedbackcolumn = true;
+                    }
                 }
 
             } else {
@@ -270,6 +305,7 @@ class quiz_activity extends base {
             $quizattempts = $cachedata[$cachekey][0]['quizattempts'];
         }
 
+        // We are calling the quiz object's get_quiz method here, not our local method.
         $quizobj = $this->quiz->get_quiz();
 
         if (!in_array($quizobj->id, $quizattempts)) {
