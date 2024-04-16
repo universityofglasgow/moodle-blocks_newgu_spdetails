@@ -310,7 +310,8 @@ class assign_activity extends base {
                     $statusobj->status_link = '';
                 }
 
-                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0 && $statusobj->cutoff_date > time()) {
+                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0 &&
+                $statusobj->cutoff_date > time()) {
                     $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
@@ -348,10 +349,16 @@ class assign_activity extends base {
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'userid = :userid AND (timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
-            :tnow)';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now, 'tlastmonth' => $lastmonth, 'tnow' => $now];
-            $assignmentsubmissions = $DB->get_fieldset_select('assign_submission', 'assignment', $select, $params);
+            $select = 'userid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
+            :tnow))';
+            $params = [
+                'userid' => $USER->id,
+                'lastmonth' => $lastmonth,
+                'now' => $now,
+                'tlastmonth' => $lastmonth,
+                'tnow' => $now,
+            ];
+            $assignmentsubmissions = $DB->get_records_select('assign_submission', $select, $params, '', 'assignment, status');
 
             $submissionsdata = [
                 'updated' => time(),
@@ -387,7 +394,9 @@ class assign_activity extends base {
             }
         }
 
-        if (!in_array($assignment->id, $assignmentsubmissions)) {
+        // Looks like when visiting an activity, you end up with a submission entry by default.
+        if (!array_key_exists($assignment->id, $assignmentsubmissions) ||
+        (array_key_exists($assignment->id, $assignmentsubmissions) && $assignmentsubmissions[$assignment->id]->status == 'new')) {
             if ($allowsubmissionsfromdate < $now) {
                 if ($duedate > $now) {
                     $assignmentdata[] = $assignment;

@@ -237,7 +237,7 @@ class lesson_activity extends base {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND lessontime BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $lessonsubmissions = $DB->get_fieldset_select('lesson_timer', 'lessonid', $select, $params);
+            $lessonsubmissions = $DB->get_records_select('lesson_timer', $select, $params, '', 'lessonid, completed');
 
             $submissionsdata = [
                 'updated' => time(),
@@ -255,7 +255,9 @@ class lesson_activity extends base {
             $lessonsubmissions = $cachedata[$cachekey][0]['lessonsubmissions'];
         }
 
-        if (!in_array($this->lesson->id, $lessonsubmissions)) {
+        // Much like activity type Assignment, we end up with a 'submission' that we now need to check if it's 'completed'.
+        if (!array_key_exists($this->lesson->id, $lessonsubmissions) ||
+        (array_key_exists($this->lesson->id, $lessonsubmissions) && $lessonsubmissions[$this->lesson->id]->completed == 0)) {
             if ($this->lesson->deadline != 0 && $this->lesson->deadline > $now) {
                 if ($this->lesson->deadline != 0 && $this->lesson->deadline > $now) {
                     $obj = new \stdClass();
