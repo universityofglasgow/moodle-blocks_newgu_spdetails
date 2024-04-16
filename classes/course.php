@@ -485,7 +485,7 @@ class course {
 
         $gradeitems = $DB->get_records('grade_items', [
             'courseid' => $courseid,
-            'itemtype' => 'mod'
+            'itemtype' => 'mod',
         ]);
 
         return $gradeitems;
@@ -735,8 +735,8 @@ class course {
                 $activities = self::get_activities($course->id);
                 if ($activities) {
                     foreach ($activities as $activityitem) {
-                        $cm = get_coursemodule_from_instance($activityitem->itemmodule, $activityitem->iteminstance, $activityitem->courseid,
-                        false, MUST_EXIST);
+                        $cm = get_coursemodule_from_instance($activityitem->itemmodule, $activityitem->iteminstance,
+                        $activityitem->courseid, false, MUST_EXIST);
                         $modinfo = get_fast_modinfo($activityitem->courseid);
                         $cm = $modinfo->get_cm($cm->id);
                         if ($cm->uservisible) {
@@ -854,8 +854,8 @@ class course {
                 $activities = self::get_activities($course->id);
                 if ($activities) {
                     foreach ($activities as $activityitem) {
-                        $cm = get_coursemodule_from_instance($activityitem->itemmodule, $activityitem->iteminstance, $activityitem->courseid,
-                        false, MUST_EXIST);
+                        $cm = get_coursemodule_from_instance($activityitem->itemmodule, $activityitem->iteminstance,
+                        $activityitem->courseid, false, MUST_EXIST);
                         $modinfo = get_fast_modinfo($activityitem->courseid);
                         $cm = $modinfo->get_cm($cm->id);
                         if ($cm->uservisible) {
