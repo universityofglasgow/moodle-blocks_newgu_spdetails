@@ -115,8 +115,8 @@ class quiz_activity extends base {
             if ($activitygrade->gradecolumn) {
                 // If the grade is overridden in the Gradebook then we can
                 // revert to the base - i.e., get the grade from the Gradebook.
-                if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid]))
-                {
+                if ($grade = $DB->get_record('grade_grades',
+                ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
                     if ($grade->overridden) {
                         return parent::get_first_grade($userid);
                     }
@@ -225,13 +225,14 @@ class quiz_activity extends base {
                 $statusobj->gradecolumn = $someoptions->marks >= \question_display_options::MARK_AND_MAX &&
                 quiz_has_grades($quizinstance->id);
                 $statusobj->feedbackcolumn = quiz_has_feedback($quizinstance) && $alloptions->overallfeedback;
-    
+
                 $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');
                 $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                 $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
 
                 // This ^should^ be just one record.
-                if ($quizgrade = $DB->get_record('quiz_grades', ['quiz' => $quizinstance->id, 'userid' => $userid], '*', MUST_EXIST)) {
+                if ($quizgrade = $DB->get_record('quiz_grades',
+                ['quiz' => $quizinstance->id, 'userid' => $userid], '*', MUST_EXIST)) {
                     $statusobj->grade_status = get_string('status_graded', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_graded', 'block_newgu_spdetails');

@@ -24,7 +24,17 @@
 
 $string['pluginname'] = 'MyGrades';
 $string['title'] = 'Assessments';
-$string['cachedef_studentdashboarddata'] = 'The cache for studentdashboarddata.';
+
+$string['cachedef_studentdashboarddata'] = 'The cache for student dashboard data.';
+$string['cachedef_assignmentsduequery'] = 'The cache holding the results for Assignments that are due.';
+$string['cachedef_forumduequery'] = 'The cache holding the results for Forum\'s that are due.';
+$string['cachedef_kalvidassignmentsduequery'] = 'The cache holding the results for Kaltura video assignments that are due.';
+$string['cachedef_lessonsduequery'] = 'The cache holding the results for Lesson\'s that are due.';
+$string['cachedef_peerworkduequery'] = 'The cache holding the results for Peerwork activities that are due.';
+$string['cachedef_quizduequery'] = 'The cache holding the results for Quiz\'s that are due.';
+$string['cachedef_scormduequery'] = 'The cache holding the results for SCORM activities that are due.';
+$string['cachedef_workshopduequery'] = 'The cache holding the results for Workshop activities that are due.';
+
 $string['newgu_spdetails:addinstance'] = 'Add a new Your Assessment Details (New) block';
 $string['newgu_spdetails:myaddinstance'] = 'Add a new Your Assessment Details (New) to Dashboard';
 $string['assessment'] = 'Assessment';
