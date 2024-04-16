@@ -901,7 +901,7 @@ class course {
                                 }
 
                                 $assessmenttype = self::return_assessmenttype($course->fullname,
-                                $item->aggregationcoef);
+                                $activityitem->aggregationcoef);
                                 $assessmentweight = self::return_weight($activityitem->aggregationcoef);
                                 $tmp = [
                                     'id' => $activityitem->id,
