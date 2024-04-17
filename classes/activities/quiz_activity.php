@@ -200,6 +200,7 @@ class quiz_activity extends base {
         $statusobj->due_date = $this->get_formattedduedate($quizinstance->timeclose);
         $statusobj->gradecolumn = false;
         $statusobj->feedbackcolumn = false;
+        $statusobj->grade_date = '';
 
         // Check if any individual overrides have been set up first of all...
         $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizinstance->id, 'userid' => $userid]);
@@ -324,7 +325,8 @@ class quiz_activity extends base {
 
         if (!array_key_exists($quizobj->id, $quizattempts) ||
         (array_key_exists($quizobj->id, $quizattempts) &&
-        (is_object($quizattempts[$quizobj->id]) && property_exists($quizattempts[$quizobj->id], 'state') && $quizattempts[$quizobj->id]->state == 'inprogress'))) {
+        (is_object($quizattempts[$quizobj->id]) && property_exists($quizattempts[$quizobj->id], 'state')
+        && $quizattempts[$quizobj->id]->state == 'inprogress'))) {
             // So, we can set dates for quizzes to open and close.
             if ($quizopens != 0 && $quizopens < $now) {
                 if ($quizcloses > $now) {

@@ -196,6 +196,7 @@ class assign_activity extends base {
         $statusobj->due_date = $assigninstance->duedate;
         $statusobj->cutoff_date = $assigninstance->cutoffdate;
         $statusobj->markingworkflow = $assigninstance->markingworkflow;
+        $statusobj->grade_date = '';
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);

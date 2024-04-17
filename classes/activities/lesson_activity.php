@@ -169,6 +169,7 @@ class lesson_activity extends base {
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $allowsubmissionsfromdate = $this->lesson->available;
         $statusobj->status_link = '';
+        $statusobj->grade_date = '';
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('lesson_overrides', ['lessonid' => $this->lesson->id, 'userid' => $userid]);

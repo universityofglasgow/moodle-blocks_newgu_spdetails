@@ -171,6 +171,7 @@ class h5p_activity extends base {
         $statusobj->due_date = $this->h5p;
         $allowsubmissionsfromdate = $this->h5p;
         $statusobj->allowlatesubmissions = $this->h5p;
+        $statusobj->grade_date = '';
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');

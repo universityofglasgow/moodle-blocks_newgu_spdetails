@@ -160,6 +160,7 @@ class glossary_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
+        $statusobj->grade_date = '';
 
         return $statusobj;
 

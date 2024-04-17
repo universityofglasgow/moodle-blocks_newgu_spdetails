@@ -170,6 +170,7 @@ class workshop_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
+        $statusobj->grade_date = '';
 
         switch ($this->gradeitem->itemnumber) {
             case 0:

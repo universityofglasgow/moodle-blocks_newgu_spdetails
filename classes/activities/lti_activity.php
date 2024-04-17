@@ -158,6 +158,7 @@ class lti_activity extends base {
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->due_date = time();
+        $statusobj->grade_date = '';
 
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
