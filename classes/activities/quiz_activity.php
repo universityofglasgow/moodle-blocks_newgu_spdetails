@@ -101,7 +101,7 @@ class quiz_activity extends base {
         $activitygrade->feedbackcolumn = false;
 
         // Quiz setup has a feature which controls the visibility of grades.
-        // We need to check this first.
+        // We need to check what settings have been made.
         $attempts = quiz_get_user_attempts($this->quiz->get_quiz()->id, $USER->id, 'finished', true);
 
         if ($attempts) {
@@ -201,12 +201,14 @@ class quiz_activity extends base {
         $statusobj->gradecolumn = false;
         $statusobj->feedbackcolumn = false;
 
-        // Check if any overrides have been set up first of all...
+        // Check if any individual overrides have been set up first of all...
         $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizinstance->id, 'userid' => $userid]);
         if (!empty($overrides)) {
             $allowsubmissionsfromdate = $overrides->timeopen;
             $statusobj->due_date = $this->get_formattedduedate($overrides->timeclose);
         }
+
+        // Check if any group overrides have been setup.
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
@@ -240,6 +242,8 @@ class quiz_activity extends base {
                     if ($statusobj->gradecolumn) {
                         $statusobj->grade_to_display = $quizgrade->grade;
                     }
+
+                    $statusobj->grade_date = $quizgrade->timemodified;
 
                     if ($statusobj->feedbackcolumn) {
                         $statusobj->feedbackcolumn = true;
@@ -310,25 +314,25 @@ class quiz_activity extends base {
         $quizobj = $this->quiz->get_quiz();
         $quizopens = $quizobj->timeopen;
         $quizcloses = $quizobj->timeclose;
-        $quiztimelimit = $quizobj->timelimit;
 
-        // Check if any overrides have been set up first of all...
+        // Check if any indiviudal overrides have been set up first of all...
         $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizobj->id, 'userid' => $USER->id]);
         if (!empty($overrides)) {
             $quizopens = $overrides->timeopen;
             $quizcloses = $overrides->timeclose;
-            $quiztimelimit = $overrides->timelimit;
         }
 
         if (!array_key_exists($quizobj->id, $quizattempts) ||
-        (array_key_exists($quizobj->id, $quizattempts) && $quizattempts[$quizobj->id]->state == 'inprogress')) {
+        (array_key_exists($quizobj->id, $quizattempts) &&
+        (is_object($quizattempts[$quizobj->id]) && property_exists($quizattempts[$quizobj->id], 'state') && $quizattempts[$quizobj->id]->state == 'inprogress'))) {
             // So, we can set dates for quizzes to open and close.
             if ($quizopens != 0 && $quizopens < $now) {
                 if ($quizcloses > $now) {
                     $obj = new \stdClass();
                     $obj->name = $quizobj->name;
                     // They can also have a time limit set.
-                    if ($quizattempts[$quizobj->id]->timecheckstate != 0) {
+                    if (is_object($quizattempts[$quizobj->id]) && property_exists($quizattempts[$quizobj->id], 'timecheckstate') &&
+                        $quizattempts[$quizobj->id]->timecheckstate != 0) {
                         if ($quizattempts[$quizobj->id]->timecheckstate > $now) {
                             $obj->duedate = $quizattempts[$quizobj->id]->timecheckstate;
                         }

@@ -380,7 +380,7 @@ class assign_activity extends base {
         $allowsubmissionsfromdate = $assignment->allowsubmissionsfromdate;
         $duedate = $assignment->duedate;
 
-        // Check if any overrides have been set up first of all...
+        // Check if any individual overrides have been set up first of all...
         $overrides = $DB->get_record('assign_overrides', ['assignid' => $assignment->id, 'userid' => $USER->id]);
         if (!empty($overrides)) {
             $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;
@@ -396,7 +396,10 @@ class assign_activity extends base {
 
         // Looks like when visiting an activity, you end up with a submission entry by default.
         if (!array_key_exists($assignment->id, $assignmentsubmissions) ||
-        (array_key_exists($assignment->id, $assignmentsubmissions) && $assignmentsubmissions[$assignment->id]->status == 'new')) {
+            (array_key_exists($assignment->id, $assignmentsubmissions) &&
+            (is_object($assignmentsubmissions[$assignment->id]) &&
+            property_exists($assignmentsubmissions[$assignment->id], 'status') &&
+            $assignmentsubmissions[$assignment->id]->status == 'new'))) {
             if ($allowsubmissionsfromdate < $now) {
                 if ($duedate > $now) {
                     $assignmentdata[] = $assignment;

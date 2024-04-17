@@ -113,6 +113,7 @@ class grade {
         $statusobj = $activity->get_status($userid);
         $feedbackobj = $activity->get_feedback($statusobj);
         $gradestatus->due_date = $statusobj->due_date;
+        $gradestatus->grade_date = $statusobj->grade_date;
         $gradestatus->grade_status = $statusobj->grade_status;
         $gradestatus->status_text = $statusobj->status_text;
         $gradestatus->status_class = $statusobj->status_class;

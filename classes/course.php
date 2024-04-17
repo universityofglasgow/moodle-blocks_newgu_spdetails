@@ -892,8 +892,10 @@ class course {
 
                                 switch($charttype) {
                                     case 3:
-                                        $dateobj = \DateTime::createFromFormat('U', $gradestatus->grade_date);
-                                        $date = $dateobj->format('jS F Y');
+                                        if (property_exists($gradestatus, 'grade_date') && $gradestatus->grade_date != '') {
+                                            $dateobj = \DateTime::createFromFormat('U', $gradestatus->grade_date);
+                                            $date = $dateobj->format('jS F Y');
+                                        }
                                         break;
                                     default:
                                         $date = $gradestatus->due_date;
