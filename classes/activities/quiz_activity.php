@@ -288,7 +288,7 @@ class quiz_activity extends base {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND timestart BETWEEN :lastmonth AND :now AND state != :finished';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now, 'finished' => 'finished'];
-            $quizattempts = $DB->get_fieldset_select('quiz_attempts', 'id', $select, $params);
+            $quizattempts = $DB->get_records_select('quiz_attempts', $select, $params, '', 'quiz, state, timecheckstate');
 
             $submissionsdata = [
                 'updated' => time(),
@@ -308,13 +308,42 @@ class quiz_activity extends base {
 
         // We are calling the quiz object's get_quiz method here, not our local method.
         $quizobj = $this->quiz->get_quiz();
+        $quizopens = $quizobj->timeopen;
+        $quizcloses = $quizobj->timeclose;
+        $quiztimelimit = $quizobj->timelimit;
 
-        if (!in_array($quizobj->id, $quizattempts)) {
-            if ($quizobj->timeopen != 0 && $quizobj->timeopen < $now) {
-                if ($quizobj->timeclose > $now) {
+        // Check if any overrides have been set up first of all...
+        $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizobj->id, 'userid' => $USER->id]);
+        if (!empty($overrides)) {
+            $quizopens = $overrides->timeopen;
+            $quizcloses = $overrides->timeclose;
+            $quiztimelimit = $overrides->timelimit;
+        }
+
+        if (!array_key_exists($quizobj->id, $quizattempts) ||
+        (array_key_exists($quizobj->id, $quizattempts) && $quizattempts[$quizobj->id]->state == 'inprogress')) {
+            // So, we can set dates for quizzes to open and close.
+            if ($quizopens != 0 && $quizopens < $now) {
+                if ($quizcloses > $now) {
                     $obj = new \stdClass();
                     $obj->name = $quizobj->name;
-                    $obj->duedate = $quizobj->timeclose;
+                    // They can also have a time limit set.
+                    if ($quizattempts[$quizobj->id]->timecheckstate != 0) {
+                        if ($quizattempts[$quizobj->id]->timecheckstate > $now) {
+                            $obj->duedate = $quizattempts[$quizobj->id]->timecheckstate;
+                        }
+                    } else {
+                        $obj->duedate = $quizcloses;
+                    }
+                    $quizdata[] = $obj;
+                }
+            }
+            // But we can also simply just set a time limit.
+            if ($quizopens == 0) {
+                if ($quizattempts[$quizobj->id]->timecheckstate > $now) {
+                    $obj = new \stdClass();
+                    $obj->name = $quizobj->name;
+                    $obj->duedate = $quizattempts[$quizobj->id]->timecheckstate;
                     $quizdata[] = $obj;
                 }
             }
