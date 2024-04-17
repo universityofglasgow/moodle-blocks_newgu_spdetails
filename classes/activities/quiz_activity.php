@@ -233,9 +233,10 @@ class quiz_activity extends base {
                 $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                 $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
 
-                // This ^should^ be just one record.
-                if ($quizgrade = $DB->get_record('quiz_grades',
-                ['quiz' => $quizinstance->id, 'userid' => $userid], '*', MUST_EXIST)) {
+                // There ^should^ be just one record. Using IGNORE_MISSING now as it's possible
+                // that a record may not exist - if the quiz has been set up not to autosubmit for example. 
+                $quizgrade = $DB->get_record('quiz_grades', ['quiz' => $quizinstance->id, 'userid' => $userid], '*', IGNORE_MISSING);
+                if ($quizgrade) {
                     $statusobj->grade_status = get_string('status_graded', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
@@ -316,7 +317,7 @@ class quiz_activity extends base {
         $quizopens = $quizobj->timeopen;
         $quizcloses = $quizobj->timeclose;
 
-        // Check if any indiviudal overrides have been set up first of all...
+        // Check if any individual overrides have been set up first of all...
         $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizobj->id, 'userid' => $USER->id]);
         if (!empty($overrides)) {
             $quizopens = $overrides->timeopen;
@@ -325,8 +326,8 @@ class quiz_activity extends base {
 
         if (!array_key_exists($quizobj->id, $quizattempts) ||
         (array_key_exists($quizobj->id, $quizattempts) &&
-        (is_object($quizattempts[$quizobj->id]) && property_exists($quizattempts[$quizobj->id], 'state')
-        && $quizattempts[$quizobj->id]->state == 'inprogress'))) {
+        (is_object($quizattempts[$quizobj->id]) && property_exists($quizattempts[$quizobj->id], 'state') &&
+        $quizattempts[$quizobj->id]->state == 'inprogress'))) {
             // So, we can set dates for quizzes to open and close.
             if ($quizopens != 0 && $quizopens < $now) {
                 if ($quizcloses > $now) {

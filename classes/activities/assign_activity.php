@@ -198,7 +198,7 @@ class assign_activity extends base {
         $statusobj->markingworkflow = $assigninstance->markingworkflow;
         $statusobj->grade_date = '';
 
-        // Check if any overrides have been set up first of all...
+        // Check if any individual overrides have been set up first of all...
         $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);
         if (!empty($overrides)) {
             $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;

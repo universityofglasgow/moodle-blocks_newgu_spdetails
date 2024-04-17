@@ -256,21 +256,33 @@ class lesson_activity extends base {
             $lessonsubmissions = $cachedata[$cachekey][0]['lessonsubmissions'];
         }
 
+        $lesson = $this->lesson;
+        $allowsubmissionsfromdate = $lesson->available;
+        $duedate = $lesson->deadline;
+
+        // Check if any individual overrides have been set up first of all.
+        $overrides = $DB->get_record('lesson_overrides', ['lessonid' => $lesson->id, 'userid' => $USER->id]);
+        if (!empty($overrides)) {
+            $allowsubmissionsfromdate = $overrides->available;
+            $duedate = $overrides->deadline;
+        }
+
         // Much like activity type Assignment, we end up with a 'submission' that we now need to check if it's 'completed'.
-        if (!array_key_exists($this->lesson->id, $lessonsubmissions) ||
-        (array_key_exists($this->lesson->id, $lessonsubmissions) && $lessonsubmissions[$this->lesson->id]->completed == 0)) {
-            if ($this->lesson->deadline != 0 && $this->lesson->deadline > $now) {
-                if ($this->lesson->deadline != 0 && $this->lesson->deadline > $now) {
+        if (!array_key_exists($lesson->id, $lessonsubmissions) ||
+        (array_key_exists($lesson->id, $lessonsubmissions) && 
+        (is_object($lessonsubmissions[$lesson->id]) && property_exists($lessonsubmissions[$lesson->id], 'completed') &&
+        $lessonsubmissions[$lesson->id]->completed == 0))) {
+            if ($lesson->deadline != 0 && $lesson->deadline > $now) {
+                if ($lesson->deadline != 0 && $lesson->deadline > $now) {
                     $obj = new \stdClass();
-                    $obj->name = $this->lesson->name;
-                    $obj->duedate = $this->lesson->deadline;
+                    $obj->name = $lesson->name;
+                    $obj->duedate = $duedate;
                     $lessondata[] = $obj;
                 }
             }
         }
 
         return $lessondata;
-
     }
 
 }
