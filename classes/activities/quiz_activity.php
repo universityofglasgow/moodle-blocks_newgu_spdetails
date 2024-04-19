@@ -201,6 +201,7 @@ class quiz_activity extends base {
         $statusobj->gradecolumn = false;
         $statusobj->feedbackcolumn = false;
         $statusobj->grade_date = '';
+        $quizcloses = $quizinstance->timeclose;
 
         // Check if any individual overrides have been set up first of all...
         $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizinstance->id, 'userid' => $userid]);
@@ -210,6 +211,40 @@ class quiz_activity extends base {
         }
 
         // Check if any group overrides have been setup.
+        // We also need to check if any group overrides exist for this quiz.
+        // This can be achieved by getting the 'groupid' from quiz_group_attempts,
+        // using the quiz id and userid, and then using this value to get the 
+        // entry from quiz_override settings.
+        $groupquizattempts = $DB->get_record('quiz_group_attempts', ['quizid' => $quizinstance->id, 'userid' => $userid]);
+        if (!empty($groupquizattempts)) {
+            $groupid = $groupquizattempts->groupid;
+            $groupoverrides = $DB->get_record('quiz_overrides', ['quiz' => $quizinstance->id, 'groupid' => $groupid]);
+            if (!empty($groupoverrides)) {
+                $allowsubmissionsfromdate = $groupoverrides->timeopen;
+                $statusobj->due_date = $this->get_formattedduedate($groupoverrides->timeclose);
+                $quizcloses = $groupoverrides->timeclose;
+            }
+        } else {
+            // Or if no attempts have been made, this is the longer way around.
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
+            $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
+            $groupselect = 'quiz = :quiz AND groupid IS NOT NULL AND userid IS NULL AND timeopen BETWEEN :lastmonth AND :now AND
+            timeclose > :tnow';
+            $groupparams = ['quiz' => $quizinstance->id, 'lastmonth' => $lastmonth, 'now' => $now, 'tnow' => $now];
+            $groupoverrides = $DB->get_records_select('quiz_overrides', $groupselect, $groupparams, '',
+            'groupid, timeopen, timeclose');
+            if (!empty($groupoverrides)) {
+                foreach ($groupoverrides as $groupoverride) {
+                    // An override for this quiz exists - is our user a member of the group?
+                    if ($groupmembers = $DB->record_exists('groups_members', ['groupid' => $groupoverride->groupid,
+                        'userid' => $userid])) {
+                        $allowsubmissionsfromdate = $groupoverride->timeopen;
+                        $statusobj->due_date = $this->get_formattedduedate($groupoverride->timeclose);
+                        $quizcloses = $groupoverride->timeclose;
+                    }
+                }
+            }
+        }
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
@@ -259,8 +294,8 @@ class quiz_activity extends base {
                 $statusobj->status_link = $statusobj->assessment_url;
                 $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
-                if ($quizinstance->timeclose != 0) {
-                    if (time() > $quizinstance->timeclose) {
+                if ($quizcloses != 0) {
+                    if (time() > $quizcloses) {
                         $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                         $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                         $statusobj->status_class = '';
@@ -284,6 +319,7 @@ class quiz_activity extends base {
         // Cache this query as it's going to get called for each assessment in the course otherwise.
         $cache = cache::make('block_newgu_spdetails', 'quizduequery');
         $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
+        $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
         $currenttime = time();
         $fiveminutes = $currenttime - 300;
         $cachekey = self::CACHE_KEY . $USER->id;
@@ -291,7 +327,6 @@ class quiz_activity extends base {
         $quizdata = [];
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
-            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND timestart BETWEEN :lastmonth AND :now AND state != :finished';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now, 'finished' => 'finished'];
             $quizattempts = $DB->get_records_select('quiz_attempts', $select, $params, '', 'quiz, state, timecheckstate');
@@ -317,18 +352,49 @@ class quiz_activity extends base {
         $quizopens = $quizobj->timeopen;
         $quizcloses = $quizobj->timeclose;
 
-        // Check if any individual overrides have been set up first of all...
+        // Check if any individual overrides have been set up for this user.
         $overrides = $DB->get_record('quiz_overrides', ['quiz' => $quizobj->id, 'userid' => $USER->id]);
         if (!empty($overrides)) {
             $quizopens = $overrides->timeopen;
             $quizcloses = $overrides->timeclose;
         }
 
+        // We also need to check if any group overrides exist for this quiz.
+        // This can be achieved by getting the 'groupid' from quiz_group_attempts,
+        // using the quiz id and userid, and then using this value to get the 
+        // entry from quiz_override settings.
+        $groupquizattempts = $DB->get_record('quiz_group_attempts', ['quizid' => $quizobj->id, 'userid' => $USER->id]);
+        if (!empty($groupquizattempts)) {
+            $groupid = $groupquizattempts->groupid;
+            $groupoverrides = $DB->get_record('quiz_overrides', ['quiz' => $quizobj->id, 'groupid' => $groupid]);
+            if (!empty($groupoverrides)) {
+                $quizopens = $groupoverrides->timeopen;
+                $quizcloses = $groupoverrides->timeclose;
+            }
+        } else {
+            // Or if no attempts have been made, this is the longer way around.
+            $groupselect = 'quiz = :quiz AND groupid IS NOT NULL AND userid IS NULL AND timeopen BETWEEN :lastmonth AND :now AND
+            timeclose > :tnow';
+            $groupparams = ['quiz' => $quizobj->id, 'lastmonth' => $lastmonth, 'now' => $now, 'tnow' => $now];
+            $groupoverrides = $DB->get_records_select('quiz_overrides', $groupselect, $groupparams, '',
+            'groupid, timeopen, timeclose');
+            if (!empty($groupoverrides)) {
+                foreach ($groupoverrides as $groupoverride) {
+                    // An override for this quiz exists - is our user a member of the group?
+                    if ($groupmembers = $DB->record_exists('groups_members', ['groupid' => $groupoverride->groupid,
+                        'userid' => $USER->id])) {
+                        $quizopens = $groupoverride->timeopen;
+                        $quizcloses = $groupoverride->timeclose;
+                    }
+                }
+            }
+        }
+
         if (!array_key_exists($quizobj->id, $quizattempts) ||
         (array_key_exists($quizobj->id, $quizattempts) &&
         (is_object($quizattempts[$quizobj->id]) && property_exists($quizattempts[$quizobj->id], 'state') &&
         $quizattempts[$quizobj->id]->state == 'inprogress'))) {
-            // So, we can set dates for quizzes to open and close.
+            // We can set dates for when quizzes will open and close.
             if ($quizopens != 0 && $quizopens < $now) {
                 if ($quizcloses > $now) {
                     $obj = new \stdClass();
@@ -347,7 +413,8 @@ class quiz_activity extends base {
             }
             // But we can also simply just set a time limit.
             if ($quizopens == 0) {
-                if ($quizattempts[$quizobj->id]->timecheckstate > $now) {
+                if (is_object($quizattempts[$quizobj->id]) && property_exists($quizattempts[$quizobj->id], 'timecheckstate') &&
+                    $quizattempts[$quizobj->id]->timecheckstate > $now) {
                     $obj = new \stdClass();
                     $obj->name = $quizobj->name;
                     $obj->duedate = $quizattempts[$quizobj->id]->timecheckstate;

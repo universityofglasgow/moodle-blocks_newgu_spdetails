@@ -257,14 +257,16 @@ class lesson_activity extends base {
         }
 
         $lesson = $this->lesson;
-        $allowsubmissionsfromdate = $lesson->available;
-        $duedate = $lesson->deadline;
+        $lessonavailable = $lesson->available;
+        $lessondeadline = $lesson->deadline;
+        $timelimit = $lesson->timelimit;
 
         // Check if any individual overrides have been set up first of all.
         $overrides = $DB->get_record('lesson_overrides', ['lessonid' => $lesson->id, 'userid' => $USER->id]);
         if (!empty($overrides)) {
-            $allowsubmissionsfromdate = $overrides->available;
-            $duedate = $overrides->deadline;
+            $lessonavailable = $overrides->available;
+            $lessondeadline = $overrides->deadline;
+            $timelimit = $overrides->timelimit;
         }
 
         // Much like activity type Assignment, we end up with a 'submission' that we now need to check if it's 'completed'.
@@ -272,11 +274,21 @@ class lesson_activity extends base {
         (array_key_exists($lesson->id, $lessonsubmissions) && 
         (is_object($lessonsubmissions[$lesson->id]) && property_exists($lessonsubmissions[$lesson->id], 'completed') &&
         $lessonsubmissions[$lesson->id]->completed == 0))) {
-            if ($lesson->deadline != 0 && $lesson->deadline > $now) {
-                if ($lesson->deadline != 0 && $lesson->deadline > $now) {
+            // Also like Assignment, we can set dates for when lessons open and close.
+            if ($lessonavailable != 0 && $lessonavailable < $now) {
+                if ($lessondeadline != 0 && $lessondeadline > $now) {
                     $obj = new \stdClass();
                     $obj->name = $lesson->name;
-                    $obj->duedate = $duedate;
+                    $obj->duedate = $lessondeadline;
+                    $lessondata[] = $obj;
+                }
+            }
+            // As well as setting just a time limit
+            if ($lessonavailable == 0) {
+                if ($timelimit > 0 && (($lessonsubmissions[$lesson->id]->starttime + $timelimit) < $now)) {
+                    $obj = new \stdClass();
+                    $obj->name = $lesson->name;
+                    $obj->duedate = ($lessonsubmissions[$lesson->id]->starttime + $timelimit);
                     $lessondata[] = $obj;
                 }
             }
