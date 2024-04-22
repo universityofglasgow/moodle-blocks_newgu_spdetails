@@ -271,7 +271,7 @@ class lesson_activity extends base {
 
         // Much like activity type Assignment, we end up with a 'submission' that we now need to check if it's 'completed'.
         if (!array_key_exists($lesson->id, $lessonsubmissions) ||
-        (array_key_exists($lesson->id, $lessonsubmissions) && 
+        (array_key_exists($lesson->id, $lessonsubmissions) &&
         (is_object($lessonsubmissions[$lesson->id]) && property_exists($lessonsubmissions[$lesson->id], 'completed') &&
         $lessonsubmissions[$lesson->id]->completed == 0))) {
             // Also like Assignment, we can set dates for when lessons open and close.
@@ -283,7 +283,7 @@ class lesson_activity extends base {
                     $lessondata[] = $obj;
                 }
             }
-            // As well as setting just a time limit
+            // As well as setting just a time limit.
             if ($lessonavailable == 0) {
                 if ($timelimit > 0 && (($lessonsubmissions[$lesson->id]->starttime + $timelimit) < $now)) {
                     $obj = new \stdClass();

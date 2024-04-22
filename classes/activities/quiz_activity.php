@@ -213,7 +213,7 @@ class quiz_activity extends base {
         // Check if any group overrides have been setup.
         // We also need to check if any group overrides exist for this quiz.
         // This can be achieved by getting the 'groupid' from quiz_group_attempts,
-        // using the quiz id and userid, and then using this value to get the 
+        // using the quiz id and userid, and then using this value to get the
         // entry from quiz_override settings.
         $groupquizattempts = $DB->get_record('quiz_group_attempts', ['quizid' => $quizinstance->id, 'userid' => $userid]);
         if (!empty($groupquizattempts)) {
@@ -269,8 +269,9 @@ class quiz_activity extends base {
                 $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
 
                 // There ^should^ be just one record. Using IGNORE_MISSING now as it's possible
-                // that a record may not exist - if the quiz has been set up not to autosubmit for example. 
-                $quizgrade = $DB->get_record('quiz_grades', ['quiz' => $quizinstance->id, 'userid' => $userid], '*', IGNORE_MISSING);
+                // that a record may not exist - if the quiz has been set up not to autosubmit for example.
+                $quizgrade = $DB->get_record('quiz_grades', ['quiz' => $quizinstance->id, 'userid' => $userid], '*',
+                IGNORE_MISSING);
                 if ($quizgrade) {
                     $statusobj->grade_status = get_string('status_graded', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
@@ -361,7 +362,7 @@ class quiz_activity extends base {
 
         // We also need to check if any group overrides exist for this quiz.
         // This can be achieved by getting the 'groupid' from quiz_group_attempts,
-        // using the quiz id and userid, and then using this value to get the 
+        // using the quiz id and userid, and then using this value to get the
         // entry from quiz_override settings.
         $groupquizattempts = $DB->get_record('quiz_group_attempts', ['quizid' => $quizobj->id, 'userid' => $USER->id]);
         if (!empty($groupquizattempts)) {
