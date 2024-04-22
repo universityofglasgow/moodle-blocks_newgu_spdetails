@@ -102,8 +102,11 @@ if ($strcurrentcourses != "" && $coursestype == "current") {
         // FETCH INCLUDED IN GCAT.
         $cfdvalue = 0;
         $inclgcat = "";
-        $arrcustomfield = $DB->get_record('customfield_field', ['shortname' => 'show_on_studentdashboard']);
-        $cffid = $arrcustomfield->id;
+        if ($arrcustomfield = $DB->get_record('customfield_field', ['shortname' => 'show_on_studentdashboard'])) {
+            $cffid = $arrcustomfield->id;
+        } else {
+            $cffid = 0;
+        }
 
         $arrcustomfielddata = $DB->get_record('customfield_data', ['fieldid' => $cffid, 'instanceid' => $courseid]);
 
@@ -298,8 +301,11 @@ if ($coursestype == "past") {
             // FETCH INCLUDED IN GCAT.
             $cfdvalue = 0;
             $inclgcat = "";
-            $arrcustomfield = $DB->get_record('customfield_field', ['shortname' => 'show_on_studentdashboard']);
-            $cffid = $arrcustomfield->id;
+            if ($arrcustomfield = $DB->get_record('customfield_field', ['shortname' => 'show_on_studentdashboard'])) {
+                $cffid = $arrcustomfield->id;
+            } else {
+                $cffid = 0;
+            }
 
             $arrcustomfielddata = $DB->get_record('customfield_data', ['fieldid' => $cffid, 'instanceid' => $courseid]);
 
