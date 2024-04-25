@@ -238,7 +238,7 @@ class lesson_activity extends base {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             $select = 'userid = :userid AND lessontime BETWEEN :lastmonth AND :now';
             $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $lessonsubmissions = $DB->get_records_select('lesson_timer', $select, $params, '', 'lessonid, completed');
+            $lessonsubmissions = $DB->get_records_select('lesson_timer', $select, $params, '', 'lessonid, starttime, completed');
 
             $submissionsdata = [
                 'updated' => time(),
@@ -285,7 +285,8 @@ class lesson_activity extends base {
             }
             // As well as setting just a time limit.
             if ($lessonavailable == 0) {
-                if ($timelimit > 0 && (($lessonsubmissions[$lesson->id]->starttime + $timelimit) < $now)) {
+                if (is_object($lessonsubmissions[$lesson->id]) && $timelimit > 0 &&
+                (($lessonsubmissions[$lesson->id]->starttime + $timelimit) > $now)) {
                     $obj = new \stdClass();
                     $obj->name = $lesson->name;
                     $obj->duedate = ($lessonsubmissions[$lesson->id]->starttime + $timelimit);

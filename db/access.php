@@ -32,14 +32,4 @@ $capabilities = [
         'archetypes' => [],
         'clonepermissionsfrom' => 'moodle/my:manageblocks',
     ],
-    'block/newgu_spdetails:readotherdashboard' => [
-        'riskbitmask' => RISK_PERSONAL,
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => [
-            'manager' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
-        ],
-    ],
 ];
