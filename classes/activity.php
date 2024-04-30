@@ -197,6 +197,11 @@ class activity {
 
             foreach ($tmp as $mygradesitem) {
 
+                // Are manually added grade items visible on the course page?
+                if ($mygradesitem->itemtype == 'manual') {
+                    continue;
+                }
+
                 $cm = get_coursemodule_from_instance($mygradesitem->itemmodule, $mygradesitem->iteminstance,
                 $mygradesitem->courseid, false, MUST_EXIST);
                 $modinfo = get_fast_modinfo($mygradesitem->courseid);
@@ -478,6 +483,11 @@ class activity {
             $tmp = self::sort_items($defaultitems, $sortby, $sortorder);
 
             foreach ($tmp as $defaultitem) {
+
+                // Are manually added grade items visible on the course page?
+                if ($defaultitem->itemtype == 'manual') {
+                    continue;
+                }
 
                 $cm = get_coursemodule_from_instance($defaultitem->itemmodule, $defaultitem->iteminstance, $defaultitem->courseid,
                 false, MUST_EXIST);
