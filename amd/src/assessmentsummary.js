@@ -145,6 +145,15 @@ const fetchAssessmentSummary = () => {
         args: {},
     }])[0].done(function(response) {
         document.querySelector('.loader').remove();
+        // With the 'block' now being a link in the top nav, users can still add this,
+        // either in the side drawer or to the main dashboard. Check and set the position
+        // of the legend accordingly.
+        let legendPosition = 'right';
+        if (document.querySelector('#block-region-side-pre')) {
+            if (document.querySelector('#block-region-side-pre').querySelector('.block_newgu_spdetails')) {
+                legendPosition = 'bottom';
+            }
+        }
         tempPanel.insertAdjacentHTML("afterbegin", "<canvas id='assessmentSummaryChart'\n" +
             " width='400' height='300' aria-label='Assessment Summary chart data' role='graphics-object'>\n" +
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
@@ -184,7 +193,7 @@ const fetchAssessmentSummary = () => {
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'right',
+                            position: legendPosition,
                             onClick: (event, legendItem, legend) => {
                                 if (!document.querySelector('#student_dashboard')) {
                                     viewAssessmentSummaryByChartType(event, legendItem, legend);

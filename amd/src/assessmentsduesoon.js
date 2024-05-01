@@ -165,6 +165,7 @@ const fetchAssessmentsDueSoon = () => {
                 type: 'bar',
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     indexAxis: 'y',
                     onHover: (event, chartElement) => {
                         event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
