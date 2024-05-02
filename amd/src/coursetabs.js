@@ -28,6 +28,7 @@ import * as Log from 'core/log';
 import * as Ajax from "../../../../lib/amd/src/ajax";
 import {exception as displayException} from 'core/notification';
 import Templates from 'core/templates';
+import sortTable from 'block_newgu_spdetails/sorting';
 
 const initCourseTabs = () => {
 
@@ -116,11 +117,10 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             }
             hideStatusColumn(activetab);
             let subCategories = document.querySelectorAll('.subcategory-row');
-            let sortColumns = document.querySelectorAll('.th-sortable');
+            let sortColumns = document.querySelectorAll('#category_table .th-sortable');
             subCategoryEventHandler(subCategories);
             subCategoryReturnHandler(coursedata.parent);
-            sortingEventHandler(sortColumns, activetab, page, subcategory);
-            sortingStatus(sortby, sortorder);
+            sortingEventHandler(sortColumns);
 
             // So we can allow returning to the last item correctly...
             sessionStorage.setItem('activeTab', activetab);
@@ -227,122 +227,16 @@ const subCategoryReturnHandler = (id) => {
     }
 };
 
-const sortingEventHandler = (rows, activetab, page, subcategory) => {
+/**
+ * Function to bind click handlers to row headers.
+ * @param {*} rows 
+ */
+const sortingEventHandler = (rows) => {
     if (rows.length > 0) {
         rows.forEach((element) => {
-            element.addEventListener('click', () => sortingHeaders(element, activetab, page, subcategory));
+            element.addEventListener('click', () => sortTable(element.cellIndex, element.getAttribute('data-sortby'),
+            'category_table'));
         });
-    }
-};
-
-const sortingHeaders = (object, activetab, page, subcategory) => {
-    let sortby = object.getAttribute('data-sortby');
-    let sortorder = object.getAttribute('data-value');
-    if (sortorder === null) {
-        sortorder = 'asc';
-    }
-
-    if (sortorder !== null) {
-        // Reverse the sort order in order for it to function correctly
-        if (sortorder == 'asc') {
-            sortorder = 'desc';
-        } else {
-            sortorder = 'asc';
-        }
-    }
-
-    loadAssessments(activetab, page, sortby, sortorder, true, subcategory);
-};
-
-const sortingStatus = function(sortby, sortorder) {
-    let sortByShortName = document.querySelector('#sortby_shortname');
-    let sortByFullName = document.querySelector('#sortby_fullname');
-    let sortByWeight = document.querySelector('#sortby_weight');
-    let sortByDueDate = document.querySelector('#sortby_duedate');
-    let sortByStatus = document.querySelector('#sortby_status');
-    let sortByGrade = document.querySelector('#sortby_grade');
-
-    switch (sortby) {
-        case 'shortname':
-            if (sortByShortName) {
-                if (sortorder == 'asc') {
-                    sortByShortName.classList.add('th-sort-asc');
-                    sortByShortName.classList.remove('th-sort-desc');
-                    sortByShortName.setAttribute('data-value', 'asc');
-                } else {
-                    sortByShortName.classList.add('th-sort-desc');
-                    sortByShortName.classList.remove('th-sort-asc');
-                    sortByShortName.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'fullname':
-            if (sortByFullName) {
-                if (sortorder == 'asc') {
-                    sortByFullName.classList.add('th-sort-asc');
-                    sortByFullName.classList.remove('th-sort-desc');
-                    sortByFullName.setAttribute('data-value', 'asc');
-                } else {
-                    sortByFullName.classList.add('th-sort-desc');
-                    sortByFullName.classList.remove('th-sort-asc');
-                    sortByFullName.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'weight':
-            if (sortByWeight) {
-                if (sortorder == 'asc') {
-                    sortByWeight.classList.add('th-sort-asc');
-                    sortByWeight.classList.remove('th-sort-desc');
-                    sortByWeight.setAttribute('data-value', 'asc');
-                } else {
-                    sortByWeight.classList.add('th-sort-desc');
-                    sortByWeight.classList.remove('th-sort-asc');
-                    sortByWeight.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'duedate':
-            if (sortByDueDate) {
-                if (sortorder == 'asc') {
-                    sortByDueDate.classList.add('th-sort-asc');
-                    sortByDueDate.classList.remove('th-sort-desc');
-                    sortByDueDate.setAttribute('data-value', 'asc');
-                } else {
-                    sortByDueDate.classList.add('th-sort-desc');
-                    sortByDueDate.classList.remove('th-sort-asc');
-                    sortByDueDate.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'status':
-            if (sortByStatus) {
-                if (sortorder == 'asc') {
-                    sortByStatus.classList.add('th-sort-asc');
-                    sortByStatus.classList.remove('th-sort-desc');
-                    sortByStatus.setAttribute('data-value', 'asc');
-                } else {
-                    sortByStatus.classList.add('th-sort-desc');
-                    sortByStatus.classList.remove('th-sort-asc');
-                    sortByStatus.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'grade':
-            if (sortByGrade) {
-                if (sortorder == 'asc') {
-                    sortByGrade.classList.add('th-sort-asc');
-                    sortByGrade.classList.remove('th-sort-desc');
-                    sortByGrade.setAttribute('data-value', 'asc');
-                } else {
-                    sortByGrade.classList.add('th-sort-desc');
-                    sortByGrade.classList.remove('th-sort-asc');
-                    sortByGrade.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        default:
-            break;
     }
 };
 

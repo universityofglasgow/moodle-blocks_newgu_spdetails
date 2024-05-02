@@ -30,6 +30,7 @@ import * as ajax from 'core/ajax';
 import {Chart, BarController} from 'core/chartjs';
 import {exception as displayException} from 'core/notification';
 import Templates from 'core/templates';
+import sortTable from 'block_newgu_spdetails/sorting';
 
 const Selectors = {
     DUESOON_BLOCK: '#assessmentsDueSoonContainer',
@@ -70,6 +71,8 @@ const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
         .then(({html, js}) => {
             Templates.appendNodeContents(assessmentsDueContents, html, js);
             returnToAssessmentsHandler();
+            let sortColumns = document.querySelectorAll('#assessment_data_table .th-sortable');
+            sortingEventHandler(sortColumns);
             return true;
         }).catch((error) => displayException(error));
     }).fail(function(response) {
@@ -101,6 +104,19 @@ const viewAssessmentsDueByChartType = function(chartItem, legendItem) {
             assessmentsDueContents.prepend(errorContainer);
         }
     });
+};
+
+/**
+ * Function to bind click handlers to row headers.
+ * @param {*} rows
+ */
+const sortingEventHandler = (rows) => {
+    if (rows.length > 0) {
+        rows.forEach((element) => {
+            element.addEventListener('click', () => sortTable(element.cellIndex, element.getAttribute('data-sortby'),
+            'assessment_data_table'));
+        });
+    }
 };
 
 /**

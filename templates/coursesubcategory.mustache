@@ -79,19 +79,15 @@
             <span class="subcategory-details-label">{{#str}} label_weight, block_newgu_spdetails {{/str}}</span>
             <span id="subcategory-details-weight" class="subcategory-details-value">{{#data.coursedata}}{{weight}}{{/data.coursedata}}</span>
         </div>
-        <div>
-            <span class="subcategory-details-label">{{#str}} label_grade, block_newgu_spdetails {{/str}}</span>
-            <span id="subcategory-details-grade" class="subcategory-details-grade-value"></span>
-        </div>
     </div>
 </div>
 <div id="current_subassessments" class="assessments-details-sort-container">
-    <table class="table table-striped table-responsive assessments-details-table">
+    <table id="category_table" class="table table-striped table-responsive assessments-details-table">
         <thead>
             <tr>
                 <th id="sortby_fullname" data-sortby="fullname" class="td50 th-sortable">{{#str}} header_category, block_newgu_spdetails {{/str}}</th>
-                <th class="td10">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
-                <th class="td5">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_assessmenttype" data-sortby="assessmenttype" class="td10 th-sortable">{{#str}} header_type, block_newgu_spdetails {{/str}}</th>
+                <th id="sortby_weight" data-sortby="weight" class="td5 th-sortable">{{#str}} header_weight, block_newgu_spdetails {{/str}}</th>
                 {{#data.coursedata}}
                     {{#assessmentitems.length}}
                 <th id="sortby_duedate" data-sortby="duedate" class="td10 th-sortable"{{#data.coursedata}}{{#hidestatuscol}} colspan="2"{{/hidestatuscol}}{{/data.coursedata}}>{{#str}} header_duedate, block_newgu_spdetails {{/str}}</th>
@@ -108,7 +104,11 @@
             <tr data-id="{{id}}">
                 <td class="td50 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder"></i><strong>{{name}}</strong></a></td>
                 <td class="td15 subcategory-row">{{assessment_type}}</td>
-                <td class="td5 subcategory-row" colspan="5">{{subcatweight}}</td>
+                <td class="td5 subcategory-row">{{subcatweight}}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
             {{/subcategories}}
             {{#assessmentitems}}
