@@ -66,7 +66,7 @@ class h5p_activity extends base {
      *
      * @return object
      */
-    public function get_h5passign(): object {
+    public function get_h5passign() {
         global $DB, $CFG;
 
         require_once($CFG->dirroot . '/lib/datalib.php');
@@ -141,6 +141,18 @@ class h5p_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        $dateinstance = $this->h5passign;
+        $rawdate = $dateinstance->duedate;
+
+        return $rawdate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -168,9 +180,10 @@ class h5p_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->due_date = $this->h5p;
-        $allowsubmissionsfromdate = $this->h5p;
-        $statusobj->allowlatesubmissions = $this->h5p;
+        $statusobj->due_date = $this->h5passign->due_date;
+        $statusobj->raw_due_date = $this->h5passign->duedate;
+        $allowsubmissionsfromdate = $this->h5passign;
+        $statusobj->allowlatesubmissions = $this->h5passign;
         $statusobj->grade_date = '';
 
         if ($allowsubmissionsfromdate > time()) {
@@ -181,7 +194,7 @@ class h5p_activity extends base {
 
         if ($statusobj->grade_status == '') {
             $h5psubmission = $DB->get_record('h5pactivity_attempts', [
-                'h5pactivityid' => $this->h5p->h5pactivityid,
+                'h5pactivityid' => $this->h5passign->h5pactivityid,
                 'userid' => $userid,
             ]);
 
@@ -234,8 +247,10 @@ class h5p_activity extends base {
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+            $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
             $statusobj->due_date = '';
+            $statusobj->raw_due_date = '';
         }
 
         return $statusobj;
@@ -261,8 +276,15 @@ class h5p_activity extends base {
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
 
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $select = 'userid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
+            :tnow))';
+            $params = [
+                'userid' => $USER->id,
+                'lastmonth' => $lastmonth,
+                'now' => $now,
+                'tlastmonth' => $lastmonth,
+                'tnow' => $now,
+            ];
             $h5psubmissions = $DB->get_fieldset_select('h5pactivity_attempts', 'h5pactivityid', $select, $params);
 
             $submissionsdata = [

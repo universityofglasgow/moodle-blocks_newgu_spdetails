@@ -52,6 +52,7 @@ class grade {
         $gradestatus = new \stdClass();
         $gradestatus->assessment_url = '';
         $gradestatus->due_date = '';
+        $gradestatus->raw_due_date = '';
         $gradestatus->grade_date = '';
         $gradestatus->grade_status = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
         $gradestatus->status_text = '';
@@ -68,6 +69,7 @@ class grade {
 
         if ($activitygrade) {
             $gradestatus->assessment_url = $activity->get_assessmenturl();
+            $gradestatus->raw_due_date = $activity->get_rawduedate();
             $gradestatus->due_date = $activity->get_formattedduedate();
 
             if (property_exists($activitygrade, 'finalgrade') && $activitygrade->finalgrade != null &&
@@ -113,6 +115,7 @@ class grade {
         $statusobj = $activity->get_status($userid);
         $feedbackobj = $activity->get_feedback($statusobj);
         $gradestatus->due_date = $statusobj->due_date;
+        $gradestatus->raw_due_date = $statusobj->raw_due_date;
         $gradestatus->grade_date = $statusobj->grade_date;
         $gradestatus->grade_status = $statusobj->grade_status;
         $gradestatus->status_text = $statusobj->status_text;

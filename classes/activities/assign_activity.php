@@ -156,6 +156,18 @@ class assign_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        $dateinstance = $this->assign->get_instance();
+        $rawdate = $dateinstance->duedate;
+
+        return $rawdate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -194,6 +206,7 @@ class assign_activity extends base {
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $assigninstance->duedate;
+        $statusobj->raw_due_date = $assigninstance->duedate;
         $statusobj->cutoff_date = $assigninstance->cutoffdate;
         $statusobj->markingworkflow = $assigninstance->markingworkflow;
         $statusobj->grade_date = '';
@@ -203,6 +216,7 @@ class assign_activity extends base {
         if (!empty($overrides)) {
             $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;
             $statusobj->due_date = $overrides->duedate;
+            $statusobj->raw_due_date = $overrides->duedate;
         }
 
         // This table appears to contain entries for when Marking Workflow is enabled.
@@ -210,6 +224,7 @@ class assign_activity extends base {
         if (!empty($userflags)) {
             if ($userflags->extensionduedate > 0) {
                 $statusobj->due_date = $userflags->extensionduedate;
+                $statusobj->raw_due_date = $userflags->extensionduedate;
             } else {
                 $workflowstate = $userflags->workflowstate;
             }
@@ -324,8 +339,10 @@ class assign_activity extends base {
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+            $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
             $statusobj->due_date = '';
+            $statusobj->raw_due_date = '';
         }
 
         return $statusobj;

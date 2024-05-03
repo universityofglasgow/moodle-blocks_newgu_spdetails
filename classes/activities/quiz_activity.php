@@ -162,6 +162,18 @@ class quiz_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        $dateinstance = $this->quiz->get_quiz();
+        $rawdate = $dateinstance->timeclose;
+
+        return $rawdate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -198,6 +210,7 @@ class quiz_activity extends base {
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $this->get_formattedduedate($quizinstance->timeclose);
+        $statusobj->raw_due_date = $quizinstance->timeclose;
         $statusobj->gradecolumn = false;
         $statusobj->feedbackcolumn = false;
         $statusobj->grade_date = '';
@@ -208,6 +221,7 @@ class quiz_activity extends base {
         if (!empty($overrides)) {
             $allowsubmissionsfromdate = $overrides->timeopen;
             $statusobj->due_date = $this->get_formattedduedate($overrides->timeclose);
+            $statusobj->raw_due_date = $overrides->timeclose;
         }
 
         // Check if any group overrides have been setup.
@@ -222,6 +236,7 @@ class quiz_activity extends base {
             if (!empty($groupoverrides)) {
                 $allowsubmissionsfromdate = $groupoverrides->timeopen;
                 $statusobj->due_date = $this->get_formattedduedate($groupoverrides->timeclose);
+                $statusobj->raw_due_date = $groupoverrides->timeclose;
                 $quizcloses = $groupoverrides->timeclose;
             }
         } else {
@@ -240,6 +255,7 @@ class quiz_activity extends base {
                         'userid' => $userid])) {
                         $allowsubmissionsfromdate = $groupoverride->timeopen;
                         $statusobj->due_date = $this->get_formattedduedate($groupoverride->timeclose);
+                        $statusobj->raw_due_date = $groupoverride->timeclose;
                         $quizcloses = $groupoverride->timeclose;
                     }
                 }

@@ -11,6 +11,14 @@ function sortTable(n, sortName, tableName) {
     let table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
     table = document.getElementById(tableName);
     switching = true;
+    // Sort dates using the rawdate as we can't sort correctly using text.
+    let tmp = sortName.includes('duedate');
+    let compareFunction = compareString;
+    Log.debug('sortTable called with n:' + n + '\nsortName:' + sortName + '\ncompareFunction:' + compareFunction);
+    if (tmp) {
+        compareFunction = compareNumber;
+        Log.debug('compareFunction is now:' + compareFunction);
+    }
     //Set the sorting direction to ascending:
     dir = "asc";
     /*Make a loop that will continue until
@@ -31,17 +39,27 @@ function sortTable(n, sortName, tableName) {
             /*check if the two rows should switch place,
             based on the direction, asc or desc:*/
             if (dir == "asc") {
-                if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
+                if (compareFunction(x, y, 'asc') == true) {
                     //if so, mark as a switch and break the loop:
                     shouldSwitch= true;
                     break;
                 }
+                // if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
+                //     //if so, mark as a switch and break the loop:
+                //     shouldSwitch= true;
+                //     break;
+                // }
             } else if (dir == "desc") {
-                if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
+                if (compareFunction(x, y, 'desc') == true) {
                     //if so, mark as a switch and break the loop:
-                    shouldSwitch = true;
+                    shouldSwitch= true;
                     break;
                 }
+                // if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
+                //     //if so, mark as a switch and break the loop:
+                //     shouldSwitch = true;
+                //     break;
+                // }
             }
         }
         if (shouldSwitch) {
@@ -62,6 +80,52 @@ function sortTable(n, sortName, tableName) {
     }
     sortingStatus(sortName, dir);
 }
+
+/**
+ * Function to compare two strings.
+ * The sort order is passed in also.
+ *
+ * @param {*} x
+ * @param {*} y
+ * @param {*} direction
+ * @returns
+ */
+let compareString = function (x, y, direction) {
+    if (direction == 'asc') {
+        if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
+            return true;
+        }
+        return false;
+    } else if (direction == 'desc') {
+        if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
+            return true;
+        }
+        return false;
+    }
+};
+
+/**
+ * Function to compare two dates passed in as raw unix timestamps.
+ * The sort order is passed in also.
+ *
+ * @param {*} x
+ * @param {*} y
+ * @param {*} direction
+ * @returns
+ */
+let compareNumber = function (x, y, direction) {
+    if (direction == 'asc') {
+        if (x.getAttribute('data-rawduedate') > y.getAttribute('data-rawduedate')) {
+            return true;
+        }
+        return false;
+    } else if (direction == 'desc') {
+        if (x.getAttribute('data-rawduedate') < y.getAttribute('data-rawduedate')) {
+            return true;
+        }
+        return false;
+    }
+};
 
 /**
  * Function to make UI changes to show which direction things are being sorted in.

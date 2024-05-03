@@ -134,6 +134,18 @@ class peerwork_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        $dateinstance = $this->peerwork;
+        $rawdate = $dateinstance->duedate;
+
+        return $rawdate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -169,6 +181,7 @@ class peerwork_activity extends base {
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $this->peerwork->duedate;
+        $statusobj->raw_due_date = $this->peerwork->duedate;
         $statusobj->grade_date = '';
 
         if ($allowsubmissionsfromdate > time()) {
@@ -237,8 +250,10 @@ class peerwork_activity extends base {
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+            $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
             $statusobj->due_date = '';
+            $statusobj->raw_due_date = '';
         }
 
         return $statusobj;
@@ -263,8 +278,15 @@ class peerwork_activity extends base {
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $select = 'userid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
+            :tnow))';
+            $params = [
+                'userid' => $USER->id,
+                'lastmonth' => $lastmonth,
+                'now' => $now,
+                'tlastmonth' => $lastmonth,
+                'tnow' => $now,
+            ];
             $peerworksubmissions = $DB->get_fieldset_select('peerwork_submission', 'peerworkid', $select, $params);
 
             $submissionsdata = [

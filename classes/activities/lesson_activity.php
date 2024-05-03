@@ -137,6 +137,18 @@ class lesson_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        $dateinstance = $this->lesson->deadline;
+        $rawdate = $dateinstance->duedate;
+
+        return $rawdate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -165,6 +177,7 @@ class lesson_activity extends base {
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->due_date = $this->lesson->deadline;
+        $statusobj->raw_due_date = $this->lesson->deadline;
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $allowsubmissionsfromdate = $this->lesson->available;
@@ -176,6 +189,7 @@ class lesson_activity extends base {
         if (!empty($overrides)) {
             $allowsubmissionsfromdate = $overrides->available;
             $statusobj->due_date = $overrides->deadline;
+            $statusobj->raw_due_date = $overrides->deadline;
         }
 
         if ($allowsubmissionsfromdate > time()) {
@@ -210,8 +224,10 @@ class lesson_activity extends base {
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+            $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
             $statusobj->due_date = '';
+            $statusobj->raw_due_date = '';
         }
 
         return $statusobj;
@@ -236,8 +252,15 @@ class lesson_activity extends base {
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'userid = :userid AND lessontime BETWEEN :lastmonth AND :now';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $select = 'userid = :userid AND ((lessontime BETWEEN :lastmonth AND :now) OR (lessontime BETWEEN :tlastmonth AND
+            :tnow))';
+            $params = [
+                'userid' => $USER->id,
+                'lastmonth' => $lastmonth,
+                'now' => $now,
+                'tlastmonth' => $lastmonth,
+                'tnow' => $now,
+            ];
             $lessonsubmissions = $DB->get_records_select('lesson_timer', $select, $params, '', 'lessonid, starttime, completed');
 
             $submissionsdata = [

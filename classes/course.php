@@ -659,8 +659,10 @@ class course {
                                     $item->aggregationcoef);
                                     $status = $activityitem->get_status($USER->id);
                                     $duedate = '';
+                                    $rawduedate = '';
                                     if ($assessment->duedate != 0) {
                                         $duedate = $activityitem->get_formattedduedate($assessment->duedate);
+                                        $rawduedate = $activityitem->get_rawduedate();
                                     }
                                     $tmp = [
                                         'id' => $assessment->id,
@@ -673,6 +675,7 @@ class course {
                                         'assessment_type' => $assessmenttype,
                                         'assessment_weight' => $assessmentweight,
                                         'due_date' => $duedate,
+                                        'raw_due_date' => $rawduedate,
                                         'grade_status' => $status->grade_status,
                                         'status_link' => $status->status_link,
                                         'status_class' => $status->status_class,
@@ -881,6 +884,7 @@ class course {
 
                             $status = $gradestatus->grade_status;
                             $date = '';
+                            $rawduedate = '';
 
                             if ($status == $whichstatus) {
                                 $itemicon = '';
@@ -895,10 +899,12 @@ class course {
                                         if (property_exists($gradestatus, 'grade_date') && $gradestatus->grade_date != '') {
                                             $dateobj = \DateTime::createFromFormat('U', $gradestatus->grade_date);
                                             $date = $dateobj->format('jS F Y');
+                                            $rawduedate = $gradestatus->grade_date;
                                         }
                                         break;
                                     default:
                                         $date = $gradestatus->due_date;
+                                        $rawduedate = $gradestatus->raw_due_date;
                                         break;
                                 }
 
@@ -916,6 +922,7 @@ class course {
                                     'assessment_type' => $assessmenttype,
                                     'assessment_weight' => $assessmentweight,
                                     'due_date' => $date,
+                                    'raw_due_date' => $rawduedate,
                                     'grade_status' => $gradestatus->grade_status,
                                     'status_link' => $gradestatus->status_link,
                                     'status_class' => $gradestatus->status_class,

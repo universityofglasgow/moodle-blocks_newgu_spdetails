@@ -161,6 +161,7 @@ class glossary_activity extends base {
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->grade_date = '';
+        $statusobj->raw_due_date = '';
 
         return $statusobj;
 
@@ -185,8 +186,15 @@ class glossary_activity extends base {
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'userid = :userid AND timecreated BETWEEN :lastmonth AND :now';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
+            $select = 'userid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
+            :tnow))';
+            $params = [
+                'userid' => $USER->id,
+                'lastmonth' => $lastmonth,
+                'now' => $now,
+                'tlastmonth' => $lastmonth,
+                'tnow' => $now,
+            ];
             $glossarysubmissions = $DB->get_fieldset_select('glossary_entries', 'glossaryid', $select, $params);
 
             $submissionsdata = [

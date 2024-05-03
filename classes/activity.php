@@ -193,9 +193,7 @@ class activity {
 
         if ($mygradesitems && count($mygradesitems) > 0) {
 
-            $tmp = self::sort_items($mygradesitems, $sortby, $sortorder);
-
-            foreach ($tmp as $mygradesitem) {
+            foreach ($mygradesitems as $mygradesitem) {
 
                 // Are manually added grade items visible on the course page?
                 if ($mygradesitem->itemtype == 'manual') {
@@ -227,6 +225,7 @@ class activity {
                     }
                     $assessmentweight = \block_newgu_spdetails\course::return_weight($mygradesitem->aggregationcoef);
                     $duedate = '';
+                    $rawduedate = '';
                     $gradestatus = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
                     $statuslink = '';
                     $statusclass = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
@@ -250,6 +249,7 @@ class activity {
                                 case 'RELEASED':
                                     $dateobj = \DateTime::createFromFormat('U', $cm->customdata['duedate']);
                                     $duedate = $dateobj->format('jS F Y');
+                                    $rawduedate = $cm->customdata['duedate'];
                                     $statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
                                     $statustext = get_string('status_text_graded', 'block_newgu_spdetails');
                                     // MGU-631 - Honour hidden grades and hidden activities.
@@ -285,6 +285,7 @@ class activity {
                         );
 
                         $duedate = $gradestatobj->due_date;
+                        $rawduedate = $gradestatobj->raw_due_date;
                         $gradestatus = $gradestatobj->grade_status;
                         $statuslink = $gradestatobj->status_link;
                         $statusclass = $gradestatobj->status_class;
@@ -310,6 +311,7 @@ class activity {
                         'assessment_type' => $assessmenttype,
                         'assessment_weight' => $assessmentweight,
                         'due_date' => $duedate,
+                        'raw_due_date' => $rawduedate,
                         'grade_status' => $gradestatus,
                         'status_link' => $statuslink,
                         'status_class' => $statusclass,
@@ -389,9 +391,7 @@ class activity {
 
         if ($gcatitems && count($gcatitems) > 0) {
 
-            $tmp = self::sort_items($gcatitems, $sortby, $sortorder);
-
-            foreach ($tmp as $gcatitem) {
+            foreach ($gcatitems as $gcatitem) {
 
                 // MGU-631 - GCAT seems to take care of checking if the activity item and grade is
                 // visible to the user in the API call above. The only issue is whether, for grade
@@ -432,6 +432,7 @@ class activity {
                     'assessment_type' => $gcatitem->assessmenttype,
                     'assessment_weight' => $gcatitem->weight,
                     'due_date' => $duedate->format('jS F Y'),
+                    'raw_due_date' => $gcatitem->duedate,
                     'grade_status' => get_string("status_" . $class, "block_newgu_spdetails"),
                     'status_link' => $statuslink,
                     'status_class' => $gcatitem->status->class,
@@ -480,9 +481,7 @@ class activity {
 
         if ($defaultitems && count($defaultitems) > 0) {
 
-            $tmp = self::sort_items($defaultitems, $sortby, $sortorder);
-
-            foreach ($tmp as $defaultitem) {
+            foreach ($defaultitems as $defaultitem) {
 
                 // Are manually added grade items visible on the course page?
                 if ($defaultitem->itemtype == 'manual') {
@@ -536,6 +535,7 @@ class activity {
 
                     $assessmenturl = $gradestatobj->assessment_url;
                     $duedate = $gradestatobj->due_date;
+                    $rawduedate = $gradestatobj->raw_due_date;
                     $gradestatus = $gradestatobj->grade_status;
                     $statuslink = $gradestatobj->status_link;
                     $statusclass = $gradestatobj->status_class;
@@ -557,6 +557,7 @@ class activity {
                         'assessment_type' => $assessmenttype,
                         'assessment_weight' => $assessmentweight,
                         'due_date' => $duedate,
+                        'raw_due_date' => $rawduedate,
                         'grade_status' => $gradestatus,
                         'status_link' => $statuslink,
                         'status_class' => $statusclass,
@@ -604,45 +605,6 @@ class activity {
         } else {
             return new \block_newgu_spdetails\activities\default_activity($gradeitemid, $courseid, $groupid);
         }
-    }
-
-    /**
-     * Utility function for sorting - as we're not using any fancy libraries
-     * that will do this for us, we need to manually implement this feature.
-     *
-     * @param array $itemstosort
-     * @param string $sortby
-     * @param string $sortorder
-     * @return array
-     */
-    public static function sort_items(array $itemstosort, string $sortby, string $sortorder): array {
-        switch ($sortorder) {
-            case "asc":
-                uasort($itemstosort, function($a, $b) {
-
-                    // Account for GCAT uniqueness.
-                    if (property_exists($a, 'assessmentname')) {
-                        return strcasecmp($a->assessmentname, $b->assessmentname);
-                    }
-
-                    return strcasecmp($a->itemname, $b->itemname);
-                });
-                break;
-
-            case "desc":
-                uasort($itemstosort, function($a, $b) {
-
-                    // Account for GCAT uniqueness.
-                    if (property_exists($a, 'assessmentname')) {
-                        return strcasecmp($b->assessmentname, $a->assessmentname);
-                    }
-
-                    return strcasecmp($b->itemname, $a->itemname);
-                });
-                break;
-        }
-
-        return $itemstosort;
     }
 
 }

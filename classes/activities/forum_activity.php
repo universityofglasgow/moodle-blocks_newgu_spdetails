@@ -132,6 +132,18 @@ class forum_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        $dateinstance = $this->forum;
+        $rawdate = $dateinstance->duedate;
+
+        return $rawdate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -162,6 +174,7 @@ class forum_activity extends base {
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $this->get_formattedduedate($this->forum->duedate);
+        $statusobj->raw_due_date = $this->get_rawduedate();
         $statusobj->grade_date = '';
 
         $forumsubmissions = $DB->count_records('forum_discussion_subs', ['forum' => $this->cm->instance, 'userid' => $userid]);

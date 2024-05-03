@@ -135,6 +135,7 @@ class default_activity extends base {
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = '';
+        $statusobj->raw_due_date = '';
         $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
         $statusobj->status_text = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');

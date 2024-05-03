@@ -133,6 +133,18 @@ class scorm_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        $dateinstance = $this->scorm;
+        $rawdate = $dateinstance->timeclose;
+
+        return $rawdate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -162,6 +174,7 @@ class scorm_activity extends base {
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->due_date = '';
+        $statusobj->raw_due_date = '';
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->status_text = '';
@@ -182,6 +195,7 @@ class scorm_activity extends base {
             $statusobj->status_link = '';
             $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
             $statusobj->due_date = $this->scorm->timeclose;
+            $statusobj->raw_due_date = $this->get_rawduedate();
         }
 
         if ($statusobj->grade_status == '') {
@@ -192,6 +206,7 @@ class scorm_activity extends base {
             $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
             $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
             $statusobj->due_date = $this->scorm->timeclose;
+            $statusobj->raw_due_date = $this->scorm->timeclose;
 
             if (!empty($scormsubmission) && $scormsubmission != '1') {
                 $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
@@ -208,6 +223,7 @@ class scorm_activity extends base {
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+            $statusobj->raw_due_date = $statusobj->due_date;
         } else {
             $statusobj->due_date = '';
         }

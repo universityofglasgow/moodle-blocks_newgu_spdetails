@@ -52,7 +52,7 @@ class lti_activity extends base {
 
         // Get the lti object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        // Does this exist? $this->lti = $this->get_lti($this->cm); To figure out.
+        // Does this even exist? To figure out. $this->lti = $this->get_lti($this->cm);
     }
 
     /**
@@ -130,6 +130,18 @@ class lti_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        //$dateinstance = $this->lti;
+        //$rawdate = $dateinstance->duedate;
+
+        return 0;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -158,13 +170,16 @@ class lti_activity extends base {
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->due_date = time();
+        $statusobj->raw_due_date = time();
         $statusobj->grade_date = '';
 
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+            $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
             $statusobj->due_date = '';
+            $statusobj->raw_due_date = '';
         }
 
         return $statusobj;

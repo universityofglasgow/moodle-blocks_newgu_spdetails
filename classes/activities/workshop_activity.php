@@ -140,6 +140,18 @@ class workshop_activity extends base {
     }
 
     /**
+     * Return the due date as the unix timestamp.
+     *
+     * @return int
+     */
+    public function get_rawduedate(): int {
+        $dateinstance = $this->workshop;
+        $rawdate = $dateinstance->submissionend;
+
+        return $rawdate;
+    }
+
+    /**
      * Return a formatted date.
      *
      * @param int $unformatteddate
@@ -171,15 +183,19 @@ class workshop_activity extends base {
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->grade_date = '';
+        $statusobj->due_date = '';
+        $statusobj->raw_due_date = '';
 
         switch ($this->gradeitem->itemnumber) {
             case 0:
                 $allowsubmissionsfromdate = $this->workshop->submissionstart;
                 $statusobj->due_date = $this->workshop->submissionend;
+                $statusobj->raw_due_date = $this->workshop->submissionend;
             break;
             case 1:
                 $allowsubmissionsfromdate = $this->workshop->assessmentstart;
                 $statusobj->due_date = $this->workshop->assessmentend;
+                $statusobj->raw_due_date = $this->workshop->submissionend;
             break;
         }
 
@@ -244,8 +260,10 @@ class workshop_activity extends base {
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+            $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
             $statusobj->due_date = '';
+            $statusobj->raw_due_date = '';
         }
 
         return $statusobj;
@@ -270,11 +288,14 @@ class workshop_activity extends base {
 
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'authorid = :userid AND timecreated BETWEEN :lastmonth AND :now';
+            $select = 'authorid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
+            :tnow))';
             $params = [
                 'userid' => $USER->id,
                 'lastmonth' => $lastmonth,
                 'now' => $now,
+                'tlastmonth' => $lastmonth,
+                'tnow' => $now,
             ];
             $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'id', $select, $params);
 
@@ -293,6 +314,8 @@ class workshop_activity extends base {
             $cachedata = $cache->get_many([$cachekey]);
             $workshopsubmissions = $cachedata[$cachekey][0]['workshopsubmissions'];
         }
+
+        $workshop = $this->workshop;
 
         if (!in_array($workshop->id, $workshopsubmissions)) {
 
