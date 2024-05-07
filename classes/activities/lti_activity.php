@@ -52,7 +52,7 @@ class lti_activity extends base {
 
         // Get the lti object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        // Does this even exist? To figure out. $this->lti = $this->get_lti($this->cm);
+        // Does this even exist? To figure out. $this->lti = $this->get_lti($this->cm);.
     }
 
     /**
@@ -135,9 +135,6 @@ class lti_activity extends base {
      * @return int
      */
     public function get_rawduedate(): int {
-        //$dateinstance = $this->lti;
-        //$rawdate = $dateinstance->duedate;
-
         return 0;
     }
 
@@ -169,8 +166,8 @@ class lti_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->due_date = time();
-        $statusobj->raw_due_date = time();
+        $statusobj->due_date = 0;
+        $statusobj->raw_due_date = 0;
         $statusobj->grade_date = '';
 
         // Formatting this here as the integer format for the date is no longer needed for testing against.

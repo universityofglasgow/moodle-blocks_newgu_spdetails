@@ -1,5 +1,3 @@
-import * as Log from 'core/log';
-
 /**
  * Function to sort a table by column name and which direction.
  *
@@ -12,12 +10,9 @@ function sortTable(n, sortName, tableName) {
     table = document.getElementById(tableName);
     switching = true;
     // Sort dates using the rawdate as we can't sort correctly using text.
-    let tmp = sortName.includes('duedate');
     let compareFunction = compareString;
-    Log.debug('sortTable called with n:' + n + '\nsortName:' + sortName + '\ncompareFunction:' + compareFunction);
-    if (tmp) {
+    if (sortName.includes('date') == true || sortName.includes('weight') == true) {
         compareFunction = compareNumber;
-        Log.debug('compareFunction is now:' + compareFunction);
     }
     //Set the sorting direction to ascending:
     dir = "asc";
@@ -44,22 +39,12 @@ function sortTable(n, sortName, tableName) {
                     shouldSwitch= true;
                     break;
                 }
-                // if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
-                //     //if so, mark as a switch and break the loop:
-                //     shouldSwitch= true;
-                //     break;
-                // }
             } else if (dir == "desc") {
                 if (compareFunction(x, y, 'desc') == true) {
                     //if so, mark as a switch and break the loop:
                     shouldSwitch= true;
                     break;
                 }
-                // if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
-                //     //if so, mark as a switch and break the loop:
-                //     shouldSwitch = true;
-                //     break;
-                // }
             }
         }
         if (shouldSwitch) {
@@ -85,9 +70,9 @@ function sortTable(n, sortName, tableName) {
  * Function to compare two strings.
  * The sort order is passed in also.
  *
- * @param {*} x
- * @param {*} y
- * @param {*} direction
+ * @param {string} x
+ * @param {string} y
+ * @param {string} direction
  * @returns
  */
 let compareString = function (x, y, direction) {
@@ -108,19 +93,21 @@ let compareString = function (x, y, direction) {
  * Function to compare two dates passed in as raw unix timestamps.
  * The sort order is passed in also.
  *
- * @param {*} x
- * @param {*} y
- * @param {*} direction
+ * @param {string} x
+ * @param {string} y
+ * @param {string} direction
  * @returns
  */
 let compareNumber = function (x, y, direction) {
+    let attXName = x.getAttributeNames().filter((attName) => { return attName.includes('data');});
+    let attYName = y.getAttributeNames().filter((attName) => { return attName.includes('data');});
     if (direction == 'asc') {
-        if (x.getAttribute('data-rawduedate') > y.getAttribute('data-rawduedate')) {
+        if (Number(x.getAttribute(attXName[0])) > Number(y.getAttribute(attYName[0]))) {
             return true;
         }
         return false;
     } else if (direction == 'desc') {
-        if (x.getAttribute('data-rawduedate') < y.getAttribute('data-rawduedate')) {
+        if (Number(x.getAttribute(attXName[0])) < Number(y.getAttribute(attYName[0]))) {
             return true;
         }
         return false;
@@ -134,7 +121,6 @@ let compareNumber = function (x, y, direction) {
  * @param {string} sortorder
  */
 function sortingStatus(sortby, sortorder) {
-    Log.debug('sort:' + sortby + ' order:' + sortorder);
     let sortByShortName = document.querySelector('#sortby_shortname');
     let sortByFullName = document.querySelector('#sortby_fullname');
     let sortByType = document.querySelector('#sortby_assessmenttype');

@@ -80,7 +80,7 @@ class activity {
         // The weight for this grade (sub)category is derived from the aggregation
         // coefficient value of the grade item, only if it's been set in the gradebook however.
         $weight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
-        $coursedata['weight'] = $weight;
+        $coursedata['weight'] = $weight . '%';
 
         // We don't need the status column for past courses.
         $coursedata['hidestatuscol'] = (($activetab == 'past') ? true : false);
@@ -309,7 +309,8 @@ class activity {
                         'icon_alt' => $iconalt,
                         'item_name' => $mygradesitem->itemname,
                         'assessment_type' => $assessmenttype,
-                        'assessment_weight' => $assessmentweight,
+                        'assessment_weight' => $assessmentweight . '%',
+                        'raw_assessment_weight' => $assessmentweight,
                         'due_date' => $duedate,
                         'raw_due_date' => $rawduedate,
                         'grade_status' => $gradestatus,
@@ -555,7 +556,8 @@ class activity {
                         'icon_alt' => $iconalt,
                         'item_name' => $defaultitem->itemname,
                         'assessment_type' => $assessmenttype,
-                        'assessment_weight' => $assessmentweight,
+                        'assessment_weight' => $assessmentweight . '%',
+                        'raw_assessment_weight' => $assessmentweight,
                         'due_date' => $duedate,
                         'raw_due_date' => $rawduedate,
                         'grade_status' => $gradestatus,

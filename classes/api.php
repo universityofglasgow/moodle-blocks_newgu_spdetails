@@ -184,12 +184,12 @@ class api extends \external_api {
     /**
      * Retrieves Parent category ids
      *
-     * @param string $courseids
+     * @param array $courseids
      * @return array $ids
      * @throws dml_exception
      * @deprecated - no longer used.
      */
-    public static function retrieve_parent_category($courseids) {
+    public static function retrieve_parent_category(array $courseids): array {
         global $DB;
 
         $courses = implode(', ', $courseids);

@@ -59,7 +59,9 @@ class course {
                     $startdate = \DateTime::createFromFormat('U', $course->startdate);
                     $enddate = \DateTime::createFromFormat('U', $course->enddate);
                     $coursedata['startdate'] = $startdate->format('jS F Y');
+                    $coursedata['raw_startdate'] = $course->startdate;
                     $coursedata['enddate'] = $enddate->format('jS F Y');
+                    $coursedata['raw_enddate'] = $course->enddate;
                 }
                 $subcatdata = [];
                 if (isset($course->firstlevel) && count($course->firstlevel) > 0) {
@@ -76,7 +78,8 @@ class course {
                             'id' => $subcatid,
                             'name' => $subcatname,
                             'assessmenttype' => $assessmenttype,
-                            'subcatweight' => $subcatweight,
+                            'subcatweight' => $subcatweight . '%',
+                            'raw_category_weight' => $subcatweight,
                         ];
                     }
                 } else {
@@ -92,7 +95,8 @@ class course {
                                     'id' => $gradecategory->id,
                                     'name' => $course->fullname,
                                     'assessmenttype' => $assessmenttype,
-                                    'subcatweight' => $subcatweight,
+                                    'subcatweight' => $subcatweight . '%',
+                                    'raw_category_weight' => $subcatweight,
                                 ];
                             }
                         }
@@ -146,10 +150,10 @@ class course {
         // is an array of objects containing the necessary property/key
         // which ^can^ get sorted and returned in the correct order needed
         // by the mustache engine. @todo!
-        $tmp2 = self::sort_items($tmp, $sortorder);
-        foreach ($tmp2 as $sortedarray) {
-            $mygradessubcatdata[] = $sortedarray;
-        }
+        // $tmp2 = self::sort_items($tmp, $sortorder);
+        // foreach ($tmp2 as $sortedarray) {
+        //     $mygradessubcatdata[] = $sortedarray;
+        // }
 
         return $mygradessubcatdata;
     }
@@ -245,10 +249,10 @@ class course {
         // is an array of objects containing the necessary property/key
         // which ^can^ get sorted and returned in the correct order needed
         // by the mustache engine. @todo!
-        $tmp2 = self::sort_items($tmp, $sortorder);
-        foreach ($tmp2 as $sortedarray) {
-            $defaultsubcatdata[] = $sortedarray;
-        }
+        // $tmp2 = self::sort_items($tmp, $sortorder);
+        // foreach ($tmp2 as $sortedarray) {
+        //     $defaultsubcatdata[] = $sortedarray;
+        // }
 
         return $defaultsubcatdata;
     }
@@ -338,11 +342,11 @@ class course {
      * @see https://gla.sharepoint.com/:w:/s/GCATUpgradeProjectTeam/EVDsT68UetZMn8Ug5ISb394BfYLW_MwcyMI7RF0JAC38PQ?e=BOofAS
      *
      * @param float $aggregationcoef
-     * @return string Weight (in percentage), or '—' if empty
+     * @return int Weight (as a percentage), or '—' if empty
      */
-    public static function return_weight(float $aggregationcoef): string {
+    public static function return_weight(float $aggregationcoef): int {
         $weight = (($aggregationcoef > 1) ? $aggregationcoef : $aggregationcoef * 100);
-        $finalweight = ($weight > 0) ? round($weight, 2) . '%' : get_string('emptyvalue', 'block_newgu_spdetails');
+        $finalweight = ($weight > 0) ? round($weight, 2) : 0;
 
         return $finalweight;
     }
@@ -673,7 +677,8 @@ class course {
                                         'icon_alt' => $iconalt,
                                         'item_name' => $assessment->name,
                                         'assessment_type' => $assessmenttype,
-                                        'assessment_weight' => $assessmentweight,
+                                        'assessment_weight' => $assessmentweight . '%',
+                                        'raw_assessment_weight' => $assessmentweight,
                                         'due_date' => $duedate,
                                         'raw_due_date' => $rawduedate,
                                         'grade_status' => $status->grade_status,
@@ -920,7 +925,8 @@ class course {
                                     'icon_alt' => $iconalt,
                                     'item_name' => $activityitem->itemname,
                                     'assessment_type' => $assessmenttype,
-                                    'assessment_weight' => $assessmentweight,
+                                    'assessment_weight' => $assessmentweight . '%',
+                                    'raw_assessment_weight' => $assessmentweight,
                                     'due_date' => $date,
                                     'raw_due_date' => $rawduedate,
                                     'grade_status' => $gradestatus->grade_status,

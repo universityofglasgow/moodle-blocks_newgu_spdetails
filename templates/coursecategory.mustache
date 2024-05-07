@@ -80,12 +80,12 @@
                 <td class="td{{^startdate}}15{{/startdate}}{{#startdate}}10{{/startdate}}"><a href="{{courseurl}}">{{coursename}}</a></td>
                 <td class="td60 subcategory-row"><a href="#"><i class="icon fa fa-fw  fa-sharp fa-solid fa-folder"></i><strong>{{name}}</strong></a></td>
                 <td class="td15">{{assessmenttype}}</td>
-                <td class="td{{^startdate}}15{{/startdate}}{{#startdate}}05{{/startdate}}">{{subcatweight}}</td>
+                <td class="td{{^startdate}}15{{/startdate}}{{#startdate}}05{{/startdate}}" data-rawcategoryweight="{{raw_category_weight}}">{{subcatweight}}</td>
                 {{#startdate}}
-                <td class="td15">{{startdate}}</td>
+                <td class="td15" data-rawstartdate="{{raw_startdate}}">{{startdate}}</td>
                 {{/startdate}}
                 {{#enddate}}
-                <td class="td15">{{enddate}}</td>
+                <td class="td15" data-rawenddate="{{raw_enddate}}">{{enddate}}</td>
                 {{/enddate}}
             </tr>
             {{/subcategories}}
