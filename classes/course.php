@@ -139,7 +139,8 @@ class course {
             $subcat->id = $obj->category->id;
             $subcat->name = $obj->category->fullname;
             $subcat->assessment_type = $assessmenttype;
-            $subcat->subcatweight = $subcatweight;
+            $subcat->subcatweight = $subcatweight . '%';
+            $subcat->raw_category_weight = $subcatweight;
 
             $tmp[] = $subcat;
         }
@@ -150,10 +151,10 @@ class course {
         // is an array of objects containing the necessary property/key
         // which ^can^ get sorted and returned in the correct order needed
         // by the mustache engine. @todo!
-        // $tmp2 = self::sort_items($tmp, $sortorder);
-        // foreach ($tmp2 as $sortedarray) {
-        //     $mygradessubcatdata[] = $sortedarray;
-        // }
+        $tmp2 = self::sort_items($tmp, $sortorder);
+        foreach ($tmp2 as $sortedarray) {
+            $mygradessubcatdata[] = $sortedarray;
+        }
 
         return $mygradessubcatdata;
     }
@@ -189,7 +190,8 @@ class course {
             $subcat->id = $gcatcategory->category->id;
             $subcat->name = $gcatcategory->category->fullname;
             $subcat->assessment_type = $assessmenttype;
-            $subcat->subcatweight = $subcatweight;
+            $subcat->subcatweight = $subcatweight . '%';
+            $subcat->raw_category_weight = $subcatweight;
 
             // We have an array of 'items' at this point - which we can use to work out the overall grade
             // for each (sub)category - which should then give us an overall grade for all sub categories
@@ -238,7 +240,8 @@ class course {
             $subcat->id = $obj->category->id;
             $subcat->name = $obj->category->fullname;
             $subcat->assessment_type = $assessmenttype;
-            $subcat->subcatweight = $subcatweight;
+            $subcat->subcatweight = $subcatweight . '%';
+            $subcat->raw_category_weight = $subcatweight;
 
             $tmp[] = $subcat;
         }
@@ -249,10 +252,10 @@ class course {
         // is an array of objects containing the necessary property/key
         // which ^can^ get sorted and returned in the correct order needed
         // by the mustache engine. @todo!
-        // $tmp2 = self::sort_items($tmp, $sortorder);
-        // foreach ($tmp2 as $sortedarray) {
-        //     $defaultsubcatdata[] = $sortedarray;
-        // }
+        $tmp2 = self::sort_items($tmp, $sortorder);
+        foreach ($tmp2 as $sortedarray) {
+            $defaultsubcatdata[] = $sortedarray;
+        }
 
         return $defaultsubcatdata;
     }

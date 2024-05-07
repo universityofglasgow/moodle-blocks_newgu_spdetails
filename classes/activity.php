@@ -432,6 +432,7 @@ class activity {
                     'item_name' => $gcatitem->assessmentname,
                     'assessment_type' => $gcatitem->assessmenttype,
                     'assessment_weight' => $gcatitem->weight,
+                    'raw_assessment_weight' => $gcatitem->weight,
                     'due_date' => $duedate->format('jS F Y'),
                     'raw_due_date' => $gcatitem->duedate,
                     'grade_status' => get_string("status_" . $class, "block_newgu_spdetails"),
