@@ -659,7 +659,10 @@ class course {
                                     $iconalt = '';
                                     if ($iconurl = $cm->get_icon_url()->out(false)) {
                                         $itemicon = $iconurl;
-                                        $iconalt = $cm->get_module_type_name();
+                                        $a = new \stdClass();
+                                        $a->modulename = get_string('modulename', $item->itemmodule);
+                                        $a->activityname = $cm->name;
+                                        $iconalt = get_string('icon_alt_text', 'block_newgu_spdetails', $a);
                                     }
                                     $assessmentweight = self::return_weight($item->aggregationcoef);
                                     $assessmenttype = self::return_assessmenttype($course->fullname,
@@ -899,7 +902,10 @@ class course {
                                 $iconalt = '';
                                 if ($iconurl = $cm->get_icon_url()->out(false)) {
                                     $itemicon = $iconurl;
-                                    $iconalt = $cm->get_module_type_name();
+                                    $a = new \stdClass();
+                                    $a->modulename = get_string('modulename', $activityitem->itemmodule);
+                                    $a->activityname = $cm->name;
+                                    $iconalt = get_string('icon_alt_text', 'block_newgu_spdetails', $a);
                                 }
 
                                 switch($charttype) {
