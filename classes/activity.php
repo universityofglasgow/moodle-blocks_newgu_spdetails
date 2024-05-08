@@ -94,6 +94,7 @@ class activity {
         $activitiesdata['subcategories'] : '');
         $coursedata['assessmentitems'] = ((array_key_exists('assessmentitems', $activitiesdata)) ?
         $activitiesdata['assessmentitems'] : '');
+        $coursedata['hasdata'] = ((!empty($coursedata['assessmentitems']) || !empty($coursedata['subcategories']) ? true : false)); 
         $activitydata['coursedata'] = $coursedata;
 
         return $activitydata;

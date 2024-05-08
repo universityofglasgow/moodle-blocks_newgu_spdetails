@@ -83,6 +83,7 @@ $string['unauthorised'] = 'Unauthorised access';
 $string['noduedate'] = 'No Due Date';
 $string['gradetype'] = 'Grade';
 $string['nocoursesfound'] = 'There were no courses found.';
+$string['noactivitiesfound'] = 'There were no activities or categories found.';
 $string['noassessmentfound'] = 'No assessment found.';
 $string['header_assessment'] = 'Assessment';
 $string['header_assessmentsdue'] = 'Assessments due in the next: {$a}';

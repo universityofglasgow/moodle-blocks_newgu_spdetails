@@ -82,6 +82,12 @@
     </div>
 </div>
 <div id="current_subassessments" class="assessments-details-sort-container">
+    {{^data.coursedata.hasdata}}
+    <div class="alert alert-warning" role="alert">
+    {{#str}} noactivitiesfound, block_newgu_spdetails {{/str}}
+    </div>
+    {{/data.coursedata.hasdata}}
+    {{#data.coursedata.hasdata}}
     <table id="category_table" class="table table-striped table-responsive assessments-details-table">
         <thead>
             <tr>
@@ -155,4 +161,5 @@
             <a target='_blank' href='{{data.excel_link}}'><i style='padding-left:20px; color:green;' class='fa fa-file-excel-o fa-2x' aria-hidden='true'></i></a>
         </div>
     </div>
+    {{/data.coursedata.hasdata}}
 </div>
