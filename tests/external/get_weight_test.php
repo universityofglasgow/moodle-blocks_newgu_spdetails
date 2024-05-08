@@ -38,15 +38,15 @@ class get_weight_test extends \block_newgu_spdetails\external\newgu_spdetails_ad
 
     public function test_return_weight() {
         $aggregationcoef = 10;
-        $expected1 = round($aggregationcoef, 2).'%';
+        $expected1 = round($aggregationcoef, 2);
         $this->assertEquals($expected1, $this->courseapi->return_weight($aggregationcoef));
 
         $aggregationcoef = 1;
-        $expected2 = round($aggregationcoef * 100, 2).'%';
+        $expected2 = round($aggregationcoef * 100, 2);
         $this->assertEquals($expected2, $this->courseapi->return_weight($aggregationcoef));
 
         $aggregationcoef = 0;
-        $expected3 = '—';
+        $expected3 = 0;
         $this->assertEquals($expected3, $this->courseapi->return_weight($aggregationcoef));
     }
 }

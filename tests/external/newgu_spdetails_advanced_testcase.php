@@ -69,19 +69,109 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
     protected $activityapi;
 
     /**
-     * @var obejct $mygradescourse
-     */
-    protected $mygradescourse;
-
-    /**
      * @var object $gcatcourse
      */
     protected $gcatcourse;
 
     /**
+     * @var object $gcat_summativecategory
+     */
+    protected $gcat_summativecategory;
+
+    /**
+     * @var object $gcat_summative_subcategory
+     */
+    protected $gcat_summative_subcategory;
+
+    /**
+     * @var object $gcat_formativecategory
+     */
+    protected $gcat_formativecategory;
+
+    /**
+     * @var object $assignment1
+     */
+    protected $assignment1;
+
+    /**
+     * @var object $assignment2
+     */
+    protected $assignment2;
+
+    /**
+     * @var object $assignment3
+     */
+    protected $assignment3;
+
+    /**
+     * @var obejct $mygradescourse
+     */
+    protected $mygradescourse;
+
+    /**
+     * @var object $mygrades_summativecategory
+     */
+    protected $mygrades_summativecategory;
+
+    /**
+     * @var object $mygrades_summative_subcategory
+     */
+    protected $mygrades_summative_subcategory;
+
+    /**
+     * var @object $mygrades_summative_subcategory2
+     */
+    protected $mygrades_summative_subcategory2;
+
+    /**
+     * @var object $mygrades_formativecategory
+     */
+    protected $mygrades_formativecategory;
+
+    /**
+     * @var object $assignment4
+     */
+    protected $assignment4;
+
+    /**
+     * @var object $assignment5
+     */
+    protected $assignment5;
+
+    /**
+     * @var object $assignment6
+     */
+    protected $assignment6;
+
+    /**
      * @var object $gradebookcourse
      */
     protected $gradebookcourse;
+
+    /**
+     * @var object $gradebookcategory
+     */
+    protected $gradebookcategory;
+
+    /**
+     * @var object $assignment7
+     */
+    protected $assignment7;
+
+    /**
+     * @var object $course_past
+     */
+    protected $course_past;
+
+    /**
+     * @var object $summativecategory_past
+     */
+    protected $summativecategory_past;
+
+    /**
+     * @var object $assignment_past
+     */
+    protected $assignment_past;
 
     /**
      * Get gradeitemid

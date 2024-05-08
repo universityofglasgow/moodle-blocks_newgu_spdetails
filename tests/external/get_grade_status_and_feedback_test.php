@@ -57,20 +57,27 @@ class get_grade_status_and_feedback_test extends \block_newgu_spdetails\external
 
         // Check for the raw grade/provisional on the first assignment.
         $this->assertArrayHasKey('grade_provisional', $gcatgradeditems['coursedata']['assessmentitems'][0]);
-        $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
+        // Check that this item hasn't been graded yet.
+        $this->assertFalse($gcatgradeditems['coursedata']['assessmentitems'][0]['grade_class']);
+        $this->assertFalse($gcatgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
         // Check for the feedback.
         $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'),
         $gcatgradeditems['coursedata']['assessmentitems'][0]['grade_feedback']);
+
+        // The second item should have a Provisional grade
+        $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][1]['grade_class']);
+        $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][1]['grade_provisional']);
 
         // Check for an overridden grade.
         // Check for the feedback.
 
         // Check for the final grade.
         $this->assertArrayHasKey('grade_class', $gcatgradeditems['coursedata']['assessmentitems'][1]);
-        $this->assertFalse($gcatgradeditems['coursedata']['assessmentitems'][1]['grade_provisional']);
+        $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][2]['grade_class']);
+        $this->assertFalse($gcatgradeditems['coursedata']['assessmentitems'][2]['grade_provisional']);
         // Check for the feedback.
         $this->assertStringContainsString(get_string('readfeedback', 'block_gu_spdetails'),
-        $gcatgradeditems['coursedata']['assessmentitems'][1]['grade_feedback']);
+        $gcatgradeditems['coursedata']['assessmentitems'][2]['grade_feedback']);
     }
 
     /**
@@ -126,19 +133,19 @@ class get_grade_status_and_feedback_test extends \block_newgu_spdetails\external
 
         // Check for the raw grade/provisional on the first assignment.
         $this->assertArrayHasKey('grade_provisional', $gradebookgradeditems['coursedata']['assessmentitems'][0]);
-        $this->assertTrue($gradebookgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
+        $this->assertTrue($gradebookgradeditems['coursedata']['assessmentitems'][1]['grade_provisional']);
         // Check for the feedback.
         $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'),
-        $gradebookgradeditems['coursedata']['assessmentitems'][0]['grade_feedback']);
+        $gradebookgradeditems['coursedata']['assessmentitems'][1]['grade_feedback']);
 
         // Check for an overridden grade.
         // Check for the feedback.
 
         // Check for the final grade.
         $this->assertArrayHasKey('grade_class', $gradebookgradeditems['coursedata']['assessmentitems'][1]);
-        $this->assertFalse($gradebookgradeditems['coursedata']['assessmentitems'][1]['grade_provisional']);
+        $this->assertFalse($gradebookgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
         // Check for the feedback.
         $this->assertStringContainsString(get_string('status_text_viewfeedback', 'block_newgu_spdetails'),
-        $gradebookgradeditems['coursedata']['assessmentitems'][1]['grade_feedback']);
+        $gradebookgradeditems['coursedata']['assessmentitems'][0]['grade_feedback']);
     }
 }

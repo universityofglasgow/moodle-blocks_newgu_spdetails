@@ -50,6 +50,6 @@ class get_course_structure_test extends \block_newgu_spdetails\external\newgu_sp
         $this->assertArrayHasKey('subcategories', $returned['coursedata'][0]);
         $this->assertEquals($this->gcat_summativecategory->fullname, $returned['coursedata'][0]['subcategories'][0]['name']);
         $this->assertEquals('Summative', $returned['coursedata'][0]['subcategories'][0]['assessmenttype']);
-        $this->assertEquals('—', $returned['coursedata'][0]['subcategories'][0]['subcatweight']);
+        $this->assertEquals('0%', $returned['coursedata'][0]['subcategories'][0]['subcatweight']);
     }
 }
