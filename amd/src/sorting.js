@@ -1,7 +1,8 @@
 /**
- * Function to sort a table by column name and which direction.
+ * Function to sort a table by column name and in which direction to sort items.
+ * Inspiration provided by https://www.w3schools.com/howto/howto_js_sort_table.asp
  *
- * @param {int} n
+ * @param {int} n - the column number to sort the rows by
  * @param {string} sortName
  * @param {string} tableName
  */
@@ -9,19 +10,21 @@ function sortTable(n, sortName, tableName) {
     let table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
     table = document.getElementById(tableName);
     switching = true;
-    // Sort dates using the rawdate as we can't sort correctly using text.
+    // Begin by assuming the column is of type string
     let compareFunction = compareString;
+    // We're now including a 'raw' value for dates and weights to be sorted by.
     if (sortName.includes('date') == true || sortName.includes('weight') == true) {
         compareFunction = compareNumber;
     }
     //Set the sorting direction to ascending:
     dir = "asc";
+    // Moving this here as not sure repeatedly calling this inside the loop is efficient.
+    rows = table.rows;
     /*Make a loop that will continue until
     no switching has been done:*/
     while (switching) {
         //start by saying: no switching is done:
         switching = false;
-        rows = table.rows;
         /*Loop through all table rows (except the
         first, which contains table headers):*/
         for (i = 1; i < (rows.length - 1); i++) {
@@ -67,7 +70,7 @@ function sortTable(n, sortName, tableName) {
 }
 
 /**
- * Function to compare two strings.
+ * Function to compare two strings. This was previously using innerHTML but proved too slow.
  * The sort order is passed in also.
  *
  * @param {string} x
@@ -90,8 +93,9 @@ let compareString = function (x, y, direction) {
 };
 
 /**
- * Function to compare two dates passed in as raw unix timestamps.
- * The sort order is passed in also.
+ * Function to compare two numbers. This was previously just dates but now extended
+ * to include weight values.
+ * The sort order (direction) is used to determine in which direction we are comparing.
  *
  * @param {string} x
  * @param {string} y
@@ -121,242 +125,22 @@ let compareNumber = function (x, y, direction) {
  * @param {string} sortorder
  */
 function sortingStatus(sortby, sortorder) {
-    let sortByShortName = document.querySelector('#sortby_shortname');
-    let sortByFullName = document.querySelector('#sortby_fullname');
-    let sortByType = document.querySelector('#sortby_assessmenttype');
-    let sortByWeight = document.querySelector('#sortby_weight');
-    let sortByStartDate = document.querySelector('#sortby_startdate');
-    let sortByEndDate = document.querySelector('#sortby_enddate');
-    let sortByDueDate = document.querySelector('#sortby_duedate');
-    let sortByStatus = document.querySelector('#sortby_status');
-    let sortByGrade = document.querySelector('#sortby_grade');
-
-    let sortByShortName2 = document.querySelector('#sortby_shortname2');
-    let sortByFullName2 = document.querySelector('#sortby_fullname2');
-    let sortByType2 = document.querySelector('#sortby_assessmenttype2');
-    let sortByWeight2 = document.querySelector('#sortby_weight2');
-    let sortByDueDate2 = document.querySelector('#sortby_duedate2');
-    let sortByStatus2 = document.querySelector('#sortby_status2');
+    let sortElement = document.querySelector('#sortby_' + sortby);
     let excludeElement = '';
-
-    switch (sortby) {
-        case 'shortname':
-            if (sortByShortName) {
-                excludeElement = sortByShortName;
-                if (sortorder == 'asc') {
-                    sortByShortName.classList.add('th-sort-asc');
-                    sortByShortName.classList.remove('th-sort-desc');
-                    sortByShortName.setAttribute('data-value', 'asc');
-                } else {
-                    sortByShortName.classList.add('th-sort-desc');
-                    sortByShortName.classList.remove('th-sort-asc');
-                    sortByShortName.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'fullname':
-            if (sortByFullName) {
-                excludeElement = sortByFullName;
-                if (sortorder == 'asc') {
-                    sortByFullName.classList.add('th-sort-asc');
-                    sortByFullName.classList.remove('th-sort-desc');
-                    sortByFullName.setAttribute('data-value', 'asc');
-                } else {
-                    sortByFullName.classList.add('th-sort-desc');
-                    sortByFullName.classList.remove('th-sort-asc');
-                    sortByFullName.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'assessmenttype':
-            if (sortByType) {
-                excludeElement = sortByType;
-                if (sortorder == 'asc') {
-                    sortByType.classList.add('th-sort-asc');
-                    sortByType.classList.remove('th-sort-desc');
-                    sortByType.setAttribute('data-value', 'asc');
-                } else {
-                    sortByType.classList.add('th-sort-desc');
-                    sortByType.classList.remove('th-sort-asc');
-                    sortByType.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'weight':
-            if (sortByWeight) {
-                excludeElement = sortByWeight;
-                if (sortorder == 'asc') {
-                    sortByWeight.classList.add('th-sort-asc');
-                    sortByWeight.classList.remove('th-sort-desc');
-                    sortByWeight.setAttribute('data-value', 'asc');
-                } else {
-                    sortByWeight.classList.add('th-sort-desc');
-                    sortByWeight.classList.remove('th-sort-asc');
-                    sortByWeight.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'duedate':
-            if (sortByDueDate) {
-                excludeElement = sortByDueDate;
-                if (sortorder == 'asc') {
-                    sortByDueDate.classList.add('th-sort-asc');
-                    sortByDueDate.classList.remove('th-sort-desc');
-                    sortByDueDate.setAttribute('data-value', 'asc');
-                } else {
-                    sortByDueDate.classList.add('th-sort-desc');
-                    sortByDueDate.classList.remove('th-sort-asc');
-                    sortByDueDate.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'startdate':
-            if (sortByStartDate) {
-                excludeElement = sortByStartDate;
-                if (sortorder == 'asc') {
-                    sortByStartDate.classList.add('th-sort-asc');
-                    sortByStartDate.classList.remove('th-sort-desc');
-                    sortByStartDate.setAttribute('data-value', 'asc');
-                } else {
-                    sortByStartDate.classList.add('th-sort-desc');
-                    sortByStartDate.classList.remove('th-sort-asc');
-                    sortByStartDate.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'enddate':
-        if (sortByEndDate) {
-            excludeElement = sortByEndDate;
-            if (sortorder == 'asc') {
-                sortByEndDate.classList.add('th-sort-asc');
-                sortByEndDate.classList.remove('th-sort-desc');
-                sortByEndDate.setAttribute('data-value', 'asc');
-            } else {
-                sortByEndDate.classList.add('th-sort-desc');
-                sortByEndDate.classList.remove('th-sort-asc');
-                sortByEndDate.setAttribute('data-value', 'desc');
-            }
+    if (sortElement) {
+        excludeElement = sortElement;
+        if (sortorder == 'asc') {
+            sortElement.classList.add('th-sort-asc');
+            sortElement.classList.remove('th-sort-desc');
+            sortElement.setAttribute('data-value', 'asc');
+        } else {
+            sortElement.classList.add('th-sort-desc');
+            sortElement.classList.remove('th-sort-asc');
+            sortElement.setAttribute('data-value', 'desc');
         }
-        break;
-        case 'status':
-            if (sortByStatus) {
-                excludeElement = sortByStatus;
-                if (sortorder == 'asc') {
-                    sortByStatus.classList.add('th-sort-asc');
-                    sortByStatus.classList.remove('th-sort-desc');
-                    sortByStatus.setAttribute('data-value', 'asc');
-                } else {
-                    sortByStatus.classList.add('th-sort-desc');
-                    sortByStatus.classList.remove('th-sort-asc');
-                    sortByStatus.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'grade':
-            if (sortByGrade) {
-                excludeElement = sortByGrade;
-                if (sortorder == 'asc') {
-                    sortByGrade.classList.add('th-sort-asc');
-                    sortByGrade.classList.remove('th-sort-desc');
-                    sortByGrade.setAttribute('data-value', 'asc');
-                } else {
-                    sortByGrade.classList.add('th-sort-desc');
-                    sortByGrade.classList.remove('th-sort-asc');
-                    sortByGrade.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-
-
-
-        case 'shortname2':
-            if (sortByShortName2) {
-                excludeElement = sortByShortName2;
-                if (sortorder == 'asc') {
-                    sortByShortName2.classList.add('th-sort-asc');
-                    sortByShortName2.classList.remove('th-sort-desc');
-                    sortByShortName2.setAttribute('data-value', 'asc');
-                } else {
-                    sortByShortName2.classList.add('th-sort-desc');
-                    sortByShortName2.classList.remove('th-sort-asc');
-                    sortByShortName2.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'fullname2':
-            if (sortByFullName2) {
-                excludeElement = sortByFullName2;
-                if (sortorder == 'asc') {
-                    sortByFullName2.classList.add('th-sort-asc');
-                    sortByFullName2.classList.remove('th-sort-desc');
-                    sortByFullName2.setAttribute('data-value', 'asc');
-                } else {
-                    sortByFullName2.classList.add('th-sort-desc');
-                    sortByFullName2.classList.remove('th-sort-asc');
-                    sortByFullName2.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'assessmenttype2':
-            if (sortByType2) {
-                excludeElement = sortByType2;
-                if (sortorder == 'asc') {
-                    sortByType2.classList.add('th-sort-asc');
-                    sortByType2.classList.remove('th-sort-desc');
-                    sortByType2.setAttribute('data-value', 'asc');
-                } else {
-                    sortByType2.classList.add('th-sort-desc');
-                    sortByType2.classList.remove('th-sort-asc');
-                    sortByType2.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'weight2':
-            if (sortByWeight2) {
-                excludeElement = sortByWeight2;
-                if (sortorder == 'asc') {
-                    sortByWeight2.classList.add('th-sort-asc');
-                    sortByWeight2.classList.remove('th-sort-desc');
-                    sortByWeight2.setAttribute('data-value', 'asc');
-                } else {
-                    sortByWeight2.classList.add('th-sort-desc');
-                    sortByWeight2.classList.remove('th-sort-asc');
-                    sortByWeight2.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'duedate2':
-            if (sortByDueDate2) {
-                excludeElement = sortByDueDate2;
-                if (sortorder == 'asc') {
-                    sortByDueDate2.classList.add('th-sort-asc');
-                    sortByDueDate2.classList.remove('th-sort-desc');
-                    sortByDueDate2.setAttribute('data-value', 'asc');
-                } else {
-                    sortByDueDate2.classList.add('th-sort-desc');
-                    sortByDueDate2.classList.remove('th-sort-asc');
-                    sortByDueDate2.setAttribute('data-value', 'desc');
-                }
-            }
-            break;
-        case 'status2':
-            if (sortByStatus2) {
-                excludeElement = sortByStatus2;
-                if (sortorder == 'asc') {
-                    sortByStatus2.classList.add('th-sort-asc');
-                    sortByStatus2.classList.remove('th-sort-desc');
-                    sortByStatus2.setAttribute('data-value', 'asc');
-                } else {
-                    sortByStatus2.classList.add('th-sort-desc');
-                    sortByStatus2.classList.remove('th-sort-asc');
-                    sortByStatus2.setAttribute('data-value', 'desc');
-                }
-            }
-        break;
-        default:
-            break;
     }
 
+    // Find everything that is not the thing we've just clicked and reset its position.
     if (excludeElement != '') {
         let elId = excludeElement.id;
         let els = document.querySelectorAll(".th-sortable:not(#" + elId + ")");

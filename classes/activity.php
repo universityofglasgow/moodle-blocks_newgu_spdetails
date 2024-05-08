@@ -358,31 +358,6 @@ class activity {
     string $activetab, string $assessmenttype, string $sortby, string $sortorder): array {
         global $DB, $CFG;
 
-        /**
-         * Use the grade category id, get from grade_items where iteminstance=gc.categoryid (check gc.id=167)
-         * and courseid=? and itemtype = category get from grade_grades where itemid = 167 and userid = ? - dig
-         * out the rest and pass to sanitize_recordss this should give us the overall grade for this category.
-         */
-        /**
-         * $item = $DB->get_record('grade_items', ['iteminstance' => $subcategory, 'itemtype' => 'category'], '*', MUST_EXIST);
-         * $gradeitem = $DB->get_record('grade_grades', ['itemid' => $item->id, 'userid' => $userid], '*', MUST_EXIST);
-         * $gradeitem->id = $subcategory;
-         * $gradeitem->courseid = $item->courseid;
-         * $gradeitem->gradetype = $item->gradetype;
-         * $gradeitem->grademin = $item->grademin;
-         * $gradeitem->grademax = $item->grademax;
-         * $gradeitem->gradeinformation = $gradeitem->information;
-         * $gradeitem->gradingduedate = 0;
-         * $gradeitem->duedate = 0;
-         * $gradeitem->cutoffdate = 0;
-         * $gradeitem->scale = $item->scaleid;
-         * $gradeitem->convertedgradeid = '';
-         * $gradeitem->provisionalgrade = '';
-         * $gradeitem->status = $item->itemtype;
-         * $gradeitem->idnumber = $item->idnumber;
-         * $gradeitem->outcomeid = $item->outcomeid;
-         */
-
         // Here we are simply deferring to GCAT's API to return assignments and their status and grade.
         require_once($CFG->dirroot. '/blocks/gu_spdetails/lib.php');
         // Course fullname isn't referenced in the query, it's known as coursetitle - find and replace for now.
@@ -410,6 +385,7 @@ class activity {
                 // With no knowledge of the itemmodule, we can't set an icon, yet.
                 $itemicon = '';
                 $iconalt = '';
+                $assessmentweight = (($gcatitem->weight != get_string('emptyvalue', 'block_newgu_spdetails')) ? $gcatitem->weight : 0);
                 $duedate = \DateTime::createFromFormat('U', $gcatitem->duedate);
                 $class = (isset($gcatitem->status->class) ? $gcatitem->status->statustext : 'unavailable');
                 $assessmenturl = $gcatitem->assessmenturl->out(true);
@@ -431,8 +407,8 @@ class activity {
                     'icon_alt' => $iconalt,
                     'item_name' => $gcatitem->assessmentname,
                     'assessment_type' => $gcatitem->assessmenttype,
-                    'assessment_weight' => $gcatitem->weight,
-                    'raw_assessment_weight' => $gcatitem->weight,
+                    'assessment_weight' => $assessmentweight . '%',
+                    'raw_assessment_weight' => $assessmentweight,
                     'due_date' => $duedate->format('jS F Y'),
                     'raw_due_date' => $gcatitem->duedate,
                     'grade_status' => get_string("status_" . $class, "block_newgu_spdetails"),
