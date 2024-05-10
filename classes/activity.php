@@ -96,7 +96,7 @@ class activity {
         $activitiesdata['subcategories'] : '');
         $coursedata['assessmentitems'] = ((array_key_exists('assessmentitems', $activitiesdata)) ?
         $activitiesdata['assessmentitems'] : '');
-        $coursedata['hasdata'] = ((!empty($coursedata['assessmentitems']) || !empty($coursedata['subcategories']) ? true : false)); 
+        $coursedata['hasdata'] = ((!empty($coursedata['assessmentitems']) || !empty($coursedata['subcategories']) ? true : false));
         $activitydata['coursedata'] = $coursedata;
 
         return $activitydata;
@@ -233,8 +233,9 @@ class activity {
                     $modinfo = get_fast_modinfo($mygradesitem->courseid);
                     $cm = $modinfo->get_cm($cm->id);
 
-                    // MGU-631 - Honour hidden grades and hidden activities. Having discussed with HM, if the activity is hidden, don't
-                    // show it full stop. This code may not be correct -if- it should only hide the grade if either condition is true.
+                    // MGU-631 - Honour hidden grades and hidden activities. Having discussed with HM, if the activity
+                    // is hidden, don't show it full stop. This code may not be correct -if- it should only hide the
+                    // grade if either condition is true.
                     if ($cm->uservisible) {
 
                         if ($mygradesitem->itemmodule == 'lti') {
@@ -417,7 +418,8 @@ class activity {
                 // With no knowledge of the itemmodule, we can't set an icon, yet.
                 $itemicon = '';
                 $iconalt = '';
-                $assessmentweight = (($gcatitem->weight != get_string('emptyvalue', 'block_newgu_spdetails')) ? $gcatitem->weight : 0);
+                $assessmentweight = (($gcatitem->weight != get_string('emptyvalue', 'block_newgu_spdetails')) ? $gcatitem->weight :
+                0);
                 $duedate = \DateTime::createFromFormat('U', $gcatitem->duedate);
                 $class = (isset($gcatitem->status->class) ? $gcatitem->status->statustext : 'unavailable');
                 $assessmenturl = $gcatitem->assessmenturl->out(true);
@@ -493,7 +495,7 @@ class activity {
 
             foreach ($defaultitems as $defaultitem) {
 
-                // Cater for manually added grade items
+                // Cater for manually added grade items.
                 if ($defaultitem->itemtype == 'manual') {
                     if ($defaultitem->hidden == 0) {
                         $tmp = [
@@ -523,8 +525,8 @@ class activity {
                     }
                 } else {
 
-                    $cm = get_coursemodule_from_instance($defaultitem->itemmodule, $defaultitem->iteminstance, $defaultitem->courseid,
-                    false, MUST_EXIST);
+                    $cm = get_coursemodule_from_instance($defaultitem->itemmodule, $defaultitem->iteminstance,
+                    $defaultitem->courseid, false, MUST_EXIST);
                     $modinfo = get_fast_modinfo($defaultitem->courseid);
                     $cm = $modinfo->get_cm($cm->id);
 
