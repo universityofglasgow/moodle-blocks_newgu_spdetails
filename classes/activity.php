@@ -25,7 +25,16 @@
 
 namespace block_newgu_spdetails;
 
-use block_newgu_spdetails;
+use local_gugrades\api;
+use \block_newgu_spdetails\activities\default_activity;
+use block_newgu_spdetails\course;
+use block_newgu_spdetails\grade;
+use grade_category;
+use grade_item;
+
+require_once($CFG->libdir . '/grade/constants.php');
+require_once($CFG->libdir . '/grade/grade_category.php');
+require_once($CFG->libdir . '/grade/grade_item.php');
 
 define('ITEM_URL', $CFG->wwwroot . '/');
 define('ITEM_SCRIPT', '/view.php?id=');
@@ -57,8 +66,8 @@ class activity {
         // I need the parent of the parent in order to be able to always
         // step 'up' a level. \local_gugrades\grades::get_activitytree only
         // gives me the parent id, which breaks our mechanism.
-        $subcat = \grade_category::fetch(['id' => $subcategory]);
-        $parent = \grade_category::fetch(['id' => $subcat->parent]);
+        $subcat = grade_category::fetch(['id' => $subcategory]);
+        $parent = grade_category::fetch(['id' => $subcat->parent]);
         if ($parent->parent == null) {
             $parentid = 0;
         } else {
@@ -74,14 +83,14 @@ class activity {
 
         // The assessment type is derived from the parent - which works only
         // as long as the parent name contains 'Formative' or 'Summative'.
-        if (!$item = \grade_item::fetch(['courseid' => $course->id, 'iteminstance' => $subcategory, 'itemtype' => 'category'])) {
-            $item = \grade_item::fetch(['courseid' => $course->id, 'iteminstance' => $subcategory, 'itemtype' => 'course']);
+        if (!$item = grade_item::fetch(['courseid' => $course->id, 'iteminstance' => $subcategory, 'itemtype' => 'category'])) {
+            $item = grade_item::fetch(['courseid' => $course->id, 'iteminstance' => $subcategory, 'itemtype' => 'course']);
         }
-        $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($subcat->fullname, $item->aggregationcoef);
+        $assessmenttype = course::return_assessmenttype($subcat->fullname, $item->aggregationcoef);
 
         // The weight for this grade (sub)category is derived from the aggregation
         // coefficient value of the grade item, only if it's been set in the gradebook however.
-        $weight = \block_newgu_spdetails\course::return_weight($item->aggregationcoef);
+        $weight = course::return_weight($item->aggregationcoef);
         $coursedata['weight'] = $weight . '%';
 
         // We don't need the status column for past courses.
@@ -89,7 +98,7 @@ class activity {
 
         // We'll need to merge these next two arrays at some point, to allow the sorting to
         // to work on all items, rather than just by category/activity item as it currently does.
-        $activities = \local_gugrades\api::get_activities($course->id, $subcategory);
+        $activities = api::get_activities($course->id, $subcategory);
         $activitiesdata = self::process_get_activities($activities, $course->id, $subcategory, $userid, $activetab,
         $assessmenttype, $sortby, $sortorder);
         $coursedata['subcategories'] = ((array_key_exists('subcategories', $activitiesdata)) ?
@@ -121,24 +130,24 @@ class activity {
         $data = [];
 
         // We've lost all knowledge at this point of the course type - fetch it again.
-        $mygradesenabled = \block_newgu_spdetails\course::is_type_mygrades($courseid);
-        $gcatenabled = \block_newgu_spdetails\course::is_type_gcat($courseid);
+        $mygradesenabled = course::is_type_mygrades($courseid);
+        $gcatenabled = course::is_type_gcat($courseid);
 
         if ($activityitems->categories) {
             $categorydata = [];
             if ($mygradesenabled) {
-                $categorydata = \block_newgu_spdetails\course::process_mygrades_subcategories($courseid,
+                $categorydata = course::process_mygrades_subcategories($courseid,
                 $activityitems->categories,
                 $assessmenttype, $sortorder);
             }
 
             if ($gcatenabled) {
-                $categorydata = \block_newgu_spdetails\course::process_gcat_subcategories($courseid, $activityitems->categories,
+                $categorydata = course::process_gcat_subcategories($courseid, $activityitems->categories,
                 $assessmenttype, $sortorder);
             }
 
             if (!$mygradesenabled && !$gcatenabled) {
-                $categorydata = \block_newgu_spdetails\course::process_default_subcategories($courseid, $activityitems->categories,
+                $categorydata = course::process_default_subcategories($courseid, $activityitems->categories,
                 $assessmenttype, $sortorder);
             }
 
@@ -255,7 +264,7 @@ class activity {
                             $a->activityname = $cm->name;
                             $iconalt = get_string('icon_alt_text', 'block_newgu_spdetails', $a);
                         }
-                        $assessmentweight = \block_newgu_spdetails\course::return_weight($mygradesitem->aggregationcoef);
+                        $assessmentweight = course::return_weight($mygradesitem->aggregationcoef);
                         $duedate = '';
                         $rawduedate = '';
                         $gradestatus = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
@@ -286,8 +295,8 @@ class activity {
                                         $statustext = get_string('status_text_graded', 'block_newgu_spdetails');
                                         // MGU-631 - Honour hidden grades and hidden activities.
                                         $isgradehidden = \local_gugrades\api::is_grade_hidden($mygradesitem->id, $USER->id);
-                                        $grade = (($isgradehidden) ? get_string('status_text_tobeconfirmed', 'block_newgu_spdetails') :
-                                        $usergrade->displaygrade);
+                                        $grade = (($isgradehidden) ? get_string('status_text_tobeconfirmed',
+                                        'block_newgu_spdetails') : $usergrade->displaygrade);
                                         $gradestatus = get_string('status_graded', 'block_newgu_spdetails');
                                         if (!$isgradehidden) {
                                             $gradeclass = true;
@@ -305,7 +314,7 @@ class activity {
                             // MyGrades data hasn't been imported OR released yet, revert to getting the data from Gradebook.
                             // By default, items that have been graded will appear - however, if Marking Workflow has been
                             // enabled - we need to consider the grade display options as dictated by those settings.
-                            $gradestatobj = \block_newgu_spdetails\grade::get_grade_status_and_feedback($mygradesitem->courseid,
+                            $gradestatobj = grade::get_grade_status_and_feedback($mygradesitem->courseid,
                                 $mygradesitem->id,
                                 $mygradesitem->itemmodule,
                                 $mygradesitem->iteminstance,
@@ -551,7 +560,7 @@ class activity {
                             $a->activityname = $cm->name;
                             $iconalt = get_string('icon_alt_text', 'block_newgu_spdetails', $a);
                         }
-                        $assessmentweight = \block_newgu_spdetails\course::return_weight($defaultitem->aggregationcoef);
+                        $assessmentweight = course::return_weight($defaultitem->aggregationcoef);
                         $grade = '';
                         $gradeclass = false;
                         $gradeprovisional = false;
@@ -562,7 +571,7 @@ class activity {
                         $gradefeedback = '';
                         $gradefeedbacklink = '';
 
-                        $gradestatobj = \block_newgu_spdetails\grade::get_grade_status_and_feedback($defaultitem->courseid,
+                        $gradestatobj = grade::get_grade_status_and_feedback($defaultitem->courseid,
                                 $defaultitem->id,
                                 $defaultitem->itemmodule,
                                 $defaultitem->iteminstance,
@@ -644,7 +653,7 @@ class activity {
         if (class_exists($classname)) {
             return new $classname($gradeitemid, $courseid, $groupid);
         } else {
-            return new \block_newgu_spdetails\activities\default_activity($gradeitemid, $courseid, $groupid);
+            return new default_activity($gradeitemid, $courseid, $groupid);
         }
     }
 

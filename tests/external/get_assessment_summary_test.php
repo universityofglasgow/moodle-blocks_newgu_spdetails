@@ -29,6 +29,8 @@
 
 namespace block_newgu_spdetails\external;
 
+use core_external\external_api;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -49,7 +51,7 @@ class get_assessment_summary_test extends \block_newgu_spdetails\external\newgu_
 
         // Check that our stats values are returned as expected.
         $stats = get_assessmentsummary::execute();
-        $stats = \external_api::clean_returnvalue(
+        $stats = external_api::clean_returnvalue(
             get_assessmentsummary::execute_returns(),
             $stats
         );
@@ -69,7 +71,7 @@ class get_assessment_summary_test extends \block_newgu_spdetails\external\newgu_
 
         // Check that our stats values are returned as expected.
         $stats = get_assessmentsummary::execute();
-        $stats = \external_api::clean_returnvalue(
+        $stats = external_api::clean_returnvalue(
             get_assessmentsummary::execute_returns(),
             $stats
         );
@@ -87,7 +89,7 @@ class get_assessment_summary_test extends \block_newgu_spdetails\external\newgu_
 
         // Check that our stats values are returned as expected.
         $stats = get_assessmentsummary::execute();
-        $stats = \external_api::clean_returnvalue(
+        $stats = external_api::clean_returnvalue(
             get_assessmentsummary::execute_returns(),
             $stats
         );
@@ -105,7 +107,7 @@ class get_assessment_summary_test extends \block_newgu_spdetails\external\newgu_
 
         // Check that our stats values are returned as expected.
         $stats = get_assessmentsummary::execute();
-        $stats = \external_api::clean_returnvalue(
+        $stats = external_api::clean_returnvalue(
             get_assessmentsummary::execute_returns(),
             $stats
         );
@@ -123,7 +125,7 @@ class get_assessment_summary_test extends \block_newgu_spdetails\external\newgu_
 
         // Check that our stats values are returned as expected.
         $stats = get_assessmentsummary::execute();
-        $stats = \external_api::clean_returnvalue(
+        $stats = external_api::clean_returnvalue(
             get_assessmentsummary::execute_returns(),
             $stats
         );

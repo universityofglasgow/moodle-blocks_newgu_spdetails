@@ -91,7 +91,7 @@ class quiz_activity extends base {
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
-        global $DB, $USER;
+        global $CFG, $DB, $USER;
 
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
@@ -106,6 +106,7 @@ class quiz_activity extends base {
 
         if ($attempts) {
             // Work out if we can display the grade, taking account what data is available in each attempt.
+            require_once($CFG->dirroot . '/mod/quiz/locallib.php');
             list($someoptions, $alloptions) = quiz_get_combined_reviewoptions($this->quiz->get_quiz(), $attempts);
             $activitygrade->gradecolumn = $someoptions->marks >= \question_display_options::MARK_AND_MAX &&
             quiz_has_grades($this->quiz->get_quiz());

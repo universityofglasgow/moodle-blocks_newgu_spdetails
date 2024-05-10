@@ -27,12 +27,11 @@
 
 namespace block_newgu_spdetails\external;
 
-use external_api;
-use external_function_parameters;
-use external_multiple_structure;
-use external_single_structure;
-use external_value;
-use cache;
+use core_external\external_api;
+use core_external\external_function_parameters;
+use core_external\external_multiple_structure;
+use core_external\external_single_structure;
+use core_external\external_value;
 
 /**
  * This class provides the web service description for returning an assessment summary.
@@ -55,7 +54,6 @@ class get_assessmentsummary extends external_api {
      * @return array of assessment summary statistics
      */
     public static function execute(): array {
-        global $USER;
 
         $assessmentsummary = \block_newgu_spdetails\api::get_assessmentsummary();
         $totalsubmissions = $assessmentsummary['total_submissions'];

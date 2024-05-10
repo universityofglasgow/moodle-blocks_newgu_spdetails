@@ -25,12 +25,11 @@
 
 namespace block_newgu_spdetails\external;
 
-use external_api;
-use external_function_parameters;
-use external_multiple_structure;
-use external_single_structure;
-use external_value;
-use cache;
+use core_external\external_api;
+use core_external\external_function_parameters;
+use core_external\external_multiple_structure;
+use core_external\external_single_structure;
+use core_external\external_value;
 
 /**
  * This class provides the web service description for returning assessments that are due in the near future.
@@ -58,7 +57,6 @@ class get_assessmentsduesoon extends external_api {
      * @throws \invalid_parameter_exception
      */
     public static function execute(): array {
-        global $USER;
 
         $assessmentsduesoon = \block_newgu_spdetails\api::get_assessmentsduesoon();
         $twentyfourhours = $assessmentsduesoon['24hours'];

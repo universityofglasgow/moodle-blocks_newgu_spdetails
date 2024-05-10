@@ -27,19 +27,20 @@ namespace block_newgu_spdetails;
 
 use context_course;
 use context_system;
+use core_external\external_api;
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->libdir . '/externallib.php');
-require_once($CFG->dirroot . '/grade/lib.php');
-require_once($CFG->libdir . '/gradelib.php');
+//require_once($CFG->libdir . '/externallib.php');
+//require_once($CFG->dirroot . '/grade/lib.php');
+//require_once($CFG->libdir . '/gradelib.php');
 
 define('NUM_ASSESSMENTS_PER_PAGE', 12);
 
 /**
  * This class provides the API for the plugin.
  */
-class api extends \external_api {
+class api extends external_api {
 
     /**
      * This method returns the processed list of gradable activities.

@@ -37,9 +37,15 @@ require_once($CFG->dirroot .'/blocks/newgu_spdetails/block_newgu_spdetails.php')
 class block_newgu_spdetails_test extends \advanced_testcase {
 
     /**
+     * @var object $spdetails
+     */
+    protected $spdetails;
+
+    /**
      * Called before every test
      */
-    protected function setUp(): void {
+    protected function setUp(): void
+    {
         $this->resetAfterTest(true);
         $spdetails = new \block_newgu_spdetails();
 

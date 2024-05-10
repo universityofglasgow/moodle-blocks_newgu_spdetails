@@ -25,6 +25,8 @@
 
 namespace block_newgu_spdetails\external;
 
+use core_external\external_api;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -49,7 +51,7 @@ class get_assessments_due_soon_test extends \block_newgu_spdetails\external\newg
 
         // Check that our stats values are returned as expected.
         $stats = get_assessmentsduesoon::execute();
-        $stats = \external_api::clean_returnvalue(
+        $stats = external_api::clean_returnvalue(
             get_assessmentsduesoon::execute_returns(),
             $stats
         );
