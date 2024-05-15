@@ -293,22 +293,7 @@ class course {
      * @return bool
      */
     public static function is_type_mygrades(int $courseid): bool {
-        global $DB;
-
-        $mygradesenabled = false;
-        $sqlname = $DB->sql_compare_text('name');
-        $sql = "SELECT * FROM {local_gugrades_config}
-            WHERE courseid = :courseid
-            AND $sqlname = :name
-            AND value = :value";
-        $params = [
-            'courseid' => $courseid,
-            'name' => 'enabledashboard',
-            'value' => 1,
-        ];
-        if ($DB->record_exists_sql($sql, $params)) {
-            $mygradesenabled = true;
-        }
+        $mygradesenabled = \local_gugrades\api::is_mygrades_enabled_for_course($courseid);
 
         return $mygradesenabled;
     }

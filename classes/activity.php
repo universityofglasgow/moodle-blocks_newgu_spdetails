@@ -364,34 +364,28 @@ class activity {
                             'courseid' => $mygradesitem->courseid,
                             'gradeitemid' => $mygradesitem->id,
                             'userid' => $USER->id,
+                            'gradetype' => 'RELEASED',
                             'iscurrent' => 1,
                         ];
                         if ($usergrades = $DB->get_records('local_gugrades_grade', $params)) {
                             // Swap all of this for the relevant mygrades API calls - if/when one exists.
                             foreach ($usergrades as $usergrade) {
-                                switch ($usergrade->gradetype) {
-                                    case 'RELEASED':
-                                        $dateobj = \DateTime::createFromFormat('U', $cm->customdata['duedate']);
-                                        $duedate = $dateobj->format('jS F Y');
-                                        $rawduedate = $cm->customdata['duedate'];
-                                        $statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
-                                        $statustext = get_string('status_text_graded', 'block_newgu_spdetails');
-                                        // MGU-631 - Honour hidden grades and hidden activities.
-                                        $isgradehidden = \local_gugrades\api::is_grade_hidden($mygradesitem->id, $USER->id);
-                                        $grade = (($isgradehidden) ? get_string('status_text_tobeconfirmed',
-                                        'block_newgu_spdetails') : $usergrade->displaygrade);
-                                        $gradestatus = get_string('status_graded', 'block_newgu_spdetails');
-                                        if (!$isgradehidden) {
-                                            $gradeclass = true;
-                                            $gradefeedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
-                                            $gradefeedbacklink = $assessmenturl . '#page-footer';
-                                        }
-                                        break;
-
-                                    case 'PROVISIONAL':
-                                        $gradeprovisional = true;
-                                        break;
+                                $dateobj = \DateTime::createFromFormat('U', $cm->customdata['duedate']);
+                                $duedate = $dateobj->format('jS F Y');
+                                $rawduedate = $cm->customdata['duedate'];
+                                $statusclass = get_string('status_class_graded', 'block_newgu_spdetails');
+                                $statustext = get_string('status_text_graded', 'block_newgu_spdetails');
+                                // MGU-631 - Honour hidden grades and hidden activities.
+                                $isgradehidden = \local_gugrades\api::is_grade_hidden($mygradesitem->id, $USER->id);
+                                $grade = (($isgradehidden) ? get_string('status_text_tobeconfirmed',
+                                'block_newgu_spdetails') : $usergrade->displaygrade);
+                                $gradestatus = get_string('status_graded', 'block_newgu_spdetails');
+                                if (!$isgradehidden) {
+                                    $gradeclass = true;
+                                    $gradefeedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
+                                    $gradefeedbacklink = $assessmenturl . '#page-footer';
                                 }
+                                break;
                             }
                         } else {
                             // MyGrades data hasn't been imported OR released yet, revert to getting the data from Gradebook.
