@@ -130,6 +130,8 @@ class grade {
     }
 
     /**
+     * Get the grade, status and feedback values for a manually added grade item.
+     *
      * @param int $courseid
      * @param int $itemid
      * @param int $userid

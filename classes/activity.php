@@ -257,7 +257,7 @@ class activity {
                                     'grade_feedback_link' => $gradefeedbacklink,
                                     'mygradesenabled' => 'true',
                                 ];
-                                
+
                                 $mygradesdata[] = $tmp;
                             }
                         }
@@ -312,7 +312,7 @@ class activity {
                                     'grade_feedback_link' => $gradefeedbacklink,
                                     'mygradesenabled' => 'true',
                                 ];
-                                
+
                                 $mygradesdata[] = $tmp;
                             }
                         }
@@ -641,7 +641,7 @@ class activity {
                                 'grade_feedback_link' => $gradefeedbacklink,
                                 'gradebookenabled' => 'true',
                             ];
-            
+
                             $defaultdata[] = $tmp;
                         }
                     }
@@ -732,7 +732,7 @@ class activity {
                             'grade_feedback_link' => $gradefeedbacklink,
                             'gradebookenabled' => 'true',
                         ];
-        
+
                         $defaultdata[] = $tmp;
                     }
                 }
