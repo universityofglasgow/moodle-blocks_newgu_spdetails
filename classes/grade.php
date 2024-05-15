@@ -130,6 +130,62 @@ class grade {
     }
 
     /**
+     * @param int $courseid
+     * @param int $itemid
+     * @param int $userid
+     * @param int $gradetype
+     * @param int $scaleid
+     * @param int $grademax
+     * @return object
+     */
+    public static function get_manual_grade_item_grade_status_and_feedback(int $courseid, int $itemid, int $userid, int $gradetype,
+    int $scaleid = null, int $grademax): object {
+
+        global $DB, $CFG;
+
+        $gradestatus = new \stdClass();
+        $gradestatus->hidden = 0;
+        $gradestatus->assessment_url = '';
+        $gradestatus->due_date = '';
+        $gradestatus->raw_due_date = '';
+        $gradestatus->grade_date = '';
+        $gradestatus->grade_status = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
+        $gradestatus->status_text = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $gradestatus->status_class = '';
+        $gradestatus->status_link = '';
+        $gradestatus->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $gradestatus->grade_class = false;
+        $gradestatus->grade_provisional = false;
+        $gradestatus->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $gradestatus->grade_feedback_link = '';
+        $grade = $DB->get_record_sql('
+            SELECT finalgrade, hidden FROM {grade_grades} WHERE itemid = :itemid AND userid = :userid',
+            [
+                'itemid' => $itemid,
+                'userid' => $userid,
+            ]);
+        if ($grade) {
+            if ($grade->hidden == 1) {
+                $gradestatus->hidden = 1;
+            } else {
+                if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                    $manualgrade = self::get_formatted_grade_from_grade_type($grade->finalgrade, $gradetype, $scaleid, $grademax);
+                    $gradestatus->grade_to_display = $manualgrade;
+                    $gradestatus->grade_status = get_string('status_graded', 'block_newgu_spdetails');
+                    $gradestatus->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
+                    $gradestatus->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
+                    $gradestatus->grade_feedback = get_string('status_text_viewfeedback', 'block_newgu_spdetails');
+                    $gradestatus->grade_feedback_link = $CFG->wwwroot . '/grade/report/index.php?id=' . $courseid;
+                }
+            }
+
+            return $gradestatus;
+        }
+
+        return $gradestatus;
+    }
+
+    /**
      * This method returns the grade using the format that was set
      * in the Assessment settings page, i.e. Point, Scale or None.
      *
@@ -165,18 +221,6 @@ class grade {
         }
 
         return $returngrade;
-    }
-
-    /**
-     * Stub method.
-     * For the Overall Grade heading on the dashboard.
-     * Needs to work at each category level.
-     *
-     * @param array $gradableitems
-     * @return array
-     */
-    public static function get_overall_grade(array $gradableitems): array {
-        return [];
     }
 
     /**

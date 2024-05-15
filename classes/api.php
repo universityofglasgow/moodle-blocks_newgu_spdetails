@@ -29,12 +29,6 @@ use context_course;
 use context_system;
 use core_external\external_api;
 
-defined('MOODLE_INTERNAL') || die;
-
-//require_once($CFG->libdir . '/externallib.php');
-//require_once($CFG->dirroot . '/grade/lib.php');
-//require_once($CFG->libdir . '/gradelib.php');
-
 define('NUM_ASSESSMENTS_PER_PAGE', 12);
 
 /**
