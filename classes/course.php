@@ -748,8 +748,6 @@ class course {
 
                             $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($activityitem->courseid,
                                 $activityitem->id,
-                                $activityitem->itemmodule,
-                                $activityitem->iteminstance,
                                 $USER->id,
                                 $activityitem->gradetype,
                                 $activityitem->scaleid,
@@ -869,8 +867,6 @@ class course {
                             // Get the activity based on its type...
                             $gradestatus = \block_newgu_spdetails\grade::get_grade_status_and_feedback($activityitem->courseid,
                                 $activityitem->id,
-                                $activityitem->itemmodule,
-                                $activityitem->iteminstance,
                                 $USER->id,
                                 $activityitem->gradetype,
                                 $activityitem->scaleid,

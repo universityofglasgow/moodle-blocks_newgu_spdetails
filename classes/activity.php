@@ -393,8 +393,6 @@ class activity {
                             // enabled - we need to consider the grade display options as dictated by those settings.
                             $gradestatobj = grade::get_grade_status_and_feedback($mygradesitem->courseid,
                                 $mygradesitem->id,
-                                $mygradesitem->itemmodule,
-                                $mygradesitem->iteminstance,
                                 $USER->id,
                                 $mygradesitem->gradetype,
                                 $mygradesitem->scaleid,
@@ -686,8 +684,6 @@ class activity {
 
                         $gradestatobj = grade::get_grade_status_and_feedback($defaultitem->courseid,
                                 $defaultitem->id,
-                                $defaultitem->itemmodule,
-                                $defaultitem->iteminstance,
                                 $USER->id,
                                 $defaultitem->gradetype,
                                 $defaultitem->scaleid,

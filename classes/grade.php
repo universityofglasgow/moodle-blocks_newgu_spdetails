@@ -35,19 +35,15 @@ class grade {
      *
      * @param int $courseid
      * @param int $itemid
-     * @param string $modulename
-     * @param int $iteminstance
      * @param int $userid
      * @param int $gradetype
      * @param int $scaleid
      * @param int $grademax
-     * @param string $coursetype
+     * @param string $coursetype - this is needed by the unit tests.
      * @return object
      */
-    public static function get_grade_status_and_feedback(int $courseid, int $itemid, string $modulename, int $iteminstance,
-    int $userid, int $gradetype, int $scaleid = null, int $grademax, string $coursetype): object {
-
-        global $DB;
+    public static function get_grade_status_and_feedback(int $courseid, int $itemid, int $userid, int $gradetype,
+    int $scaleid = null, int $grademax, string $coursetype): object {
 
         $gradestatus = new \stdClass();
         $gradestatus->assessment_url = '';
