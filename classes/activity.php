@@ -388,9 +388,10 @@ class activity {
                                 break;
                             }
                         } else {
-                            // MyGrades data hasn't been imported OR released yet, revert to getting the data from Gradebook.
-                            // By default, items that have been graded will appear - however, if Marking Workflow has been
-                            // enabled - we need to consider the grade display options as dictated by those settings.
+                            // MyGrades data either hasn't been imported, OR hasn't been released yet. Revert to getting
+                            // this data from the Gradebook instead.
+                            // By default, items that have been graded (in Gradebook) will appear here - unless Marking Workflow
+                            // has been enabled. The display of the grade will then be decided based on the marking workflow state.
                             $gradestatobj = grade::get_grade_status_and_feedback($mygradesitem->courseid,
                                 $mygradesitem->id,
                                 $USER->id,

@@ -61,6 +61,7 @@ class default_activity extends base {
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
         $activitygrade->rawgrade = null;
+        $activitygrade->gradedate = null;
 
         // If the grade is overridden in the Gradebook then we can
         // revert to the base - i.e., get the grade from the Gradebook.
@@ -72,6 +73,7 @@ class default_activity extends base {
             // We want access to other properties, hence the return type...
             if ($grade->finalgrade != null && $grade->finalgrade > 0) {
                 $activitygrade->finalgrade = $grade->finalgrade;
+                $activitygrade->gradedate = $grade->timemodified;
                 return $activitygrade;
             }
 
@@ -111,7 +113,9 @@ class default_activity extends base {
     }
 
     /**
-     * Default implementation for returning the status of an assessment.
+     * Implementation for returning the status of an assessment. Given that we don't know the activity type
+     * we can only return it as 'to be confirmed' effectively - seeing as we have no other way to determine
+     * due date's and the like, which is normally derived from the submission tables.
      *
      * @param int $userid
      * @return object
@@ -121,27 +125,26 @@ class default_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->grade_status = '';
-        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-        $statusobj->due_date = '';
-        $statusobj->raw_due_date = '';
-        $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+        $statusobj->grade_status = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->status_text = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
         $statusobj->status_link = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->due_date = '';
+        $statusobj->raw_due_date = '';
         $statusobj->grade_date = '';
 
         return $statusobj;
     }
 
     /**
-     * Return the due date of the default activity if it hasn't been submitted.
+     * Returns an empty array here as we don't know the activity type, and therefore are unable
+     * to query the relevant submission table to determine the number of assessments due.
      *
      * @return array
      */
     public function get_assessmentsdue(): array {
-        $assignmentdata = [];
-        return $assignmentdata;
+        return [];
 
     }
 
