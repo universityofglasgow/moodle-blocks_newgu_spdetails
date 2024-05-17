@@ -297,8 +297,13 @@ class peerwork_activity extends base {
 
         $peerworkassignment = $this->peerwork;
 
-        if (!in_array($peerworkassignment->id, $peerworksubmissions) && $peerworkassignment->allowlatesubmissions == 0) {
-            if ($peerworkassignment->fromdate < $now) {
+        if (!in_array($peerworkassignment->id, $peerworksubmissions)) {
+            // Where allowlatesubmissions has been checked, include this in the list of things considered due.
+            if ($peerworkassignment->allowlatesubmissions == 1) {
+                $peerworkdata[] = $peerworkassignment;
+            }
+            
+            if (($peerworkassignment->allowlatesubmissions == 0) && ($peerworkassignment->fromdate < $now)) {
                 if ($peerworkassignment->duedate > $now) {
                     $peerworkdata[] = $peerworkassignment;
                 }
