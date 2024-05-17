@@ -36,6 +36,11 @@ class default_activity extends base {
     private $cm;
 
     /**
+     * @var object $defaultactivity
+     */
+    private $defaultactivity;
+
+    /**
      * For this activity, get just the basic course module info.
      *
      * @param int $gradeitemid Grade item id
@@ -45,8 +50,25 @@ class default_activity extends base {
     public function __construct(int $gradeitemid, int $courseid, int $groupid) {
         parent::__construct($gradeitemid, $courseid, $groupid);
 
-        // Get the forum object.
+        // Get the course module object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
+        $this->cm->coursemodulecontext = \context_module::instance($this->cm->id);
+        $this->defaultactivity = $this->get_defaultactivity();
+    }
+
+    /**
+     * Return a default grade item object.
+     *
+     * @return object
+     */
+    public function get_defaultactivity(): object {
+        global $DB;
+
+        $gradeitem = $DB->get_record('grade_items', [
+            'id' => $this->gradeitemid,
+        ]);
+
+        return $gradeitem;
     }
 
     /**
