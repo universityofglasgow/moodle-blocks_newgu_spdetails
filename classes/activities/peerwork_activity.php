@@ -233,7 +233,7 @@ class peerwork_activity extends base {
                         $statusobj->grade_to_display = get_string(
                             'status_text_dueby',
                             'block_newgu_spdetails',
-                            date('jS F Y', $gradestatus->due_date)
+                            date('jS F Y', $statusobj->due_date)
                         );
                     }
                 }
