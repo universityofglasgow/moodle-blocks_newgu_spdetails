@@ -140,22 +140,6 @@ class assign_activity extends base {
     }
 
     /**
-     * Return the 'Remind me to grade by' date if one exists.
-     *
-     * @return string
-     */
-    public function get_grading_duedate(): string {
-        $assigninstance = $this->assign->get_instance();
-        $gradingduedate = '';
-
-        if ($assigninstance->gradingduedate) {
-            $dateobj = \DateTime::createFromFormat('U', $assigninstance->gradingduedate);
-            $gradingduedate = $dateobj->format('jS F Y');
-        }
-        return $gradingduedate;
-    }
-
-    /**
      * Return the due date as the unix timestamp.
      *
      * @return int
