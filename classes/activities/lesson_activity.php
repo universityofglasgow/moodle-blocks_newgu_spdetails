@@ -126,24 +126,14 @@ class lesson_activity extends base {
     }
 
     /**
-     * Return the 'Remind me to grade by' date if one exists.
-     *
-     * @return string
-     */
-    public function get_grading_duedate(): string {
-        $gradingduedate = '';
-
-        return $gradingduedate;
-    }
-
-    /**
      * Return the due date as the unix timestamp.
      *
      * @return int
      */
     public function get_rawduedate(): int {
-        $dateinstance = $this->lesson->deadline;
-        $rawdate = $dateinstance->duedate;
+        
+        $dateinstance = lesson_get_user_deadline($this->courseid);
+        $rawdate = $dateinstance[$this->gradeitem->iteminstance]->userdeadline;
 
         return $rawdate;
     }
