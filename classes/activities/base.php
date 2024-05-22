@@ -239,6 +239,10 @@ abstract class base {
                     $feedbackobj->grade_feedback_link = '';
                 }
                 break;
+
+            default:
+                $feedbackobj->grade_feedback = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+                break;
         }
 
         return $feedbackobj;

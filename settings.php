@@ -15,7 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * New GU SP Details
+ * Part of the MyGrades/Student Dashboard feature.
+ *
+ * This 'feature' allows Moodle admin's to control which LTI activies should
+ * be included in the Dashboard. Point of note - on an initial install into a
+ * new system, this page should be saved first time around - this will seed
+ * the mdl_config table with the initial list of available LTI's.
+ *
  * @package    block_newgu_spdetails
  * @author     Shubhendra Diophode <shubhendra.doiphode@gmail.com>
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -26,16 +32,28 @@
 defined('MOODLE_INTERNAL') || die;
 
 if ($ADMIN->fulltree) {
-    global $DB;
+    global $DB, $CFG;
 
-    $sqlltitypes = "SELECT lt.id, lt.name, lt.course, c.fullname FROM {lti_types} lt, {course} c WHERE lt.course=c.id";
-    $arrltitypes = $DB->get_records_sql($sqlltitypes);
+    require_once $CFG->dirroot . '/mod/lti/locallib.php';
+    require_once $CFG->dirroot . '/mod/lti/lib.php';
+
+    $options = array(
+        LTI_COURSEVISIBLE_NO => get_string('show_in_course_no', 'lti'),
+        LTI_COURSEVISIBLE_PRECONFIGURED => get_string('show_in_course_preconfigured', 'lti'),
+        LTI_COURSEVISIBLE_ACTIVITYCHOOSER => get_string('show_in_course_activity_chooser', 'lti'),
+    );
+
+    // Return a list of LTI types available in the system.
+    // We are ignoring the 'coursevisible' setting which controls
+    // where those tools are available from (Activity picker etc).
+    $ltitypes = lti_get_lti_types();
 
     $settings->add(new admin_setting_heading('includeltilabel',
         get_string('includeltilabel', 'block_newgu_spdetails'), ''));
 
-    foreach ($arrltitypes as $keyltitypes) {
+    // Include the current setting in the description, someone may find this useful.
+    foreach ($ltitypes as $keyltitypes) {
         $settings->add(new admin_setting_configcheckbox('block_newgu_spdetails_include_' . $keyltitypes->id,
-        $keyltitypes->name, '' , 0));
+        $keyltitypes->name, 'Site Configuration: <strong>' . $options[$keyltitypes->coursevisible] . '</strong>' , 0));
     }
 }

@@ -156,22 +156,22 @@ class activity {
 
         if ($activityitems->items) {
             // Temp fix for working out which LTI activities to exclude...
-            $ltiinstancestoexclude = \block_newgu_spdetails\api::get_ltiinstancenottoinclude();
+            $lti_activities = \block_newgu_spdetails\api::get_lti_activities();
 
             $activitydata = [];
             if ($mygradesenabled) {
-                $activitydata = self::process_mygrades_items($activityitems->items, $activetab, $ltiinstancestoexclude,
+                $activitydata = self::process_mygrades_items($activityitems->items, $activetab, $lti_activities,
                 $assessmenttype, $sortby, $sortorder);
             }
 
             if ($gcatenabled) {
                 // We need to disregard the items we have and use the GCAT API instead...
-                $activitydata = self::process_gcat_items($subcategory, $ltiinstancestoexclude, $userid, $activetab,
+                $activitydata = self::process_gcat_items($subcategory, $lti_activities, $userid, $activetab,
                 $assessmenttype, $sortby, $sortorder);
             }
 
             if (!$mygradesenabled && !$gcatenabled) {
-                $activitydata = self::process_default_items($activityitems->items, $activetab, $ltiinstancestoexclude,
+                $activitydata = self::process_default_items($activityitems->items, $activetab, $lti_activities,
                 $assessmenttype, $sortby, $sortorder);
             }
 
@@ -191,13 +191,13 @@ class activity {
      *
      * @param array $mygradesitems
      * @param string $activetab
-     * @param array|string $ltiinstancestoexclude
+     * @param array $lti_activities
      * @param string $assessmenttype
      * @param string $sortby
      * @param string $sortorder
      * @return array
      */
-    public static function process_mygrades_items(array $mygradesitems, string $activetab, array|string $ltiinstancestoexclude,
+    public static function process_mygrades_items(array $mygradesitems, string $activetab, array $lti_activities,
     string $assessmenttype, string $sortby, string $sortorder): array {
 
         global $DB, $USER, $CFG;
@@ -329,10 +329,10 @@ class activity {
                     // is hidden, don't show it full stop. This code may not be correct -if- it should only hide the
                     // grade if either condition is true.
                     if ($cm->uservisible) {
-
+                        // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
+                        // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
                         if ($mygradesitem->itemmodule == 'lti') {
-                            if (is_array($ltiinstancestoexclude) && in_array($mygradesitem->courseid, $ltiinstancestoexclude) ||
-                            $mygradesitem->courseid == $ltiinstancestoexclude) {
+                            if (is_array($lti_activities) && !in_array($mygradesitem->iteminstance, $lti_activities)) {
                                 continue;
                             }
                         }
@@ -464,7 +464,7 @@ class activity {
      * are being done - based on how Moodle currenly does things.
      *
      * @param int $subcategory
-     * @param array|string $ltiinstancestoexclude
+     * @param array $lti_activities
      * @param int $userid
      * @param string $activetab
      * @param string $assessmenttype
@@ -472,7 +472,7 @@ class activity {
      * @param string $sortorder
      * @return array
      */
-    public static function process_gcat_items(int $subcategory, array|string $ltiinstancestoexclude, int $userid,
+    public static function process_gcat_items(int $subcategory, array $lti_activities, int $userid,
     string $activetab, string $assessmenttype, string $sortby, string $sortorder): array {
         global $DB, $CFG;
 
@@ -494,8 +494,9 @@ class activity {
 
                 // We have no knowledge of the itemmodule here - how do we get that for this check?
                 if (property_exists($gcatitem, 'itemmodule') && $gcatitem->itemmodule == 'lti') {
-                    if (is_array($ltiinstancestoexclude) && in_array($gcatitem->courseid, $ltiinstancestoexclude) ||
-                    $gcatitem->courseid == $ltiinstancestoexclude) {
+                    // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
+                    // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
+                    if (is_array($lti_activities) && in_array($gcatitem->iteminstance, $lti_activities)) {
                         continue;
                     }
                 }
@@ -564,13 +565,13 @@ class activity {
      *
      * @param array $defaultitems
      * @param string $activetab
-     * @param array|string $ltiinstancestoexclude
+     * @param array $lti_activities
      * @param string $assessmenttype
      * @param string $sortby
      * @param string $sortorder
      * @return array
      */
-    public static function process_default_items(array $defaultitems, string $activetab, array|string $ltiinstancestoexclude,
+    public static function process_default_items(array $defaultitems, string $activetab, array $lti_activities,
     string $assessmenttype, string $sortby, string $sortorder): array {
 
         global $USER;
@@ -655,10 +656,10 @@ class activity {
                     // Having discussed with HM, if the activity is hidden,
                     // don't show it full stop.
                     if ($cm->uservisible) {
-
+                        // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
+                        // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
                         if ($defaultitem->itemmodule == 'lti') {
-                            if (is_array($ltiinstancestoexclude) && in_array($defaultitem->courseid, $ltiinstancestoexclude) ||
-                            $defaultitem->courseid == $ltiinstancestoexclude) {
+                            if (is_array($lti_activities) && !in_array($defaultitem->iteminstance, $lti_activities)) {
                                 continue;
                             }
                         }

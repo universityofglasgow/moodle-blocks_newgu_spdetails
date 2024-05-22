@@ -348,18 +348,15 @@ class api extends external_api {
     }
 
     /**
-     * Method to return only LTI's that have "gradable" activities
-     * associated with them - and have been selected to be included.
+     * Method to return LTI activities selected to be included on the dashboard.
+     * These are selected via the MyGrades plugin Admin Settings page.
      *
-     * @throws dml_exception
-     * @return mixed array int
+     * @return array
      */
-    public static function get_ltiinstancenottoinclude() {
+    public static function get_lti_activities(): array {
         global $DB;
 
-        $strltitoinclude = "99999";
-        $strltinottoinclude = "99999";
-        $arrltitoinclude = $DB->get_records_sql(
+        $configvalues = $DB->get_records_sql(
             "SELECT name FROM {config} WHERE name LIKE :configname AND value = :configvalue",
             [
                 "configname" => "%block_newgu_spdetails_include_%",
@@ -367,55 +364,37 @@ class api extends external_api {
             ]
         );
 
-        $arrayltitoinclude = [];
-        foreach ($arrltitoinclude as $keyltitoinclude) {
-            $name = $keyltitoinclude->name;
-            $namepieces = explode("block_newgu_spdetails_include_", $name);
-            $ltitype = $namepieces[1];
-            $arrayltitoinclude[] = $ltitype;
+        if (!$configvalues) {
+            return [];
         }
 
-        $strltitoinclude = implode(",", $arrayltitoinclude);
-
-        if ($strltitoinclude == "") {
-            $strltitoinclude = "99999";
+        $config_lti_types = [];
+        foreach ($configvalues as $config_lti) {
+            $name = $config_lti->name;
+            $name_pieces = explode("block_newgu_spdetails_include_", $name);
+            $lti_type = $name_pieces[1];
+            $config_lti_types[] = $lti_type;
         }
 
-        // Not sure how to pass :namedvalue in as an array of values
-        // e.g. passing in 1,2,4 seems to get truncated somewhere
-        // along the way.
-        $arrltitypenottoinclude = $DB->get_records_sql(
-            "SELECT id FROM {lti_types} WHERE id NOT IN ($strltitoinclude)"
+        if (empty($config_lti_types)) {
+            return [];
+        }
+
+        $lti_types_params = implode(",", $config_lti_types);
+        $lti_types = $DB->get_records_sql(
+            "SELECT id FROM {lti} WHERE typeid IN ($lti_types_params)"
         );
 
-        $arrayltitypenottoinclude = [];
-        $arrayltitypenottoinclude[] = 0;
-
-        foreach ($arrltitypenottoinclude as $keyltitypenottoinclude) {
-            $arrayltitypenottoinclude[] = $keyltitypenottoinclude->id;
+        if (empty($lti_types)) {
+            return [];
         }
 
-        $strltitypenottoinclude = implode(",", $arrayltitypenottoinclude);
-
-        // The LTI instance *needs* to have been selected in the assessment,
-        // otherwise typeid in mdl_lti will be null.
-        $arrltiinstancenottoinclude = $DB->get_records_sql(
-            "SELECT * FROM {lti} WHERE typeid NOT IN ($strltitypenottoinclude)"
-        );
-
-        $arrayltiinstancenottoinclude = [];
-
-        foreach ($arrltiinstancenottoinclude as $keyltiinstancenottoinclude) {
-            $arrayltiinstancenottoinclude[] = $keyltiinstancenottoinclude->course;
+        $lti_activities = [];
+        foreach ($lti_types as $lti_type) {
+            $lti_activities[] = $lti_type->id;
         }
 
-        $strltiinstancenottoinclude = implode(",", $arrayltiinstancenottoinclude);
-
-        if ($strltiinstancenottoinclude == "") {
-            $strltiinstancenottoinclude = 99999;
-        }
-
-        return $strltiinstancenottoinclude;
+        return $lti_activities;
     }
 
 }
