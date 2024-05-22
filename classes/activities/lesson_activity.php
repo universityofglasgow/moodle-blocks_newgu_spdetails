@@ -195,7 +195,7 @@ class lesson_activity extends base {
                 $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                 $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
 
-                if ($lessongrades = $DB->count_records('lesson_grades', ['lessonid' => $this->lesson->id, 'userid' => $userid,
+                if ($lessongrades = $DB->get_record('lesson_grades', ['lessonid' => $this->lesson->id, 'userid' => $userid,
                 'completed' => 1])) {
                     $statusobj->grade_status = get_string('status_graded', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_graded', 'block_newgu_spdetails');

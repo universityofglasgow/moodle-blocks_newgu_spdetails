@@ -176,7 +176,7 @@ class glossary_activity extends base {
         global $USER, $DB;
 
         // Cache this query as it's going to get called for each assessment in the course otherwise.
-        $cache = cache::make('block_newgu_spdetails', 'kalvidassignmentsduequery');
+        $cache = cache::make('block_newgu_spdetails', 'glossaryduequery');
         $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
         $currenttime = time();
         $fiveminutes = $currenttime - 300;
