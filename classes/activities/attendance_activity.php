@@ -69,8 +69,12 @@ class attendance_activity extends base {
      * @param object $cm course module
      * @return object
      */
-    private function get_attendance(int $gradeitemid, object $cm) {
-        global $DB, $CFG;
+    private function get_attendance() {
+        global $DB;
+
+        $attendance = $DB->get_record('attendance', ['id' => $this->gradeitemid], '*');
+
+        return $attendance;
 
     }
 
@@ -81,7 +85,6 @@ class attendance_activity extends base {
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
-        global $DB, $USER;
 
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
@@ -144,9 +147,9 @@ class attendance_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->grade_status = '';
-        $statusobj->status_text = '';
-        $statusobj->status_class = '';
+        $statusobj->grade_status = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->status_text = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->due_date = $this->get_formattedduedate($this->attendance->timeclose);
