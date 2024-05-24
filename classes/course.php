@@ -489,7 +489,9 @@ class course {
      * @return array
      */
     public static function get_assessmentsduesoon() {
-        global $USER;
+        global $USER, $PAGE;
+
+        $PAGE->set_context(\context_system::instance());
 
         $sortstring = 'shortname asc';
         $courses = \local_gugrades\api::dashboard_get_courses($USER->id, true, false, $sortstring);
