@@ -707,7 +707,9 @@ class course {
      */
     public static function get_assessmentsummary(): array {
 
-        global $USER;
+        global $USER, $PAGE;
+
+        $PAGE->set_context(\context_system::instance());
 
         $marked = 0;
         $totaloverdue = 0;
@@ -802,7 +804,7 @@ class course {
      * @return array
      */
     public static function get_assessmentsummarybytype(int $charttype): array {
-        global $DB, $USER, $PAGE;
+        global $USER, $PAGE;
 
         $PAGE->set_context(\context_system::instance());
 
