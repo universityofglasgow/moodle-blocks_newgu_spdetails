@@ -208,6 +208,21 @@ class lesson_activity extends base {
                 $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
                 $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
                 $statusobj->status_link = $statusobj->assessment_url;
+
+                if (time() > $statusobj->due_date && $statusobj->due_date != 0) {
+                    $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+                    $statusobj->status_link = '';
+                }
+
+                // Not even sure if this is correct - this came from the Assignment activity code.
+                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
+                    $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
+                    $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
+                    $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                    $statusobj->status_link = $statusobj->assessment_url;
+                }
             }
         }
 
@@ -225,13 +240,15 @@ class lesson_activity extends base {
 
     /**
      * Return the due date of the lesson if it hasn't been submitted.
+     * Given that a Lesson activity can have a number of permutations with regards opening/deadline dates,
+     * along with a timer, this gives us a number of 
      *
      * @return array
      */
     public function get_assessmentsdue(): array {
         global $USER, $DB;
 
-        // Cache this query as it's going to get called for each assessment in the course otherwise.
+        // Cache this query as it's going to get called for each lesson in the course otherwise.
         $cache = cache::make('block_newgu_spdetails', 'lessonsduequery');
         $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
         $currenttime = time();
@@ -251,11 +268,13 @@ class lesson_activity extends base {
                 'tlastmonth' => $lastmonth,
                 'tnow' => $now,
             ];
-            $lessonsubmissions = $DB->get_records_select('lesson_timer', $select, $params, '', 'lessonid, starttime, completed');
+            // This table seems to be the only practical table to query for submission deadlines. lesson_attempts only stores when
+            // an attempt was made.
+            $timedlessonsubmissions = $DB->get_records_select('lesson_timer', $select, $params, '', 'lessonid, starttime, completed');
 
             $submissionsdata = [
                 'updated' => time(),
-                'lessonsubmissions' => $lessonsubmissions,
+                'timedlessonsubmissions' => $timedlessonsubmissions,
             ];
 
             $cachedata = [
@@ -266,7 +285,7 @@ class lesson_activity extends base {
             $cache->set_many($cachedata);
         } else {
             $cachedata = $cache->get_many([$cachekey]);
-            $lessonsubmissions = $cachedata[$cachekey][0]['lessonsubmissions'];
+            $timedlessonsubmissions = $cachedata[$cachekey][0]['timedlessonsubmissions'];
         }
 
         $lesson = $this->lesson;
@@ -283,13 +302,13 @@ class lesson_activity extends base {
         }
 
         // Much like activity type Assignment, we end up with a 'submission' that we now need to check if it's 'completed'.
-        if (!array_key_exists($lesson->id, $lessonsubmissions) ||
-        (array_key_exists($lesson->id, $lessonsubmissions) &&
-        (is_object($lessonsubmissions[$lesson->id]) && property_exists($lessonsubmissions[$lesson->id], 'completed') &&
-        $lessonsubmissions[$lesson->id]->completed == 0))) {
-            // Also like Assignment, we can set dates for when lessons open and close.
+        if (!array_key_exists($lesson->id, $timedlessonsubmissions) ||
+        (array_key_exists($lesson->id, $timedlessonsubmissions) &&
+        (is_object($timedlessonsubmissions[$lesson->id]) && property_exists($timedlessonsubmissions[$lesson->id], 'completed') &&
+        $timedlessonsubmissions[$lesson->id]->completed == 0))) {
+            // Also similar to Assignment, we can set dates for when a lesson is available from, and/or when it is due by.
             if ($lessonavailable != 0 && $lessonavailable < $now) {
-                if ($lessondeadline != 0 && $lessondeadline > $now) {
+                if ($lessondeadline != 0 && $now < $lessondeadline) {
                     $obj = new \stdClass();
                     $obj->name = $lesson->name;
                     $obj->duedate = $lessondeadline;
@@ -298,11 +317,11 @@ class lesson_activity extends base {
             }
             // As well as setting just a time limit.
             if ($lessonavailable == 0) {
-                if (is_object($lessonsubmissions[$lesson->id]) && $timelimit > 0 &&
-                (($lessonsubmissions[$lesson->id]->starttime + $timelimit) > $now)) {
+                if (is_object($timedlessonsubmissions[$lesson->id]) && $timelimit > 0 &&
+                (($timedlessonsubmissions[$lesson->id]->starttime + $timelimit) > $now)) {
                     $obj = new \stdClass();
                     $obj->name = $lesson->name;
-                    $obj->duedate = ($lessonsubmissions[$lesson->id]->starttime + $timelimit);
+                    $obj->duedate = ($timedlessonsubmissions[$lesson->id]->starttime + $timelimit);
                     $lessondata[] = $obj;
                 }
             }

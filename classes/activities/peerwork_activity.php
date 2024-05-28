@@ -71,7 +71,9 @@ class peerwork_activity extends base {
     public function get_peerwork(object $cm): object {
         global $DB;
 
-        $peerwork = $DB->get_record('peerwork', ['id' => $cm->instance], '*', MUST_EXIST);;
+        $coursemodulecontext = \context_module::instance($cm->id);
+        $peerwork = $DB->get_record('peerwork', ['id' => $this->gradeitem->iteminstance], '*', MUST_EXIST);
+        $peerwork->coursemodulecontext = $coursemodulecontext;
 
         return $peerwork;
     }
@@ -227,6 +229,7 @@ class peerwork_activity extends base {
                     }
                 }
 
+                // Not even sure if this is correct - this came from the Assignment activity code.
                 if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
                     $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');

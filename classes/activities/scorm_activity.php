@@ -59,18 +59,21 @@ class scorm_activity extends base {
 
         // Get the scorm object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->scorm = $this->get_scorm();
+        $this->scorm = $this->get_scorm($this->cm);
     }
 
     /**
      * Get scorm object.
      *
+     * @param object $cm course module
      * @return object
      */
-    public function get_scorm(): object {
+    public function get_scorm($cm): object {
         global $DB;
 
-        $scorm = $DB->get_record('scorm', ['id' => $this->gradeitem->iteminstance]);
+        $coursemodulecontext = \context_module::instance($cm->id);
+        $scorm = $DB->get_record('scorm', ['id' => $this->gradeitem->iteminstance], '*', MUST_EXIST);
+        $scorm->coursemodulecontext = $coursemodulecontext;
 
         return $scorm;
     }

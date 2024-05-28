@@ -59,20 +59,21 @@ class attendance_activity extends base {
 
         // Get the assignment object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->attendance = $this->get_attendance($gradeitemid, $this->cm);
+        $this->attendance = $this->get_attendance($this->cm);
     }
 
     /**
      * Local get attendance object method.
      *
-     * @param int $gradeitemid
      * @param object $cm course module
      * @return object
      */
-    private function get_attendance() {
+    private function get_attendance($cm): object {
         global $DB;
 
-        $attendance = $DB->get_record('attendance', ['id' => $this->gradeitemid], '*');
+        $coursemodulecontext = \context_module::instance($cm->id);
+        $attendance = $DB->get_record('attendance', ['id' => $this->gradeitem->iteminstance], '*', MUST_EXIST);
+        $attendance->coursemodulecontext = $coursemodulecontext;
 
         return $attendance;
 

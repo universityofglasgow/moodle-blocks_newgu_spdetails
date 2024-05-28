@@ -52,18 +52,21 @@ class lti_activity extends base {
 
         // Get the lti object.
         $this->cm = \local_gugrades\users::get_cm_from_grade_item($gradeitemid, $courseid);
-        $this->lti = $this->get_lti();
+        $this->lti = $this->get_lti($this->cm);
     }
 
     /**
      * Get an lti record and return as an object.
      *
+     * @param object $cm course module
      * @return object
      */
-    public function get_lti(): object {
+    public function get_lti($cm): object {
         global $DB;
 
+        $coursemodulecontext = \context_module::instance($cm->id);
         $lti = $DB->get_record('lti', ['id' => $this->gradeitem->iteminstance], '*', MUST_EXIST);
+        $lti->coursemodulecontext = $coursemodulecontext;
 
         return $lti;
     }

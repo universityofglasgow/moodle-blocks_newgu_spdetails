@@ -19,7 +19,7 @@
  *
  * @package    block_newgu_spdetails
  * @copyright  2024 University of Glasgow
- * @author     Howard Miller/Greg Pedder <greg.pedder@glasgow.ac.uk>
+ * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -67,7 +67,6 @@ class checklist_activity extends base {
         global $DB;
 
         $course = $DB->get_record('course', ['id' => $this->courseid], '*', MUST_EXIST);
-        $coursemodulecontext = \context_module::instance($cm->id);
         $checklist = new checklist_class('oop', 0, null, $cm, $course);
 
         return $checklist;

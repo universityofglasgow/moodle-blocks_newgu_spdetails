@@ -69,7 +69,9 @@ class forum_activity extends base {
     public function get_forum(object $cm): object {
         global $DB;
 
-        $forum = $DB->get_record('forum', ['id' => $cm->instance], '*', MUST_EXIST);
+        $coursemodulecontext = \context_module::instance($cm->id);
+        $forum = $DB->get_record('forum', ['id' => $this->gradeitem->iteminstance], '*', MUST_EXIST);
+        $forum->coursemodulecontext = $coursemodulecontext;
 
         return $forum;
     }
