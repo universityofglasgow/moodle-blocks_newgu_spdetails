@@ -48,6 +48,14 @@ if ($ADMIN->fulltree) {
     // where those tools are available from (Activity picker etc).
     $ltitypes = lti_get_lti_types();
 
+    // To get around the problem of when new LTI's are added to the system, and ^no^ config
+    // option initially existing for it (this page displays the items found in mdl_lti_types,
+    // but the values are stored in mdl_config only once the page has been saved) - we could
+    // query the mdl_config table, and if no matching option is found, just create it/them.
+    // The reverse is true also - when an LTI gets removed, the config option hangs around.
+    // As there are no events we can listen for in order to maintain consistency, this is one
+    // way of keeping things in sync.
+
     $settings->add(new admin_setting_heading('includeltilabel',
         get_string('includeltilabel', 'block_newgu_spdetails'), ''));
 
