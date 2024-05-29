@@ -211,44 +211,6 @@ class api extends external_api {
     }
 
     /**
-     * This function checks that, for a given userid, the user
-     * is enrolled on a given course (passed in as courseid).
-     *
-     * @param int $userid
-     * @param int $courseid
-     * @return mixed
-     * @throws dml_exception
-     */
-    public static function checkrole(int $userid, int $courseid) {
-        global $DB;
-
-        $sqlstaff = "SELECT count(*) as cntstaff
-             FROM {user} u
-             JOIN {user_enrolments} ue ON ue.userid = u.id
-             JOIN {enrol} e ON e.id = ue.enrolid
-             JOIN {role_assignments} ra ON ra.userid = u.id
-             JOIN {context} ct ON ct.id = ra.contextid
-             AND ct.contextlevel = 50
-             JOIN {course} c ON c.id = ct.instanceid
-             AND e.courseid = c.id
-             JOIN {role} r ON r.id = ra.roleid
-             AND r.shortname in ('staff', 'editingstaff')
-             WHERE e.status = 0
-             AND u.suspended = 0
-             AND u.deleted = 0
-             AND ue.status = 0 ";
-        if ($courseid != 0) {
-            $sqlstaff .= " AND c.id = " . $courseid;
-        }
-        $sqlstaff .= " AND u.id = " . $userid;
-
-        $arrcntstaff = $DB->get_record_sql($sqlstaff);
-        $cntstaff = $arrcntstaff->cntstaff;
-
-        return $cntstaff;
-    }
-
-    /**
      * This method does something.
      *
      * @param int $userid
