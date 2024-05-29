@@ -32,6 +32,8 @@ use block_newgu_spdetails\grade;
 use grade_category;
 use grade_item;
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->libdir . '/grade/constants.php');
 require_once($CFG->libdir . '/grade/grade_category.php');
 require_once($CFG->libdir . '/grade/grade_item.php');

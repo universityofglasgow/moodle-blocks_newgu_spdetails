@@ -331,8 +331,8 @@ class api extends external_api {
         }
 
         $configltitypes = [];
-        foreach ($configvalues as $config_lti) {
-            $name = $config_lti->name;
+        foreach ($configvalues as $configlti) {
+            $name = $configlti->name;
             $namepieces = explode("block_newgu_spdetails_include_", $name);
             $ltitype = $namepieces[1];
             $configltitypes[] = $ltitype;
