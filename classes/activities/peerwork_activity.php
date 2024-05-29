@@ -305,7 +305,7 @@ class peerwork_activity extends base {
             if ($peerworkassignment->allowlatesubmissions == 1) {
                 $peerworkdata[] = $peerworkassignment;
             }
-            
+
             if (($peerworkassignment->allowlatesubmissions == 0) && ($peerworkassignment->fromdate < $now)) {
                 if ($peerworkassignment->duedate > $now) {
                     $peerworkdata[] = $peerworkassignment;

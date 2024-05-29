@@ -131,7 +131,7 @@ class lesson_activity extends base {
      * @return int
      */
     public function get_rawduedate(): int {
-        
+
         $dateinstance = lesson_get_user_deadline($this->courseid);
         $rawdate = $dateinstance[$this->gradeitem->iteminstance]->userdeadline;
 
@@ -241,7 +241,7 @@ class lesson_activity extends base {
     /**
      * Return the due date of the lesson if it hasn't been submitted.
      * Given that a Lesson activity can have a number of permutations with regards opening/deadline dates,
-     * along with a timer, this gives us a number of 
+     * along with a timer, this gives us a number of...tbc.
      *
      * @return array
      */
@@ -270,7 +270,8 @@ class lesson_activity extends base {
             ];
             // This table seems to be the only practical table to query for submission deadlines. lesson_attempts only stores when
             // an attempt was made.
-            $timedlessonsubmissions = $DB->get_records_select('lesson_timer', $select, $params, '', 'lessonid, starttime, completed');
+            $timedlessonsubmissions = $DB->get_records_select('lesson_timer', $select, $params, '', 'lessonid, starttime,
+            completed');
 
             $submissionsdata = [
                 'updated' => time(),

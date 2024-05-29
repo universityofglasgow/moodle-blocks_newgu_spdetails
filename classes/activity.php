@@ -156,22 +156,22 @@ class activity {
 
         if ($activityitems->items) {
             // Temp fix for working out which LTI activities to exclude...
-            $lti_activities = \block_newgu_spdetails\api::get_lti_activities();
+            $ltiactivities = \block_newgu_spdetails\api::get_lti_activities();
 
             $activitydata = [];
             if ($mygradesenabled) {
-                $activitydata = self::process_mygrades_items($activityitems->items, $activetab, $lti_activities,
+                $activitydata = self::process_mygrades_items($activityitems->items, $activetab, $ltiactivities,
                 $assessmenttype, $sortby, $sortorder);
             }
 
             if ($gcatenabled) {
                 // We need to disregard the items we have and use the GCAT API instead...
-                $activitydata = self::process_gcat_items($subcategory, $lti_activities, $userid, $activetab,
+                $activitydata = self::process_gcat_items($subcategory, $ltiactivities, $userid, $activetab,
                 $assessmenttype, $sortby, $sortorder);
             }
 
             if (!$mygradesenabled && !$gcatenabled) {
-                $activitydata = self::process_default_items($activityitems->items, $activetab, $lti_activities,
+                $activitydata = self::process_default_items($activityitems->items, $activetab, $ltiactivities,
                 $assessmenttype, $sortby, $sortorder);
             }
 
@@ -191,13 +191,13 @@ class activity {
      *
      * @param array $mygradesitems
      * @param string $activetab
-     * @param array $lti_activities
+     * @param array $ltiactivities
      * @param string $assessmenttype
      * @param string $sortby
      * @param string $sortorder
      * @return array
      */
-    public static function process_mygrades_items(array $mygradesitems, string $activetab, array $lti_activities,
+    public static function process_mygrades_items(array $mygradesitems, string $activetab, array $ltiactivities,
     string $assessmenttype, string $sortby, string $sortorder): array {
 
         global $DB, $USER, $CFG;
@@ -332,7 +332,7 @@ class activity {
                         // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
                         // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
                         if ($mygradesitem->itemmodule == 'lti') {
-                            if (is_array($lti_activities) && !in_array($mygradesitem->iteminstance, $lti_activities)) {
+                            if (is_array($ltiactivities) && !in_array($mygradesitem->iteminstance, $ltiactivities)) {
                                 continue;
                             }
                         }
@@ -464,7 +464,7 @@ class activity {
      * are being done - based on how Moodle currenly does things.
      *
      * @param int $subcategory
-     * @param array $lti_activities
+     * @param array $ltiactivities
      * @param int $userid
      * @param string $activetab
      * @param string $assessmenttype
@@ -472,7 +472,7 @@ class activity {
      * @param string $sortorder
      * @return array
      */
-    public static function process_gcat_items(int $subcategory, array $lti_activities, int $userid,
+    public static function process_gcat_items(int $subcategory, array $ltiactivities, int $userid,
     string $activetab, string $assessmenttype, string $sortby, string $sortorder): array {
         global $DB, $CFG;
 
@@ -496,7 +496,7 @@ class activity {
                 if (property_exists($gcatitem, 'itemmodule') && $gcatitem->itemmodule == 'lti') {
                     // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
                     // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
-                    if (is_array($lti_activities) && in_array($gcatitem->iteminstance, $lti_activities)) {
+                    if (is_array($ltiactivities) && in_array($gcatitem->iteminstance, $ltiactivities)) {
                         continue;
                     }
                 }
@@ -565,13 +565,13 @@ class activity {
      *
      * @param array $defaultitems
      * @param string $activetab
-     * @param array $lti_activities
+     * @param array $ltiactivities
      * @param string $assessmenttype
      * @param string $sortby
      * @param string $sortorder
      * @return array
      */
-    public static function process_default_items(array $defaultitems, string $activetab, array $lti_activities,
+    public static function process_default_items(array $defaultitems, string $activetab, array $ltiactivities,
     string $assessmenttype, string $sortby, string $sortorder): array {
 
         global $USER;
@@ -659,7 +659,7 @@ class activity {
                         // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
                         // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
                         if ($defaultitem->itemmodule == 'lti') {
-                            if (is_array($lti_activities) && !in_array($defaultitem->iteminstance, $lti_activities)) {
+                            if (is_array($ltiactivities) && !in_array($defaultitem->iteminstance, $ltiactivities)) {
                                 continue;
                             }
                         }

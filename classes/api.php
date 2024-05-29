@@ -330,33 +330,33 @@ class api extends external_api {
             return [];
         }
 
-        $config_lti_types = [];
+        $configltitypes = [];
         foreach ($configvalues as $config_lti) {
             $name = $config_lti->name;
-            $name_pieces = explode("block_newgu_spdetails_include_", $name);
-            $lti_type = $name_pieces[1];
-            $config_lti_types[] = $lti_type;
+            $namepieces = explode("block_newgu_spdetails_include_", $name);
+            $ltitype = $namepieces[1];
+            $configltitypes[] = $ltitype;
         }
 
-        if (empty($config_lti_types)) {
+        if (empty($configltitypes)) {
             return [];
         }
 
-        $lti_types_params = implode(",", $config_lti_types);
-        $lti_types = $DB->get_records_sql(
-            "SELECT id FROM {lti} WHERE typeid IN ($lti_types_params)"
+        $ltitypesparams = implode(",", $configltitypes);
+        $ltitypes = $DB->get_records_sql(
+            "SELECT id FROM {lti} WHERE typeid IN ($ltitypesparams)"
         );
 
-        if (empty($lti_types)) {
+        if (empty($ltitypes)) {
             return [];
         }
 
-        $lti_activities = [];
-        foreach ($lti_types as $lti_type) {
-            $lti_activities[] = $lti_type->id;
+        $ltiactivities = [];
+        foreach ($ltitypes as $ltitype) {
+            $ltiactivities[] = $ltitype->id;
         }
 
-        return $lti_activities;
+        return $ltiactivities;
     }
 
 }

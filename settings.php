@@ -34,14 +34,14 @@ defined('MOODLE_INTERNAL') || die;
 if ($ADMIN->fulltree) {
     global $DB, $CFG;
 
-    require_once $CFG->dirroot . '/mod/lti/locallib.php';
-    require_once $CFG->dirroot . '/mod/lti/lib.php';
+    require_once($CFG->dirroot . '/mod/lti/locallib.php');
+    require_once($CFG->dirroot . '/mod/lti/lib.php');
 
-    $options = array(
+    $options = [
         LTI_COURSEVISIBLE_NO => get_string('show_in_course_no', 'lti'),
         LTI_COURSEVISIBLE_PRECONFIGURED => get_string('show_in_course_preconfigured', 'lti'),
         LTI_COURSEVISIBLE_ACTIVITYCHOOSER => get_string('show_in_course_activity_chooser', 'lti'),
-    );
+    ];
 
     // Return a list of LTI types available in the system.
     // We are ignoring the 'coursevisible' setting which controls

@@ -86,7 +86,7 @@ class lti_activity extends base {
         $activitygrade->rawgrade = null;
         $activitygrade->gradedate = null;
 
-        // I'm not sure this is even needed, as unless the activity has been 
+        // I'm not sure this is even needed, as unless the activity has been
         // marked to update the gradebook, we will never reach this method.
         if ($this->lti->instructorchoiceacceptgrades == 0) {
             return false;
@@ -152,7 +152,7 @@ class lti_activity extends base {
 
     /**
      * Method to return the current status of the assessment item.
-     * 
+     *
      * Erys notes seem to be 'assessed' by students making an assignment submission.
      *
      * @param int $userid

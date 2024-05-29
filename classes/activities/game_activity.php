@@ -86,7 +86,7 @@ class game_activity extends base {
         $activitygrade->grade = null;
         $activitygrade->gradedate = null;
 
-        require_once $CFG->dirroot . '/mod/game/lib.php';
+        require_once($CFG->dirroot . '/mod/game/lib.php');
         if ($grade = game_get_user_grades($this->game, $userid)) {
             // We want access to other properties, hence the returns...
             if ($grade[0]->finalgrade != null && $grade[0]->finalgrade > 0) {
@@ -100,7 +100,7 @@ class game_activity extends base {
                 return $activitygrade;
             }
         }
-        
+
         return false;
     }
 
