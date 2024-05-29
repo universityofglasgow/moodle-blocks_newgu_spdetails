@@ -75,6 +75,7 @@ class hsuforum_activity extends base {
      * Return the grade either from the hsuforum or
      * directly from Gradebook otherwise.
      *
+     * @param int $userid
      * @return object|bool
      */
     public function get_grade(int $userid): object|bool {
