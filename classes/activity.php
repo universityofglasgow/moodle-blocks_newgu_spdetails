@@ -157,7 +157,6 @@ class activity {
         }
 
         if ($activityitems->items) {
-            // Temp fix for working out which LTI activities to exclude...
             $ltiactivities = \block_newgu_spdetails\api::get_lti_activities();
 
             $activitydata = [];
