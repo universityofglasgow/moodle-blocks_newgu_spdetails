@@ -25,8 +25,6 @@
 
 namespace block_newgu_spdetails\activities;
 
-use cache;
-
 /**
  * Implementation for an attendance activity.
  */
@@ -44,6 +42,7 @@ class attendance_activity extends base {
 
     /**
      * @var constant CACHE_KEY
+     * We might not use the cache, however, leaving this in for now.
      */
     const CACHE_KEY = 'studentid_attendanceduesoon:';
 
@@ -64,6 +63,11 @@ class attendance_activity extends base {
 
     /**
      * Local get attendance object method.
+     * Return the basic attendance record data, and return any session related data also.
+     * This will serve to provide our due date.
+     *
+     * Until it has been decided, I'm just going to use the most recent 'session' in order
+     * to derive a due date - seeing as there can be mulitple sessions coming back.
      *
      * @param object $cm course module
      * @return object
@@ -73,6 +77,8 @@ class attendance_activity extends base {
 
         $coursemodulecontext = \context_module::instance($cm->id);
         $attendance = $DB->get_record('attendance', ['id' => $this->gradeitem->iteminstance], '*', MUST_EXIST);
+        $sessions = $DB->get_records('attendance_sessions', ['attendanceid' => $attendance->id], 'sessdate DESC', '*');
+        $attendance->sessions = array_shift($sessions);
         $attendance->coursemodulecontext = $coursemodulecontext;
 
         return $attendance;
@@ -86,6 +92,7 @@ class attendance_activity extends base {
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
+        global $DB;
 
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
@@ -93,6 +100,28 @@ class attendance_activity extends base {
         $activitygrade->gradedate = null;
         $activitygrade->gradecolumn = false;
         $activitygrade->feedbackcolumn = false;
+
+        // If the grade is overridden in the Gradebook then we can
+        // revert to the base - i.e., get the grade from the Gradebook.
+        // We're only wanting grades that are deemed as 'released', i.e.
+        // not 'hidden' or 'locked'.
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
+            if ($grade->overridden) {
+                return parent::get_first_grade($userid);
+            }
+
+            // We want access to other properties, hence the returns...
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                $activitygrade->finalgrade = $grade->finalgrade;
+                $activitygrade->gradedate = $grade->timemodified;
+                return $activitygrade;
+            }
+
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
+            }
+        }
 
         return false;
 
@@ -113,8 +142,10 @@ class attendance_activity extends base {
      * @return int
      */
     public function get_rawduedate(): int {
-        $dateinstance = $this->attendance;
-        $rawdate = $dateinstance->timeclose;
+        $rawdate = 0;
+        if ($dateinstance = $this->attendance->sessions) {
+            $rawdate = $dateinstance->sessdate;
+        }
 
         return $rawdate;
     }
@@ -126,10 +157,16 @@ class attendance_activity extends base {
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-
         $duedate = '';
-        if ($unformatteddate > 0) {
-            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+        $rawdate = null;
+        if ($dateinstance = $this->attendance->sessions) {
+            $rawdate = $dateinstance->sessdate;
+        }
+        if ($unformatteddate) {
+            $rawdate = $unformatteddate;
+        }
+        if ($rawdate) {
+            $dateobj = \DateTime::createFromFormat('U', $rawdate);
             $duedate = $dateobj->format('jS F Y');
         }
 
@@ -144,8 +181,6 @@ class attendance_activity extends base {
      */
     public function get_status(int $userid): object {
 
-        global $DB;
-
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->grade_status = get_string('status_tobeconfirmed', 'block_newgu_spdetails');
@@ -153,8 +188,8 @@ class attendance_activity extends base {
         $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-        $statusobj->due_date = $this->get_formattedduedate($this->attendance->timeclose);
-        $statusobj->raw_due_date = $this->attendance->timeclose;
+        $statusobj->due_date = $this->get_formattedduedate($this->attendance->sessions->sessdate);
+        $statusobj->raw_due_date = $this->attendance->sessions->sessdate;
         $statusobj->gradecolumn = false;
         $statusobj->feedbackcolumn = false;
         $statusobj->grade_date = '';
@@ -164,12 +199,13 @@ class attendance_activity extends base {
     }
 
     /**
-     * Return the due date of the attendance if it hasn't been started.
+     * While an attendance activity is a gradable item, does it need to be included
+     * in the Assessments Overview and Assessments Due... charts. For now, lets go
+     * with not including this - it could be seen as just 'noise' by the student.
      *
      * @return array
      */
     public function get_assessmentsdue(): array {
-        global $USER, $DB;
 
         $attendancedata = [];
 
