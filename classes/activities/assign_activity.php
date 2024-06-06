@@ -173,6 +173,11 @@ class assign_activity extends base {
     /**
      * Method to return the current status of the assessment item.
      *
+     * With regards dates - a date value of 0 in the settings page indicates
+     * there is no exclusion - e.g. an assignment is open for submission anytime.
+     * For overrides however, NULL values signal that the main activity settings
+     * should be used instead.
+     *
      * @param int $userid
      * @return object
      */
@@ -195,36 +200,56 @@ class assign_activity extends base {
         $statusobj->markingworkflow = $assigninstance->markingworkflow;
         $statusobj->grade_date = '';
 
-        // Check if any individual overrides have been set up first of all...
+        // Check if any individual overrides have been set up first of all.
         $overrides = $DB->get_record('assign_overrides', ['assignid' => $assigninstance->id, 'userid' => $userid]);
         if (!empty($overrides)) {
-            $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;
-            $statusobj->due_date = $overrides->duedate;
-            $statusobj->raw_due_date = $overrides->duedate;
-        }
+            // If any of these fields are NULL, the override is using the default activity settings.
+            if ($overrides->allowsubmissionsfromdate != null) {
+                $allowsubmissionsfromdate = $overrides->allowsubmissionsfromdate;
+            }
 
-        // This table appears to contain entries for when Marking Workflow is enabled.
-        $userflags = $DB->get_record('assign_user_flags', ['assignment' => $assigninstance->id, 'userid' => $userid]);
-        if (!empty($userflags)) {
-            if ($userflags->extensionduedate > 0) {
-                $statusobj->due_date = $userflags->extensionduedate;
-                $statusobj->raw_due_date = $userflags->extensionduedate;
-            } else {
-                $workflowstate = $userflags->workflowstate;
+            if ($overrides->duedate != null) {
+                $statusobj->due_date = $overrides->duedate;
+                $statusobj->raw_due_date = $overrides->duedate;
+            }
+
+            if ($overrides->cutoffdate != null) {
+                $statusobj->cutoff_date = $overrides->cutoffdate;
             }
         }
 
-        // The "Allow submissions from" date is in the future.
-        if ($allowsubmissionsfromdate > time()) {
+        // Easy one first. The "Allow submissions from..." date has been set and is in the future.
+        if ($allowsubmissionsfromdate != 0 && ($allowsubmissionsfromdate > time())) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
             $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         }
 
+        // If our grade_status hasn't changed at this point, continue on.
         if ($statusobj->grade_status == '') {
+
+            // This table is used for extensions to the due date. But it also contain entries for when
+            // Marking Workflow is enabled - but these only appear when marking has begun however.
+            // Point of interest - extension due date trumps the settings/override "cut-off date".
+            // It makes sense therefore to make $statusobj's cut-off date at this point, the same as the
+            // extension due date, in order to avoid some messy code later on.
+            $userflags = $DB->get_record('assign_user_flags', ['assignment' => $assigninstance->id, 'userid' => $userid]);
+            if (!empty($userflags)) {
+                if ($userflags->extensionduedate > 0) {
+                    $statusobj->due_date = $userflags->extensionduedate;
+                    $statusobj->raw_due_date = $userflags->extensionduedate;
+                    $statusobj->cutoff_date = $userflags->extensionduedate;
+                } else {
+                    $workflowstate = $userflags->workflowstate;
+                }
+            }
+
             $assignsubmission = $DB->get_record('assign_submission', ['assignment' => $assigninstance->id, 'userid' => $userid]);
 
-            if (!empty($assignsubmission)) {
+            // Begin with the easy step. If the student has not made a submission yet.
+            if (empty($assignsubmission)) {
+                $this->set_displaystate($statusobj);
+            } else {
                 $statusobj->grade_status = $assignsubmission->status;
 
                 // There is a bug in class assign->get_user_grade() where get_user_submission() is called
@@ -233,90 +258,51 @@ class assign_activity extends base {
                 // We also have to cater for status 'draft' here as essay 'submissions' begin life in that state.
                 if ($statusobj->grade_status == get_string('status_new', 'block_newgu_spdetails') ||
                     $statusobj->grade_status == get_string('status_draft', 'block_newgu_spdetails')) {
-
-                    $draftstatus = ($statusobj->grade_status == get_string('status_draft', 'block_newgu_spdetails') ? true
-                    : false);
-                    $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-
-                    if ((($statusobj->due_date != 0 && $statusobj->due_date > time()) || $statusobj->due_date == 0) ||
-                    $draftstatus == true) {
-                        $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
-                        $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
-                        $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
-                        $statusobj->status_link = $statusobj->assessment_url;
-                        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                    }
-
-                    if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0 &&
-                    $statusobj->cutoff_date > time()) {
-                        $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
-                        $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
-                        $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
-                        $statusobj->status_link = $statusobj->assessment_url;
-                    }
+                    $this->set_displaystate($statusobj);
                 }
 
                 if ($statusobj->grade_status == get_string('status_submitted', 'block_newgu_spdetails')) {
-                    $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
+                    $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
-                    // If Marking Workflow has been enabled, what stage are we at?
+
+                    // If Marking Workflow has been enabled.
                     if ($assigninstance->markingworkflow) {
-                        $gtd = '';
-                        switch($workflowstate) {
-                            case "notmarked":
-                                $gtd = get_string('notmarked', 'block_newgu_spdetails');
-                                break;
+                        $gtd = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
-                            case "inmarking":
-                                $gtd = get_string('inmarking', 'block_newgu_spdetails');
-                                break;
+                        // And marking has begun, what stage are we at.
+                        if ($workflowstate) {
+                            switch($workflowstate) {
+                                case "notmarked":
+                                    $gtd = get_string('notmarked', 'block_newgu_spdetails');
+                                    break;
 
-                            case "inreview":
-                                $gtd = get_string('inreview', 'block_newgu_spdetails');
-                                break;
+                                case "inmarking":
+                                    $gtd = get_string('inmarking', 'block_newgu_spdetails');
+                                    break;
 
-                            case "readyforreview":
-                                $gtd = get_string('readyforreview', 'block_newgu_spdetails');
-                                break;
+                                case "inreview":
+                                    $gtd = get_string('inreview', 'block_newgu_spdetails');
+                                    break;
 
-                            case "readyforrelease":
-                                $gtd = get_string('readyforrelease', 'block_newgu_spdetails');
-                                break;
+                                case "readyforreview":
+                                    $gtd = get_string('readyforreview', 'block_newgu_spdetails');
+                                    break;
 
-                            case "released":
-                                $gtd = get_string('released', 'block_newgu_spdetails');
-                                $statusobj->workflowstate = $workflowstate;
-                                break;
+                                case "readyforrelease":
+                                    $gtd = get_string('readyforrelease', 'block_newgu_spdetails');
+                                    break;
+
+                                case "released":
+                                    $gtd = get_string('released', 'block_newgu_spdetails');
+                                    $statusobj->workflowstate = $workflowstate;
+                                    break;
+                            }
                         }
                         $statusobj->grade_to_display = $gtd;
                     }
                 }
 
-            } else {
-                $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
-                $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
-                $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
-                $statusobj->status_link = $statusobj->assessment_url;
-                $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-
-                if (time() > $statusobj->due_date && $statusobj->due_date != 0 && $statusobj->cutoff_date < time()) {
-                    $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_link = '';
-                }
-
-                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0 &&
-                $statusobj->cutoff_date > time()) {
-                    $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_link = $statusobj->assessment_url;
-                }
             }
         }
 
@@ -327,6 +313,50 @@ class assign_activity extends base {
         } else {
             $statusobj->due_date = '';
             $statusobj->raw_due_date = '';
+        }
+
+        return $statusobj;
+    }
+
+    /**
+     * This method takes the $statusobj object and sets the display values for the grade status.
+     *
+     * @param object $statusobj
+     * @return object
+     */
+    private function set_displaystate(object $statusobj): object {
+
+        // Start by saying the student is still able to make a submission.
+        $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+        $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+        $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
+        $statusobj->status_link = $statusobj->assessment_url;
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+
+        // Cut-off date is the more 'finite' state - exceed this and you're not allowed to submit at all.
+        if ($statusobj->cutoff_date > 0) {
+            // The student can still submit if they have exceeded the due date at this point.
+            if ($statusobj->due_date != 0 && time() > $statusobj->due_date) {
+                $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
+                $statusobj->status_link = $statusobj->assessment_url;
+            }
+            // If the student has exceeded the cut-off date then we can no longer submit anything.
+            if (time() > $statusobj->cutoff_date) {
+                $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_link = '';
+            }
+        } else {
+            // The student can still submit if they have exceeded only the due date at this point.
+            if ($statusobj->due_date != 0 && time() > $statusobj->due_date) {
+                $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
+                $statusobj->status_link = $statusobj->assessment_url;
+            }
         }
 
         return $statusobj;
