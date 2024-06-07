@@ -78,7 +78,7 @@ class game_activity extends base {
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
-        global $CFG;
+        global $DB, $CFG;
 
         $activitygrade = new \stdClass();
         $activitygrade->finalgrade = null;
@@ -86,6 +86,30 @@ class game_activity extends base {
         $activitygrade->grade = null;
         $activitygrade->gradedate = null;
 
+        // If the grade is overridden in the Gradebook then we can
+        // revert to the base - i.e., get the grade from the Gradebook.
+        // We're only wanting grades that are deemed as 'released', i.e.
+        // not 'hidden' or 'locked'.
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
+            if ($grade->overridden) {
+                return parent::get_first_grade($userid);
+            }
+
+            // We want access to other properties, hence the returns...
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                $activitygrade->finalgrade = $grade->finalgrade;
+                $activitygrade->gradedate = $grade->timemodified;
+                return $activitygrade;
+            }
+
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
+            }
+
+        }
+
+        // Just pull the grade from the game related grade tables.
         require_once($CFG->dirroot . '/mod/game/lib.php');
         if ($grade = game_get_user_grades($this->game, $userid)) {
             // We want access to other properties, hence the returns...
