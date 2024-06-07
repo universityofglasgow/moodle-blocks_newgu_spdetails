@@ -73,13 +73,43 @@ class checklist_activity extends base {
     }
 
     /**
-     * A Checklist activity doesn't end up in the Gradebook.
-     * Simply return false.
+     * Return the grade directly from Gradebook.
      *
      * @param int $userid
      * @return mixed object|bool
      */
     public function get_grade(int $userid): object|bool {
+        global $DB;
+
+        $activitygrade = new \stdClass();
+        $activitygrade->finalgrade = null;
+        $activitygrade->rawgrade = null;
+        $activitygrade->gradedate = null;
+        $activitygrade->gradecolumn = false;
+        $activitygrade->feedbackcolumn = false;
+
+        // If the grade is overridden in the Gradebook then we can
+        // revert to the base - i.e., get the grade from the Gradebook.
+        // We're only wanting grades that are deemed as 'released', i.e.
+        // not 'hidden' or 'locked'.
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
+            if ($grade->overridden) {
+                return parent::get_first_grade($userid);
+            }
+
+            // We want access to other properties, hence the returns...
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                $activitygrade->finalgrade = $grade->finalgrade;
+                $activitygrade->gradedate = $grade->timemodified;
+                return $activitygrade;
+            }
+
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
+            }
+        }
+
         return false;
     }
 
