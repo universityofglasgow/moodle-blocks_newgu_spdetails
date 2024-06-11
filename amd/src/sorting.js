@@ -130,13 +130,13 @@ function sortingStatus(sortby, sortorder) {
     if (sortElement) {
         excludeElement = sortElement;
         if (sortorder == 'asc') {
-            sortElement.classList.add('th-sort-asc');
-            sortElement.classList.remove('th-sort-desc');
-            sortElement.setAttribute('data-value', 'asc');
-        } else {
             sortElement.classList.add('th-sort-desc');
             sortElement.classList.remove('th-sort-asc');
             sortElement.setAttribute('data-value', 'desc');
+        } else {
+            sortElement.classList.add('th-sort-asc');
+            sortElement.classList.remove('th-sort-desc');
+            sortElement.setAttribute('data-value', 'asc');
         }
     }
 
