@@ -409,8 +409,9 @@ class activity {
                             $statusclass = $gradestatobj->status_class;
                             $statustext = $gradestatobj->status_text;
                             // MGU-631 - Honour hidden grades and hidden activities.
-                            $grade = (($mygradesitem->hidden) ? get_string('status_text_tobeconfirmed', 'block_newgu_spdetails') :
-                            $gradestatobj->grade_to_display);
+                            //$grade = (($mygradesitem->hidden) ? get_string('status_text_tobeconfirmed', 'block_newgu_spdetails') :
+                            //$gradestatobj->grade_to_display);
+                            $grade = $gradestatobj->grade_to_display;
                             $gradeclass = $gradestatobj->grade_class;
                             $gradeprovisional = $gradestatobj->grade_provisional;
                             if (!$mygradesitem->hidden) {
@@ -702,8 +703,9 @@ class activity {
                         $statusclass = $gradestatobj->status_class;
                         $statustext = $gradestatobj->status_text;
                         // MGU-631 - Honour hidden grades and hidden activities.
-                        $grade = ((!$defaultitem->hidden) ? $gradestatobj->grade_to_display :
-                        get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'));
+                        //$grade = ((!$defaultitem->hidden) ? $gradestatobj->grade_to_display :
+                        //get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'));
+                        $grade = $gradestatobj->grade_to_display;
                         $gradeclass = $gradestatobj->grade_class;
                         $gradeprovisional = $gradestatobj->grade_provisional;
                         $gradefeedback = $gradestatobj->grade_feedback;

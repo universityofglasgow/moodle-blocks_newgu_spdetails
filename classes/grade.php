@@ -54,7 +54,7 @@ class grade {
         $gradestatus->status_text = '';
         $gradestatus->status_class = '';
         $gradestatus->status_link = '';
-        $gradestatus->grade_to_display = '';
+        $gradestatus->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $gradestatus->grade_class = false;
         $gradestatus->grade_provisional = false;
         $gradestatus->grade_feedback = '';
@@ -119,6 +119,7 @@ class grade {
         $gradestatus->status_link = $statusobj->status_link;
         $gradestatus->assessment_url = $statusobj->assessment_url;
         $gradestatus->grade_to_display = $statusobj->grade_to_display;
+        $gradestatus->grade_class = $statusobj->grade_class;
         $gradestatus->grade_feedback = $feedbackobj->grade_feedback;
         $gradestatus->grade_feedback_link = $feedbackobj->grade_feedback_link;
 
