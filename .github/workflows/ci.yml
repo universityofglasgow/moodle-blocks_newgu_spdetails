@@ -34,6 +34,12 @@ jobs:
           path: plugin
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
 
+      - name: Checkout gugrades repo
+        uses: actions/checkout@v4
+        with:
+          repository: https://github.com/universityofglasgow/moodle-local_gugrades.git
+          path: local/gugrades
+
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
