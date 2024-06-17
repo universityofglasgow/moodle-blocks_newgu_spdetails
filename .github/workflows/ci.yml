@@ -54,8 +54,6 @@ jobs:
 
       - name: Install moodle-plugin-ci
         run: |
-#          moodle-plugin-ci add-plugin universityofglasgow/moodle-local_gugrades
-#          moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1
           moodle-plugin-ci add-config 'define("QTYPE_STACK_TEST_CONFIG_PLATFORM", "none");'
         env:
           DB: ${{ matrix.database }}
