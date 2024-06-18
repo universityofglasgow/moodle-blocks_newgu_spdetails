@@ -721,9 +721,9 @@ class course {
         $currentcourses = \local_gugrades\api::dashboard_get_courses($USER->id, true, false, $sortstring);
 
         $stats = [
-            'total_submissions' => 0,
             'total_tosubmit' => 0,
             'total_overdue' => 0,
+            'total_submissions' => 0,
             'marked' => 0,
         ];
 
@@ -786,9 +786,9 @@ class course {
         }
 
         $stats = [
-            'total_submissions' => $totalsubmissions,
             'total_tosubmit' => $totaltosubmit,
             'total_overdue' => $totaloverdue,
+            'total_submissions' => $totalsubmissions,
             'marked' => $marked,
         ];
 
@@ -824,22 +824,22 @@ class course {
         $whichstatus = '';
         switch ($charttype) {
             case 0:
-                $option = get_string('status_text_submitted', 'block_newgu_spdetails');
-                $dateheader = get_string('header_datesubmitted', 'block_newgu_spdetails');
-                $whichstatus = get_string('status_submitted', 'block_newgu_spdetails');
-                break;
-            case 1:
                 $option = get_string('status_text_tobesubmitted', 'block_newgu_spdetails');
                 $dateheader = get_string('header_duedate', 'block_newgu_spdetails');
                 $whichstatus = get_string('status_submit', 'block_newgu_spdetails');
                 break;
-            case 2:
+            case 1:
                 $option = get_string('status_text_overdue', 'block_newgu_spdetails');
                 $dateheader = get_string('header_duedate', 'block_newgu_spdetails');
                 $whichstatus = get_string('status_overdue', 'block_newgu_spdetails');
                 break;
+            case 2:
+                $option = get_string('status_text_submitted', 'block_newgu_spdetails');
+                $dateheader = get_string('header_datesubmitted', 'block_newgu_spdetails');
+                $whichstatus = get_string('status_submitted', 'block_newgu_spdetails');
+                break;
             case 3:
-                $option = get_string('status_text_marked', 'block_newgu_spdetails');
+                $option = get_string('status_text_graded', 'block_newgu_spdetails');
                 $dateheader = get_string('header_dategraded', 'block_newgu_spdetails');
                 $whichstatus = get_string('status_graded', 'block_newgu_spdetails');
                 break;

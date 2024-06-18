@@ -39,7 +39,7 @@ const Selectors = {
 };
 
 const viewAssessmentSummaryByChartType = function(event, legendItem, legend) {
-
+    Log.debug('viewAssessmentSummaryByChartType called');
     // We don't want this firing from the main Dashboard page.
     if (!document.querySelector('#student_dashboard')) {
         const chartType = ((legendItem) ? legendItem.index : legend);
@@ -150,6 +150,7 @@ const returnToAssessmentsHandler = () => {
  * @method fetchAssessmentSummary
  */
 const fetchAssessmentSummary = () => {
+    Log.debug('fetchAssessmentSummary called:');
     Chart.register(DoughnutController);
     let tempPanel = document.querySelector(Selectors.SUMMARY_BLOCK);
 
@@ -164,6 +165,7 @@ const fetchAssessmentSummary = () => {
         // With the 'block' now being a link in the top nav, users can still add this,
         // either in the side drawer or to the main dashboard. Check and set the position
         // of the legend accordingly.
+        Log.debug('return:' + response);
         let legendPosition = 'right';
         if (document.querySelector('#block-region-side-pre')) {
             if (document.querySelector('#block-region-side-pre').querySelector('.block_newgu_spdetails')) {
@@ -177,10 +179,6 @@ const fetchAssessmentSummary = () => {
 
         const data = [
             {
-                labeltitle: `Submitted`,
-                value: response[0].sub_assess
-            },
-            {
                 labeltitle: `To be submitted`,
                 value: response[0].tobe_sub
             },
@@ -189,7 +187,11 @@ const fetchAssessmentSummary = () => {
                 value: response[0].overdue
             },
             {
-                labeltitle: `Marked`,
+                labeltitle: `Submitted`,
+                value: response[0].sub_assess
+            },
+            {
+                labeltitle: `Graded`,
                 value: response[0].assess_marked
             },
         ];
@@ -248,9 +250,9 @@ const fetchAssessmentSummary = () => {
                     datasets: [{
                         data: data.map(row => row.value),
                         backgroundColor: [
-                            'rgba(0,153,0)',
                             'rgba(255,153,0)',
                             'rgba(255,0,0)',
+                            'rgba(0,153,0)',
                             'rgba(129,187,255)'
                         ],
                         hoverOffset: 4
@@ -282,5 +284,6 @@ const fetchAssessmentSummary = () => {
  * @constructor
  */
 export const init = () => {
+    Log.debug('calling fetchAssessmentSummary:');
     fetchAssessmentSummary();
 };

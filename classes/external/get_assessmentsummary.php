@@ -62,9 +62,9 @@ class get_assessmentsummary extends external_api {
         $marked = $assessmentsummary['marked'];
 
         $stats[] = [
-            'sub_assess' => $totalsubmissions,
             'tobe_sub' => $totaltosubmit,
             'overdue' => $totaloverdue,
+            'sub_assess' => $totalsubmissions,
             'assess_marked' => $marked,
         ];
 
@@ -79,9 +79,9 @@ class get_assessmentsummary extends external_api {
     public static function execute_returns(): external_multiple_structure {
         return new external_multiple_structure(
             new external_single_structure([
-                'sub_assess' => new external_value(PARAM_INT, 'total submissions'),
                 'tobe_sub' => new external_value(PARAM_INT, 'assignments to be submitted'),
                 'overdue' => new external_value(PARAM_INT, 'assignments overdue'),
+                'sub_assess' => new external_value(PARAM_INT, 'total submissions'),
                 'assess_marked' => new external_value(PARAM_INT, 'assessments marked'),
             ])
         );

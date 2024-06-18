@@ -198,7 +198,7 @@ class api extends external_api {
     }
 
     /**
-     * Checks if user has capability of a student
+     * Check if the user has the capability of a student
      *
      * @param int $courseid
      * @param int $userid
