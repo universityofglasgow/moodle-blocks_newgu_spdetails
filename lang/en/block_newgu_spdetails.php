@@ -77,6 +77,7 @@ $string['includelti'] = 'Include LTI';
 $string['includeltilabel'] = 'Select LTI activities to include on the Student dashboard.';
 $string['staffclicktoview'] = 'Assessment details of students';
 $string['currently_enrolled'] = 'Currently enrolled in';
+$string['currentcourses'] = 'Current Courses';
 $string['pastcourses'] = 'Past Courses';
 $string['staffdashboard'] = 'Staff Dashboard';
 $string['unauthorised'] = 'Unauthorised access';
