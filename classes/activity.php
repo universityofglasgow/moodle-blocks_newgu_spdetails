@@ -167,8 +167,7 @@ class activity {
 
             if ($gcatenabled) {
                 // We need to disregard the items we have and use the GCAT API instead...
-                $activitydata = self::process_gcat_items($subcategory, $ltiactivities, $userid, $activetab,
-                $assessmenttype, $sortby, $sortorder);
+                $activitydata = self::process_gcat_items($subcategory, $ltiactivities, $userid, $activetab, $sortby, $sortorder);
             }
 
             if (!$mygradesenabled && !$gcatenabled) {
@@ -461,7 +460,7 @@ class activity {
      * Process and prepare for display GCAT specific gradable items.
      *
      * Agreement between HM/TW/GP that we're only displaying items that
-     * are visible - so if an assessment has been graded a then the item
+     * are visible - so if an assessment has been graded and then the item
      * hidden - this will not display. No further checks for hidden grades
      * are being done - based on how Moodle currenly does things.
      *
@@ -469,13 +468,12 @@ class activity {
      * @param array $ltiactivities
      * @param int $userid
      * @param string $activetab
-     * @param string $assessmenttype
      * @param string $sortby
      * @param string $sortorder
      * @return array
      */
     public static function process_gcat_items(int $subcategory, array $ltiactivities, int $userid,
-    string $activetab, string $assessmenttype, string $sortby, string $sortorder): array {
+    string $activetab, string $sortby, string $sortorder): array {
         global $DB, $CFG;
 
         // Here we are simply deferring to GCAT's API to return assignments and their status and grade.
