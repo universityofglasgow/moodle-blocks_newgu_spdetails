@@ -178,6 +178,7 @@ class forum_activity extends base {
         $statusobj->due_date = $this->get_formattedduedate($this->forum->duedate);
         $statusobj->raw_due_date = $this->get_rawduedate();
         $statusobj->grade_date = '';
+        $statusobj->grade_class = false;
 
         $forumsubmissions = $DB->count_records('forum_discussion_subs', ['forum' => $this->cm->instance, 'userid' => $userid]);
         if ($forumsubmissions > 0) {

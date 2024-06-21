@@ -179,6 +179,7 @@ class kalvidassign_activity extends base {
         $allowsubmissionsfromdate = $this->kalvidassign[2]->timeavailable;
         $statusobj->allowlatesubmissions = $this->kalvidassign[2]->preventlate;
         $statusobj->grade_date = '';
+        $statusobj->grade_class = false;
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');

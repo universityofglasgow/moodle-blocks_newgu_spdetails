@@ -173,6 +173,7 @@ class lesson_activity extends base {
         $allowsubmissionsfromdate = $this->lesson->available;
         $statusobj->status_link = '';
         $statusobj->grade_date = '';
+        $statusobj->grade_class = false;
 
         // Check if any overrides have been set up first of all...
         $overrides = $DB->get_record('lesson_overrides', ['lessonid' => $this->lesson->id, 'userid' => $userid]);

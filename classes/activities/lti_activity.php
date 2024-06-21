@@ -172,6 +172,7 @@ class lti_activity extends base {
         $statusobj->due_date = $ltiinstance->duedate;
         $statusobj->raw_due_date = $ltiinstance->duedate;
         $statusobj->grade_date = '';
+        $statusobj->grade_class = false;
 
         // Formatting this here as the integer format for the date is no longer needed for testing against.
         if ($statusobj->due_date != 0) {

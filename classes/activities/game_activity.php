@@ -174,6 +174,7 @@ class game_activity extends base {
         $statusobj->due_date = '';
         $statusobj->raw_due_date = '';
         $statusobj->grade_date = '';
+        $statusobj->grade_class = false;
 
         return $statusobj;
     }

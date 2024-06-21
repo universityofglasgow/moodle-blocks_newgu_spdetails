@@ -162,6 +162,7 @@ class glossary_activity extends base {
         $statusobj->assessment_url = $this->get_assessmenturl();
         $statusobj->grade_date = '';
         $statusobj->raw_due_date = '';
+        $statusobj->grade_class = false;
 
         return $statusobj;
 

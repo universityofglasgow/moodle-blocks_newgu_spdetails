@@ -271,6 +271,7 @@ class quiz_activity extends base {
         $statusobj->due_date = $this->get_formattedduedate($quizinstance->timeclose);
         $statusobj->raw_due_date = $quizinstance->timeclose;
         $statusobj->gradecolumn = false;
+        $statusobj->grade_class = false;
         $statusobj->feedbackcolumn = false;
         $statusobj->grade_date = '';
         $quizcloses = $quizinstance->timeclose;

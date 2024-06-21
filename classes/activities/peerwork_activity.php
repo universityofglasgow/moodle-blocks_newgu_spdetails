@@ -174,6 +174,7 @@ class peerwork_activity extends base {
         $statusobj->due_date = $this->peerwork->duedate;
         $statusobj->raw_due_date = $this->peerwork->duedate;
         $statusobj->grade_date = '';
+        $statusobj->grade_class = false;
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');

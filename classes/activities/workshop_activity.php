@@ -182,9 +182,15 @@ class workshop_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->grade_date = '';
         $statusobj->due_date = '';
         $statusobj->raw_due_date = '';
+        $statusobj->grade_status = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->status_text = '';
+        $statusobj->status_class = '';
+        $statusobj->status_link = '';
+        $statusobj->grade_date = '';
+        $statusobj->grade_class = false;
 
         switch ($this->gradeitem->itemnumber) {
             case 0:

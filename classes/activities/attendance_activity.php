@@ -191,6 +191,7 @@ class attendance_activity extends base {
         $statusobj->due_date = $this->get_formattedduedate($this->attendance->sessions->sessdate);
         $statusobj->raw_due_date = $this->attendance->sessions->sessdate;
         $statusobj->gradecolumn = false;
+        $statusobj->grade_class = false;
         $statusobj->feedbackcolumn = false;
         $statusobj->grade_date = '';
 

@@ -184,6 +184,7 @@ class scorm_activity extends base {
         $statusobj->status_class = '';
         $statusobj->status_link = '';
         $statusobj->grade_date = '';
+        $statusobj->grade_class = false;
         $allowsubmissionsfromdate = $this->scorm->timeopen;
 
         if ($allowsubmissionsfromdate > time()) {

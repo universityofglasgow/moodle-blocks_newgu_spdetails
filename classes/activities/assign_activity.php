@@ -194,6 +194,7 @@ class assign_activity extends base {
         $statusobj->status_class = '';
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+        $statusobj->grade_class = false;
         $statusobj->due_date = $assigninstance->duedate;
         $statusobj->raw_due_date = $assigninstance->duedate;
         $statusobj->cutoff_date = $assigninstance->cutoffdate;
