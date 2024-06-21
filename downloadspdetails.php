@@ -51,12 +51,12 @@ if ($coursestype) {
         case "current":
             $strcoursestype = get_string('currentcourses', 'block_newgu_spdetails');
             $courses = \local_gugrades\api::dashboard_get_courses($USER->id, true, false, $sortstring);
-            $cellwidth = 148;
+            $cellwidth = 157;
         break;
         case "past":
             $strcoursestype = get_string('pastcourses', 'block_newgu_spdetails');
             $courses = \local_gugrades\api::dashboard_get_courses($USER->id, false, true, $sortstring);
-            $cellwidth = 140;
+            $cellwidth = 148;
         break;
         default:
             $strcoursestype = get_string('currentcourses', 'block_newgu_spdetails');
@@ -88,30 +88,55 @@ if ($coursestype) {
 
             $mygradesenabled = \block_newgu_spdetails\course::is_type_mygrades($course->id);
             $gcatenabled = \block_newgu_spdetails\course::is_type_gcat($course->id);
+            $activitydata = [];
 
-            // The assessment type is derived from the parent - which works only
-            // as long as the parent name contains 'Formative' or 'Summative'.
-            $item = \grade_item::fetch(['courseid' => $course->id, 'itemtype' => 'course']);
-            $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($course->fullname, $item->aggregationcoef);
+            if ($course->startdate) {
+                $dateobj = \DateTime::createFromFormat('U', $course->startdate);
+                $startdate = $dateobj->format('jS F Y');
+            }
+
+            if ($course->enddate) {
+                $dateobj = \DateTime::createFromFormat('U', $course->enddate);
+                $enddate = $dateobj->format('jS F Y');
+            }
 
             if ($gcatenabled) {
-                // We need to disregard fetching activity items and use the GCAT API instead, which will do this for us.
-                // $item->iteminstance is the grade_category id FK here.
-                $activitydata = \block_newgu_spdetails\activity::process_gcat_items($item->iteminstance, $ltiactivities, $USER->id,
-                $coursestype, $assessmenttype, 'shortname', 'ASC');
-            } else {
+                $tmp = [];
+                // Yes, we get all the activities for this course, but we need to run them via GCAT's API.
+                // We're only interested in the category id from these results essentially.
+                $activities = \block_newgu_spdetails\course::get_activities($course->id);
+                $categoryids = [];
+                foreach ($activities as $category) {
+                    if (!in_array($category->categoryid, $categoryids)) {
+                        $categoryids[] = $category->categoryid;
+                    }
+                }
 
-                // This returns an array of objects - process_[x]_items is expecting an ordinary array. It seems to work still.
+                if ($categoryids) {
+                    foreach ($categoryids as $idx => $category) {
+                        $gcatactivities = \block_newgu_spdetails\activity::process_gcat_items($category, $ltiactivities, $USER->id,
+                        $coursestype, 'shortname', 'ASC');
+                        foreach ($gcatactivities as $gcatactivity) {
+                            $gcatactivity['status_text'] = ucfirst($gcatactivity['status_text']);
+                            if ($gcatactivity['grade_provisional']) {
+                                $gcatactivity['grade'] = $gcatactivity['grade'] . '<br />(Provisional)';
+                            }
+                            $activitydata[] = $gcatactivity;
+                        }
+                    }
+                }
+            } else {
+                // This returns an array of objects - process_[x]_items() is expecting an ordinary array. It seems to work still.
                 $activities = \block_newgu_spdetails\course::get_activities($course->id);
 
                 if ($mygradesenabled) {
                     $activitydata = \block_newgu_spdetails\activity::process_mygrades_items($activities, $coursestype,
-                    $ltiactivities, $assessmenttype, 'shortname', 'ASC');
+                    $ltiactivities, '', 'shortname', 'ASC');
                 }
 
                 if (!$mygradesenabled && !$gcatenabled) {
                     $activitydata = \block_newgu_spdetails\activity::process_default_items($activities, $coursestype,
-                    $ltiactivities, $assessmenttype, 'shortname', 'ASC');
+                    $ltiactivities, '', 'shortname', 'ASC');
                 }
             }
 
@@ -120,14 +145,26 @@ if ($coursestype) {
                     $spdetailspdf .= "<tr>";
                     $spdetailspdf .= "<td $tdstl>" . $course->fullname . "</td>";
                     $spdetailspdf .= "<td $tdstl>" . $activityitem['item_name'] . "</td>";
+                    // The assessment type is normally derived from the parent category - which works only
+                    // as long as the parent name contains 'Formative' or 'Summative', and the item weight.
+                    // As we have the original activities array, we can get the category id from there and
+                    // use it to then work out the category name for this item.
+                    $categoryid = $activities[$activityitem['id']]->categoryid;
+                    $category = grade_category::fetch(['id' => $categoryid]);
+                    $categoryname = '';
+                    if ($category) {
+                        $categoryname = $category->fullname;
+                    }
+                    $weight = (float) $activityitem['raw_assessment_weight'];
+                    $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($categoryname, $weight);
                     $spdetailspdf .= "<td $tdstc>" . $assessmenttype . "</td>";
                     $spdetailspdf .= "<td $tdstc>" . $activityitem['assessment_weight'] . "</td>";
                     if ($coursestype == 'current') {
                         $spdetailspdf .= "<td $tdstc>" . $activityitem['due_date'] . "</td>";
                         $spdetailspdf .= "<td $tdstc>" . $activityitem['status_text'] . "</td>";
                     } else {
-                        $spdetailspdf .= "<td $tdstc>" . $activityitem['start_date'] . "</td>";
-                        $spdetailspdf .= "<td $tdstc>" . $activityitem['end_date'] . "</td>";
+                        $spdetailspdf .= "<td $tdstc>" . $startdate . "</td>";
+                        $spdetailspdf .= "<td $tdstc>" . $enddate . "</td>";
                     }
                     $spdetailspdf .= "<td $tdstc>" . $activityitem['grade'] . "</td>";
                     $spdetailspdf .= "</tr>";
@@ -148,12 +185,12 @@ if ($coursestype) {
                         $xldata[$row][$col] = ["row" => $row, "col" => $col, "text" => $activityitem['status_text']];
                         $col++;
                     } else {
-                        $xldata[$row][$col] = ["row" => $row, "col" => $col, "text" => $activityitem['start_date']];
+                        $xldata[$row][$col] = ["row" => $row, "col" => $col, "text" => $startdate];
                         $col++;
-                        $xldata[$row][$col] = ["row" => $row, "col" => $col, "text" => $activityitem['end_date']];
+                        $xldata[$row][$col] = ["row" => $row, "col" => $col, "text" => $enddate];
                         $col++;
                     }
-                    $xldata[$row][$col] = ["row" => $row, "col" => $col, "text" => $activityitem['grade']];
+                    $xldata[$row][$col] = ["row" => $row, "col" => $col, "text" => strip_tags($activityitem['grade'])];
                     $col++;
                 }
             }
@@ -181,7 +218,7 @@ if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
     // Set header, footer and general fonts.
     $doc->setHeaderFont(['helvetica', 'b', 18]);
     $doc->setFooterFont(['helvetica', '', 10]);
-    $doc->setFont('helvetica', '', 10);
+    $doc->setFont('helvetica', '', 12);
 
     // Set default footer data.
     $doc->setFooterData();
@@ -212,12 +249,12 @@ if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
     // Reset alpha.
     $doc->setAlpha(1);
 
-    // set color for text
+    // Set color for text.
     $doc->SetTextColor(255, 255, 255);
 
     // Add our report titles.
     $html = "<div>University of Glasgow";
-    $doc->writeHTMLCell(0, 0, 110, 70, $html, '', 1, 0, true, 'C', true);
+    $doc->writeHTMLCell(0, 0, 115, 70, $html, '', 1, 0, true, 'C', true);
     $style1 = array('width' => 0.5, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(255,255,255));
     $style2 = array('width' => 1, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(255,255,255));
     $doc->Line(183, 76, 275, 76, $style1);
@@ -225,7 +262,7 @@ if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
     $doc->writeHTMLCell(0, 0, $cellwidth, 80, $html, '', 1, 0, true, 'C', true);
     $doc->Line(183, 88, 275, 88, $style2);
     $html = "<h2>" . $myfirstlastname. "</h2></div>";
-    $doc->writeHTMLCell(0, 0, 109, 90, $html, '', 1, 0, true, 'C', true);
+    $doc->writeHTMLCell(0, 0, 113, 90, $html, '', 1, 0, true, 'C', true);
     $doc->Line(183, 98, 275, 98, $style2);
 
     // Set color for remaining text.
@@ -235,7 +272,6 @@ if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
     $doc->setPageMark();
     $doc->AddPage('L', 'A4');
     $doc->setXY(5, 2);
-    $doc->setFont('helvetica', '', 12);
     $doc->setXY(215, 15);
     $doc->Cell(25, 10, $myfirstlastname, 0, $ln = 0, 'C', 0, '', 0, false, 'B', 'B');
     $doc->setFont('helvetica', '', 9);
