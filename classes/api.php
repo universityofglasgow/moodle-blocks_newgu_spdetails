@@ -177,27 +177,6 @@ class api extends external_api {
     }
 
     /**
-     * Retrieves Parent category ids
-     *
-     * @param array $courseids
-     * @return array $ids
-     * @throws dml_exception
-     * @deprecated - no longer used.
-     */
-    public static function retrieve_parent_category(array $courseids): array {
-        global $DB;
-
-        $courses = implode(', ', $courseids);
-        $sql = "SELECT id FROM {grade_categories} WHERE parent IS NULL AND courseid IN ($courses)";
-        $uncategorised = $DB->get_records_sql($sql);
-        $ids = [];
-        foreach ($uncategorised as $key => $value) {
-            array_push($ids, $key);
-        }
-        return $ids;
-    }
-
-    /**
      * Check if the user has the capability of a student
      *
      * @param int $courseid
