@@ -262,7 +262,7 @@ if ($spdetailstype == "pdf" && $spdetailspdf != "" && $strcoursestype != "") {
     $doc->writeHTMLCell(0, 0, $cellwidth, 80, $html, '', 1, 0, true, 'C', true);
     $doc->Line(183, 88, 275, 88, $style2);
     $html = "<h2>" . $myfirstlastname. "</h2></div>";
-    $doc->writeHTMLCell(0, 0, 113, 90, $html, '', 1, 0, true, 'C', true);
+    $doc->writeHTMLCell(0, 0, 170, 90, $html, '', 1, 0, true, 'C', true);
     $doc->Line(183, 98, 275, 98, $style2);
 
     // Set color for remaining text.
