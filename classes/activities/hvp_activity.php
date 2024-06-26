@@ -72,12 +72,42 @@ class hvp_activity extends base {
     }
 
     /**
-     * A HVP activity doesn't appear to end up in the Gradebook.
-     * Simply return false for now.
+     * A HVP activity can receive a grade. Return this directly from gradebook.
      *
-     * @return bool
+     * @param int $userid
+     * @return object|bool
      */
-    public function get_grade(): bool {
+    public function get_grade(int $userid): object|bool {
+        global $DB;
+
+        $activitygrade = new \stdClass();
+        $activitygrade->finalgrade = null;
+        $activitygrade->rawgrade = null;
+        $activitygrade->grade = null;
+        $activitygrade->gradedate = null;
+
+        // If the grade is overridden in the Gradebook then we can
+        // revert to the base - i.e., get the grade from the Gradebook.
+        // We're only wanting grades that are deemed as 'released', i.e.
+        // not 'hidden'.
+        if ($grade = $DB->get_record('grade_grades', ['itemid' => $this->gradeitemid, 'hidden' => 0, 'userid' => $userid])) {
+            if ($grade->overridden) {
+                return parent::get_first_grade($userid);
+            }
+
+            // We want access to other properties, hence the returns...
+            if ($grade->finalgrade != null && $grade->finalgrade > 0) {
+                $activitygrade->finalgrade = $grade->finalgrade;
+                $activitygrade->gradedate = $grade->timemodified;
+                return $activitygrade;
+            }
+
+            if ($grade->rawgrade != null && $grade->rawgrade > 0) {
+                $activitygrade->rawgrade = $grade->rawgrade;
+                return $activitygrade;
+            }
+        }
+        
         return false;
     }
 
@@ -100,22 +130,21 @@ class hvp_activity extends base {
     }
 
     /**
-     * Return an empty string as this activity doesn't have any kind of due date.
+     * Return N/A as this activity doesn't have any kind of due date.
      *
      * @return string
      */
     public function get_formattedduedate(): string {
-        return '';
+        return 'N/A';
     }
 
     /**
-     * This activity only needs to return mostly empty data, as it isn't graded per se.
+     * This activity only needs to return mostly empty data, as there aren't too many restrictions, e.g. due date etc.
      *
      * @param int $userid
      * @return object
      */
     public function get_status(int $userid): object {
-        global $DB;
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
@@ -124,10 +153,10 @@ class hvp_activity extends base {
         $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
         $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-        $statusobj->due_date = '';
+        $statusobj->grade_class = false;
+        $statusobj->due_date = 'N/A';
         $statusobj->raw_due_date = '';
         $statusobj->grade_date = '';
-        $statusobj->grade_class = false;
 
         return $statusobj;
     }
