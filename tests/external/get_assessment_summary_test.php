@@ -95,7 +95,7 @@ class get_assessment_summary_test extends \block_newgu_spdetails\external\newgu_
         );
         $this->assertIsArray($stats);
         $this->assertArrayHasKey('tobe_sub', $stats[0]);
-        $this->assertEquals(4, $stats[0]['tobe_sub']);
+        $this->assertEquals(3, $stats[0]['tobe_sub']);
     }
 
     /**

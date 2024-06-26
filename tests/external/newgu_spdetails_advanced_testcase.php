@@ -15,7 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Custom class for setting up our course types, gradebook, activities and assignments.
+ * Custom class for setting up our course types, gradebook and activities.
+ * We should try and represent all the activities that Moodle provides,
+ * however, the main focus, for now at least, should be on the activities
+ * that are used regularly, namely assignment, quiz, possibly workshop and forum.
  *
  * @package    block_newgu_spdetails
  * @author     Greg Pedder <greg.pedder@glasgow.ac.uk>
@@ -174,6 +177,106 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
     protected $assignment_past;
 
     /**
+     * @var object $attendance_activity
+     */
+    protected $attendance_activity;
+
+    /**
+     * @var object $checklist_activity
+     */
+    protected $checklist_activity;
+
+    /**
+     * @var object $data_activity
+     */
+    protected $data_activity;
+
+    /**
+     * @var object $default_activity
+     */
+    protected $default_activity;
+
+    /**
+     * @var object $forum_activity
+     */
+    protected $forum_activity;
+
+    /**
+     * @var object $game_activity
+     */
+    protected $game_activity;
+
+    /**
+     * @var object $glossary_activity
+     */
+    protected $glossary_activity;
+
+    /**
+     * @var object $h5p_activity
+     */
+    protected $h5p_activity;
+
+    /**
+     * @var object $hsuforum_activity
+     */
+    protected $hsuforum_activity;
+
+    /**
+     * @var object $hvp_activity
+     */
+    protected $hvp_activity;
+
+    /**
+     * @var object $kalvidassign_activity
+     */
+    protected $kalvidassign_activity;
+
+    /**
+     * @var object $lesson_activity
+     */
+    protected $lesson_activity;
+
+    /**
+     * @var object $lti_activity
+     */
+    protected $lti_activity;
+
+    /**
+     * @var object $oublog_activity
+     */
+    protected $oublog_activity;
+
+    /**
+     * @var object $peerwork_activity
+     */
+    protected $peerwork_activity;
+
+    /**
+     * @var object $questionnaire_activity
+     */
+    protected $questionnaire_activity;
+
+    /**
+     * @var object $quiz_activity
+     */
+    protected $quiz_activity;
+
+    /**
+     * @var object $scheduler_activity
+     */
+    protected $scheduler_activity;
+
+    /**
+     * @var object $scorm_activity
+     */
+    protected $scorm_activity;
+
+    /**
+     * @var object $workshop_activity
+     */
+    protected $workshop_activity;
+
+    /**
      * Get gradeitemid
      * @param string $itemtype
      * @param string $itemmodule
@@ -207,7 +310,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
      */
     protected function add_assignment_grade(int $assignid, int $studentid, int $graderid, float $gradeval,
     string $status = ASSIGN_SUBMISSION_STATUS_NEW) {
-        global $USER, $DB;
+        global $DB;
 
         $submission = new \stdClass();
         $submission->assignment = $assignid;
@@ -229,6 +332,54 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $grade->grade = $gradeval;
         $grade->attemptnumber = 0;
         $DB->insert_record('assign_grades', $grade);
+    }
+
+    protected function add_forum_grade() {
+
+    }
+
+    protected function add_lesson_grade() {
+
+    }
+
+    protected function add_mygrades_grade() {
+
+    }
+
+    /**
+     * Add a peerwork grade
+     * @param int $peerworkid
+     * @param int $studentid
+     * @param int $graderid
+     * @param float $gradeval
+     */
+    protected function add_peerwork_grade(int $peerworkid, int $studentid, int $graderid, float $gradeval, int $score) {
+
+        global $DB;
+
+        $grade = new \stdClass();
+        $grade->peerworkid = $peerworkid;
+        $grade->userid = $studentid;
+        $grade->grade = $gradeval;
+        $grade->gradedby = $graderid;
+        $grade->timecreated = time();
+        $grade->timemodified = time();
+        $DB->insert_record('peerwork_submission', $grade);
+
+        $grade = new \stdClass();
+        $grade->peerworkid = $peerworkid;
+        $grade->userid = $studentid;
+        $grade->grade = $gradeval;
+        $grade->score = $score;
+        $DB->insert_record('peerwork_grades', $grade);
+    }
+
+    protected function add_quiz_grade() {
+
+    }
+
+    protected function add_workshop_grade() {
+
     }
 
     /**
@@ -629,6 +780,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'grademax' => 75,
             'scaleid' => $mygradesscale1->id,
         ]);
+        $gradeitemid5 = $this->get_grade_item('', 'assign', $assignment5->id);
 
         // Create_module gives us stuff for free, however, it doesn't set the categoryid correctly.
         $params = [
@@ -641,14 +793,13 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         ASSIGN_SUBMISSION_STATUS_NEW);
 
         $DB->insert_record('grade_grades', [
-            'itemid' => $assignment5->id,
+            'itemid' => $gradeitemid5,
             'userid' => $student1->id,
             'rawgrade' => 13,
         ]);
 
         // This could be completely wrong of course.
         // Create a "provisional" grade for the first assignment.
-        $gradeitemid5 = $this->get_grade_item('', 'assign', $assignment5->id);
         $DB->insert_record('local_gugrades_grade', [
             'courseid' => $mygradescourse->id,
             'gradeitemid' => $gradeitemid5,
@@ -661,6 +812,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'audittimecreated' => $now,
         ]);
 
+        // No idea why, but this next call creates a shit load of grade_grades entries.
         $assignment6 = $this->getDataGenerator()->create_module('assign', [
             'name' => 'Assessment B1 - Month 1 (Resit)',
             'itemtype' => 'mod',
@@ -671,6 +823,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'grademax' => 100,
             'scaleid' => $mygradesscale1->id,
         ]);
+        $gradeitemid6 = $this->get_grade_item('', 'assign', $assignment6->id);
 
         // Create_module gives us stuff for free, however, it doesn't set the categoryid correctly.
         $params = [
@@ -682,8 +835,23 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         $gradeditem6 = $this->add_assignment_grade($assignment6->id, $student1->id, $teacher->id, 75,
         ASSIGN_SUBMISSION_STATUS_NEW);
 
+        // From the earlier create_module() call creating multiple grade_grades, we can now only update the grade_grades record,
+        // as this barfs complaining of duplicate records. We're updating the itemid = $gradeitemid5 here as it's no longer
+        // $gradeitemid6 that we want
+        $params = [
+            'finalgrade' => NULL,
+            'itemid' => $gradeitemid5,
+            'userid' => $student1->id,
+        ];
+        $DB->execute("UPDATE {grade_grades} SET finalgrade = ? WHERE itemid = ? AND userid = ?", $params);
+        // $DB->insert_record('grade_grades', [
+        //     'itemid' => $gradeitemid6,
+        //     'userid' => $student1->id,
+        //     'rawgrade' => 21,
+        //     'finalgrade' => 22,
+        // ]);
+
         // This assignment has been given a final grade...
-        $gradeitemid6 = $this->get_grade_item('', 'assign', $assignment6->id);
         $DB->insert_record('local_gugrades_grade', [
             'courseid' => $mygradescourse->id,
             'gradeitemid' => $gradeitemid6,
@@ -694,13 +862,6 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'iscurrent' => 1,
             'auditby' => 0,
             'audittimecreated' => $now,
-        ]);
-
-        $DB->insert_record('grade_grades', [
-            'itemid' => $assignment6->id,
-            'userid' => $student1->id,
-            'rawgrade' => 21,
-            'finalgrade' => 22,
         ]);
 
         // Howard's API adds some additional data.
