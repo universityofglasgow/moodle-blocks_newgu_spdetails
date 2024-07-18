@@ -41,6 +41,7 @@ $string['assessment'] = 'Assessment';
 $string['assessments'] = 'Assessments';
 $string['clicktoview'] = 'MyGrades on Moodle';
 $string['headingataglance'] = 'Your assessments at a glance';
+$string['provisionalgradeinfo'] = 'All individual or aggregated grades presented on this page are provisional. All final course grades can be viewed directly in the student records system.';
 $string['heading'] = 'Your assessment details';
 $string['blocktitle'] = 'MyGrades';
 $string['overview_cardheader'] = 'Assessments overview';
