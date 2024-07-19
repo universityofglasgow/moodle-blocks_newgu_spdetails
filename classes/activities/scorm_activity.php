@@ -69,8 +69,9 @@ class scorm_activity extends base {
      * @return object
      */
     public function get_scorm($cm): object {
-        global $DB;
+        global $CFG, $DB;
 
+        require_once($CFG->dirroot . '/mod/scorm/locallib.php');
         $coursemodulecontext = \context_module::instance($cm->id);
         $scorm = $DB->get_record('scorm', ['id' => $this->gradeitem->iteminstance], '*', MUST_EXIST);
         $scorm->coursemodulecontext = $coursemodulecontext;
@@ -112,6 +113,33 @@ class scorm_activity extends base {
             }
         }
 
+        // SCORM appears similar to Quiz in that we can have 1 to multiple attempts, which means we should check for this
+        // in order to determine which grade to return, i.e. the highest, mean etc
+        $scormgrade = scorm_get_user_grades($this->scorm, $userid);
+        if ($scormgrade) {
+            // Yes, we're keying on rawgrade - but I'm treating this as the final grade.
+            $activitygrade->finalgrade = $scormgrade[$userid]->rawgrade;
+            
+            $sql = "SELECT MAX(id)
+            FROM {scorm_attempt}
+            WHERE userid = ? AND scormid = ?";
+            $lastattemptid = $DB->get_field_sql($sql, [$userid, $this->scorm->id]);
+            if (empty($lastattemptid)) {
+                $lastattemptid = 1;
+            }
+
+            // In order to give us the gradedate, jump through some hoops.
+            $sql = "SELECT timemodified
+            FROM {scorm_scoes_value}
+            WHERE attemptid = ? AND value = 'passed'";
+            $timemodified = $DB->get_field_sql($sql, [$lastattemptid]);
+            if (!empty($timemodified)) {
+                $activitygrade->gradedate = $timemodified;
+            }
+
+            return $activitygrade;
+        }
+
         return false;
     }
 
@@ -122,17 +150,6 @@ class scorm_activity extends base {
      */
     public function get_assessmenturl(): string {
         return $this->get_itemurl() . $this->cm->id;
-    }
-
-    /**
-     * Return the 'Remind me to grade by' date if one exists.
-     *
-     * @return string
-     */
-    public function get_grading_duedate(): string {
-        $gradingduedate = '';
-
-        return $gradingduedate;
     }
 
     /**
@@ -154,38 +171,39 @@ class scorm_activity extends base {
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
-
-        $duedate = '';
-        if ($unformatteddate > 0) {
-            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
-            $duedate = $dateobj->format('jS F Y');
+        $dateinstance = $this->scorm;
+        $rawdate = $dateinstance->timeclose;
+        if ($unformatteddate) {
+            $rawdate = $unformatteddate;
         }
+
+        $dateobj = \DateTime::createFromFormat('U', $rawdate);
+        $duedate = $dateobj->format('jS F Y');
 
         return $duedate;
     }
 
     /**
      * Default implementation for returning the status of
-     * an assessment.
+     * a SCORM activity.
      *
      * @param int $userid
      * @return object
      */
     public function get_status(int $userid): object {
-        global $DB;
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->due_date = '';
-        $statusobj->raw_due_date = '';
+        $allowsubmissionsfromdate = $this->scorm->timeopen;
         $statusobj->grade_status = '';
-        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->status_text = '';
         $statusobj->status_class = '';
         $statusobj->status_link = '';
-        $statusobj->grade_date = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->grade_class = false;
-        $allowsubmissionsfromdate = $this->scorm->timeopen;
+        $statusobj->due_date = 'N/A';
+        $statusobj->raw_due_date = '';
+        $statusobj->grade_date = '';
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
@@ -255,9 +273,16 @@ class scorm_activity extends base {
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
 
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'userid = :userid AND timemodified BETWEEN :lastmonth AND :now';
-            $params = ['userid' => $USER->id, 'lastmonth' => $lastmonth, 'now' => $now];
-            $scormsubmissions = $DB->get_fieldset_select('scorm_scoes_track', 'scormid', $select, $params);
+
+            $params = [
+                'userid' => $USER->id, 
+                'lastmonth' => $lastmonth, 
+                'now' => $now
+            ];
+            $scormsubmissions = $DB->get_records_sql(
+                'SELECT scormid, value FROM {scorm_attempt} AS sa INNER JOIN {scorm_scoes_value} AS ssv ON ssv.attemptid = sa.id
+                WHERE sa.userid = :userid AND ssv.timemodified BETWEEN :lastmonth AND :now',
+                $params);
 
             $submissionsdata = [
                 'updated' => time(),
@@ -277,10 +302,17 @@ class scorm_activity extends base {
 
         $scorm = $this->scorm;
 
-        if (!in_array($scorm->id, $scormsubmissions)) {
-            if ($scorm->timeclose < $now) {
-                if ($scorm->timeopen > $now) {
-                    $scormdata[] = $scorm;
+        if (!array_key_exists($scorm->id, $scormsubmissions) ||
+            (array_key_exists($scorm->id, $scormsubmissions) &&
+            (is_object($scormsubmissions[$scorm->id]) &&
+            property_exists($scormsubmissions[$scorm->id], 'value') &&
+            $scormsubmissions[$scorm->id]->value == 'incomplete'))) {
+            if ($scorm->timeopen != 0 && $scorm->timeopen < $now) {
+                if ($scorm->timeclose != 0 && $scorm->timeclose > $now) {
+                    $obj = new \stdClass();
+                    $obj->name = $scorm->name;
+                    $obj->duedate = $scorm->timeclose;
+                    $scormdata[] = $obj;
                 }
             }
         }
