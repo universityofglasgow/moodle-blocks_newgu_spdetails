@@ -30,8 +30,6 @@ defined('MOODLE_INTERNAL') || die();
 $services = [
     'block_newgu_spdetails' => [
         'functions' => [
-            'block_staff_dashboard_get_groupusers',
-            'block_newgu_spdetails_get_coursegroups',
             'block_newgu_spdetails_get_assessmentsummary',
             'block_newgu_spdetails_get_assessments',
             'block_newgu_spdetails_get_assessmentsduesoon',
@@ -43,24 +41,6 @@ $services = [
 ];
 
 $functions = [
-    'block_newgu_spdetails_get_groupusers' => [
-        'classpath' => 'block/newgu_spdetails/classes/external.php',
-        'classname'   => 'block_newgu_spdetails_external',
-        'methodname'  => 'get_groupusers',
-        'description' => 'Get group users',
-        'type'        => 'read',
-        'ajax'        => true,
-        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
-    ],
-    'block_newgu_spdetails_get_coursegroups' => [
-        'classpath' => 'block/newgu_spdetails/classes/external.php',
-        'classname'   => 'block_newgu_spdetails_external',
-        'methodname'  => 'get_coursegroups',
-        'description' => 'Get course groups',
-        'type'        => 'read',
-        'ajax'        => true,
-        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
-    ],
     'block_newgu_spdetails_get_assessmentsummary' => [
         'classname'   => 'block_newgu_spdetails\external\get_assessmentsummary',
         'description' => 'Get users assessment statistics',
