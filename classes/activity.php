@@ -505,7 +505,7 @@ class activity {
                 $itemicon = '';
                 $iconalt = '';
                 $assessmentweight = (($gcatitem->weight != get_string('emptyvalue', 'block_newgu_spdetails')) ? $gcatitem->weight :
-                0);
+                '0%');
                 $duedate = \DateTime::createFromFormat('U', $gcatitem->duedate);
                 $class = (isset($gcatitem->status->class) ? $gcatitem->status->statustext : 'unavailable');
                 $assessmenturl = $gcatitem->assessmenturl->out(true);
@@ -527,7 +527,7 @@ class activity {
                     'icon_alt' => $iconalt,
                     'item_name' => $gcatitem->assessmentname,
                     'assessment_type' => $gcatitem->assessmenttype,
-                    'assessment_weight' => $assessmentweight . '%',
+                    'assessment_weight' => $assessmentweight,
                     'raw_assessment_weight' => $assessmentweight,
                     'due_date' => $duedate->format('jS F Y'),
                     'raw_due_date' => $gcatitem->duedate,
