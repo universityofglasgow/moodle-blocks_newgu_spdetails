@@ -206,10 +206,10 @@ function get_duedateorder($tdr, $userid) {
 
     global $DB, $CFG;
 
-    $currentcourses = block_newgu_spdetails_external::return_enrolledcourses($userid, "current");
+    $currentcourses = \block_newgu_spdetails\course::return_enrolledcourses($userid, "current");
     $strcurrentcourses = implode(",", $currentcourses);
     $currentxl = [];
-    $stritemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($userid, $strcurrentcourses);
+    $stritemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($userid, $strcurrentcourses);
     $sqlcc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in (' . $strcurrentcourses
     . ') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in (' . $stritemsnotvisibletouser . ') && gi.courseid=c.id';
     $arrcc = $DB->get_records_sql($sqlcc);
@@ -293,13 +293,13 @@ function get_startenddateorder($tdr) {
 
     global $USER, $DB, $CFG;
 
-    $pastcourses = block_newgu_spdetails_external::return_enrolledcourses($USER->id, "past");
+    $pastcourses = \block_newgu_spdetails\course::return_enrolledcourses($USER->id, "past");
     $strpastcourses = implode(",", $pastcourses);
     $pastxl = [];
 
     if ($strpastcourses != "") {
 
-        $stritemsnotvisibletouser = block_newgu_spdetails_external::fetch_itemsnotvisibletouser($USER->id, $strpastcourses);
+        $stritemsnotvisibletouser = \block_newgu_spdetails\api::fetch_itemsnotvisibletouser($USER->id, $strpastcourses);
         $sqlcc = 'SELECT gi.*, c.fullname as coursename FROM {grade_items} gi, {course} c WHERE gi.courseid in (' .
         $strpastcourses . ') && gi.courseid>1 && gi.itemtype="mod" && gi.id not in (' .
         $stritemsnotvisibletouser . ') && gi.courseid=c.id';
@@ -323,7 +323,7 @@ function get_startenddateorder($tdr) {
                 $gradecategoryname = $arrgradecategory->fullname;
             }
 
-            $assessmenttype = block_newgu_spdetails_external::return_assessmenttype($gradecategoryname, $aggregationcoef);
+            $assessmenttype = \block_newgu_spdetails\course::return_assessmenttype($gradecategoryname, $aggregationcoef);
 
             // START DATE.
             $submissionstartdate = 0;
