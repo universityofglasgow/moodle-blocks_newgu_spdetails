@@ -159,9 +159,9 @@ class workshop_activity extends base {
 
     /**
      * Workshop creates 2 entries in Gradebook - one for an assessment and one for
-     * a submission. Not entirely clear which one we should be using at the moment...
-     *
-     * gradeitem->itemnumber appears to denote 0 for submission and 1 for the assessment.
+     * a submission.
+     * $gradeitem->itemnumber appears to denote 0 for the submission and 1 for the assessment.
+     * Treat them as two individual activities.
      *
      * @param int $userid
      * @return object
@@ -171,6 +171,7 @@ class workshop_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
+        $workshopinstance = $this->workshop;
         $statusobj->due_date = '';
         $statusobj->raw_due_date = '';
         $statusobj->grade_status = '';
@@ -183,51 +184,59 @@ class workshop_activity extends base {
 
         switch ($this->gradeitem->itemnumber) {
             case 0:
-                $allowsubmissionsfromdate = $this->workshop->submissionstart;
-                $statusobj->due_date = $this->workshop->submissionend;
-                $statusobj->raw_due_date = $this->workshop->submissionend;
+                $allowsubmissionsfromdate = $workshopinstance->submissionstart;
+                $statusobj->due_date = $workshopinstance->submissionend;
+                $statusobj->raw_due_date = $workshopinstance->submissionend;
+                $workshopphase = \workshop::PHASE_SETUP;
             break;
             case 1:
-                $allowsubmissionsfromdate = $this->workshop->assessmentstart;
-                $statusobj->due_date = $this->workshop->assessmentend;
-                $statusobj->raw_due_date = $this->workshop->submissionend;
+                $allowsubmissionsfromdate = $workshopinstance->assessmentstart;
+                $statusobj->due_date = $workshopinstance->assessmentend;
+                $statusobj->raw_due_date = $workshopinstance->submissionend;
+                $workshopphase = \workshop::PHASE_SUBMISSION;
             break;
         }
 
         $statusobj->grade_status = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
-        if ($allowsubmissionsfromdate > time()) {
+        // The Open date could be in the future, or the Phase may not have been progressed yet.
+        if ($allowsubmissionsfromdate > time() || $workshopinstance->phase == $workshopphase) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
         }
 
         if ($statusobj->grade_status == '') {
-            $workshopsubmission = $DB->get_record('workshop_submissions', [
-                'workshopid' => $this->workshop->id,
-                'authorid' => $userid,
-            ]);
+            
+            $workshopphase = '';
+            $whichgrader = '';
+            if ($this->gradeitem->itemnumber == 0) {
+                $workshopphase = $DB->get_record('workshop_submissions', [
+                    'workshopid' => $workshopinstance->id,
+                    'authorid' => $userid,
+                ]);
+                $whichgrader = $workshopphase->gradeoverby;
+            } elseif ($this->gradeitem->itemnumber == 1) {
+                $workshopphase = $DB->get_record('workshop_assessments', [
+                    'submissionid' => $workshopinstance->id,
+                    'reviewerid' => $userid,
+                ]);
+                $whichgrader = $workshopphase->gradinggradeoverby;
+            }
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
 
-            if (!empty($workshopsubmission)) {
-                $statusobj->grade_status = $workshopsubmission->gradeoverby;
+            if (!empty($workshopphase)) {
+                $statusobj->grade_status = $whichgrader->gradeoverby;
 
                 if ($statusobj->grade_status == null) {
+                    $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
-                }
-
-                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
-                    $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_link = $statusobj->assessment_url;
-                    $statusobj->grade_to_display = get_string('status_text_overdue', 'block_newgu_spdetails');
                 }
 
             } else {
@@ -239,15 +248,16 @@ class workshop_activity extends base {
                 if (time() > $statusobj->due_date && $statusobj->due_date != 0) {
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_class = '';
+                    $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_link = '';
-                    $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                }
-
-                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
-                    $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                    
+                    if ($workshopinstance->latesubmissions) {
+                        $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
+                        $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
+                        $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                        $statusobj->status_link = $statusobj->assessment_url;
+                        $statusobj->grade_to_display = get_string('status_text_overdue', 'block_newgu_spdetails');
+                    }
                 }
             }
         }
@@ -265,7 +275,8 @@ class workshop_activity extends base {
     }
 
     /**
-     * Return the due date of the workshop assignment if it hasn't been submitted.
+     * Return the due date of the workshop activity if it hasn't been submitted.
+     * This can apply to both the Submission phase and Assessment phase.
      *
      * @return array
      */
@@ -277,27 +288,51 @@ class workshop_activity extends base {
         $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
         $currenttime = time();
         $fiveminutes = $currenttime - 300;
-        $cachekey = self::CACHE_KEY . $USER->id;
+        $cachekey = self::CACHE_KEY . $USER->id . '_' . $this->gradeitem->itemnumber;
         $cachedata = $cache->get_many([$cachekey]);
         $workshopdata = [];
 
+        $workshopactivityphase = $this->gradeitem->itemnumber;
+
+        // We're treating itemnumber 0 as the submission and 1 as the assessment.
+        
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
-            $select = 'authorid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
-            :tnow))';
-            $params = [
-                'userid' => $USER->id,
-                'lastmonth' => $lastmonth,
-                'now' => $now,
-                'tlastmonth' => $lastmonth,
-                'tnow' => $now,
-            ];
-            $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'id', $select, $params);
+            if ($workshopactivityphase == 0) {
+                $select = 'authorid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
+                :tnow))';
+                $params = [
+                    'userid' => $USER->id,
+                    'lastmonth' => $lastmonth,
+                    'now' => $now,
+                    'tlastmonth' => $lastmonth,
+                    'tnow' => $now,
+                ];
+                $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'id', $select, $params);
 
-            $submissionsdata = [
-                'updated' => time(),
-                'workshopsubmissions' => $workshopsubmissions,
-            ];
+                $submissionsdata = [
+                    'updated' => time(),
+                    'workshopsubmissions' => $workshopsubmissions,
+                ];
+
+            }
+            if ($workshopactivityphase == 1) {
+                $select = 'reviewerid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
+                :tnow))';
+                $params = [
+                    'userid' => $USER->id,
+                    'lastmonth' => $lastmonth,
+                    'now' => $now,
+                    'tlastmonth' => $lastmonth,
+                    'tnow' => $now,
+                ];
+                $workshopsubmissions = $DB->get_fieldset_select('workshop_assessments', 'id', $select, $params);
+
+                $submissionsdata = [
+                    'updated' => time(),
+                    'workshopsubmissions' => $workshopsubmissions,
+                ];
+            }
 
             $cachedata = [
                 $cachekey => [
@@ -313,26 +348,27 @@ class workshop_activity extends base {
         $workshop = $this->workshop;
 
         if (!in_array($workshop->id, $workshopsubmissions)) {
-
-            // We're checking for both items here as the spec has stated that
-            // both items should appear on the dashboard.
-            if ($workshop->submissionstart != 0 && $workshop->submissionstart < $now) {
-                if ($workshop->submissionend != 0 && $workshop->submissionend > $now) {
-                    $obj = new \stdClass();
-                    $obj->name = $workshop->name;
-                    $obj->duedate = $workshop->submissionend;
-                    $workshopdata[] = $obj;
+            if ($workshopactivityphase == 0) {
+                if ($workshop->submissionstart != 0 && $workshop->submissionstart < $now) {
+                    if ($workshop->submissionend != 0 && $workshop->submissionend > $now) {
+                        $obj = new \stdClass();
+                        $obj->name = $this->gradeitem->itemname;
+                        $obj->duedate = $workshop->submissionend;
+                        $workshopdata[] = $obj;
+                    }
+                }
+            }
+            if ($workshopactivityphase == 1) {
+                if ($workshop->assessmentstart != 0 && $workshop->assessmentstart < $now) {
+                    if ($workshop->assessmentend != 0 && $workshop->assessmentend > $now) {
+                        $obj = new \stdClass();
+                        $obj->name = $this->gradeitem->itemname;
+                        $obj->duedate = $workshop->assessmentend;
+                        $workshopdata[] = $obj;
+                    }
                 }
             }
 
-            if ($workshop->assessmentstart != 0 && $workshop->assessmentstart < $now) {
-                if ($workshop->assessmentend != 0 && $workshop->assessmentend > $now) {
-                    $obj = new \stdClass();
-                    $obj->name = $workshop->name;
-                    $obj->duedate = $workshop->assessmentend;
-                    $workshopdata[] = $obj;
-                }
-            }
         }
 
         return $workshopdata;
