@@ -115,6 +115,7 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
             if (isPageClicked == true) {
                 containerBlock.scrollIntoView({behavior: "smooth"});
             }
+            showPastCourseNotification(activetab);
             hideStatusColumn(activetab);
             let subCategories = document.querySelectorAll('.subcategory-row');
             let sortColumns = document.querySelectorAll('#category_table .th-sortable');
@@ -170,6 +171,21 @@ const hideStatusColumn = (activetab) => {
         if (document.querySelector('#sortby_status')) {
             document.querySelector('#sortby_status').classList.add('hidden');
         }
+    }
+};
+
+const showPastCourseNotification = (activetab) => {
+    if (activetab == 'past') {
+        let containerDiv = document.createElement('div');
+        containerDiv.classList.add('border', 'rounded', 'my-2', 'p-2');
+        let div = document.createElement('div');
+        let strong = document.createElement('strong');
+        div.classList.add('alert', 'alert-warning', 'm-0', 'text-center');
+        strong.append('Past Courses will be available from the end of Academic Year 2024/25.' +
+            ' Any past courses/grades before this can be accessed from Moodle / My Courses.');
+        div.appendChild(strong);
+        containerDiv.appendChild(div);
+        document.querySelector("#course_contents_container").prepend(containerDiv);
     }
 };
 
@@ -229,7 +245,7 @@ const subCategoryReturnHandler = (id) => {
 
 /**
  * Function to bind click handlers to row headers.
- * @param {*} rows 
+ * @param {*} rows
  */
 const sortingEventHandler = (rows) => {
     if (rows.length > 0) {

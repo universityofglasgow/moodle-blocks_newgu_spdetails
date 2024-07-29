@@ -80,6 +80,7 @@ $string['staffclicktoview'] = 'Assessment details of students';
 $string['currently_enrolled'] = 'Currently enrolled in';
 $string['currentcourses'] = 'Current Courses';
 $string['pastcourses'] = 'Past Courses';
+$string['pastcoursesnotification'] = 'Past Courses will be available from the end of Academic Year 2024/25.  Any past courses/grades before this can be accessed from Moodle / My Courses.';
 $string['staffdashboard'] = 'Staff Dashboard';
 $string['unauthorised'] = 'Unauthorised access';
 $string['noduedate'] = 'No Due Date';
