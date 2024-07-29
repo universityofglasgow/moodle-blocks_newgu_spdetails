@@ -217,8 +217,13 @@ class workshop_activity extends base {
                 ]);
                 $whichgrader = $workshopphase->gradeoverby;
             } elseif ($this->gradeitem->itemnumber == 1) {
+                // We need to get the submissionid via the submissions table.
+                $fk = $DB->get_record('workshop_submissions', [
+                    'workshopid' => $workshopinstance->id,
+                    'authorid' => $userid,
+                ]);
                 $workshopphase = $DB->get_record('workshop_assessments', [
-                    'submissionid' => $workshopinstance->id,
+                    'submissionid' => $fk->id,
                     'reviewerid' => $userid,
                 ]);
                 $whichgrader = $workshopphase->gradinggradeoverby;
@@ -299,7 +304,7 @@ class workshop_activity extends base {
         if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
             $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
             if ($workshopactivityphase == 0) {
-                $select = 'authorid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
+                $sql = 'authorid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
                 :tnow))';
                 $params = [
                     'userid' => $USER->id,
@@ -308,7 +313,7 @@ class workshop_activity extends base {
                     'tlastmonth' => $lastmonth,
                     'tnow' => $now,
                 ];
-                $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'id', $select, $params);
+                $workshopsubmissions = $DB->get_fieldset_select('workshop_submissions', 'workshopid', $sql, $params);
 
                 $submissionsdata = [
                     'updated' => time(),
@@ -317,16 +322,26 @@ class workshop_activity extends base {
 
             }
             if ($workshopactivityphase == 1) {
-                $select = 'reviewerid = :userid AND ((timecreated BETWEEN :lastmonth AND :now) OR (timemodified BETWEEN :tlastmonth AND
-                :tnow))';
-                $params = [
-                    'userid' => $USER->id,
-                    'lastmonth' => $lastmonth,
-                    'now' => $now,
-                    'tlastmonth' => $lastmonth,
-                    'tnow' => $now,
-                ];
-                $workshopsubmissions = $DB->get_fieldset_select('workshop_assessments', 'id', $select, $params);
+                // Here we'll need to join the assessments against the submission table using the submissionid.
+                $tmpworkshopsubmissions = $DB->get_recordset_sql(
+                    'SELECT workshopid FROM {workshop_submissions} AS ws INNER JOIN {workshop_assessments} AS wa ON
+                    wa.submissionid = ws.id WHERE wa.reviewerid = :userid AND ((wa.timecreated BETWEEN :lastmonth AND :now) OR
+                    (wa.timemodified BETWEEN :tlastmonth AND :tnow))',
+                    [
+                        'userid' => $USER->id,
+                        'lastmonth' => $lastmonth,
+                        'now' => $now,
+                        'tlastmonth' => $lastmonth,
+                        'tnow' => $now,
+                    ]
+                );
+                // We need to turn this back into a regular array.
+                $workshopsubmissions = [];
+                if ($tmpworkshopsubmissions) {
+                    foreach($tmpworkshopsubmissions as $workshopsubmission) {
+                        $workshopsubmissions[] = $workshopsubmission->workshopid;
+                    }
+                }
 
                 $submissionsdata = [
                     'updated' => time(),
@@ -347,7 +362,7 @@ class workshop_activity extends base {
 
         $workshop = $this->workshop;
 
-        if (!in_array($workshop->id, $workshopsubmissions)) {
+        if (!in_array($this->gradeitem->iteminstance, $workshopsubmissions)) {
             if ($workshopactivityphase == 0) {
                 if ($workshop->submissionstart != 0 && $workshop->submissionstart < $now) {
                     if ($workshop->submissionend != 0 && $workshop->submissionend > $now) {
