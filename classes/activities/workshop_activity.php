@@ -134,24 +134,52 @@ class workshop_activity extends base {
      * @return int
      */
     public function get_rawduedate(): int {
-        $dateinstance = $this->workshop;
-        $rawdate = $dateinstance->submissionend;
+        $workshopphase = $this->gradeitem->itemnumber;
+        $workshopduedate = 0;
+        switch($workshopphase) {
+            case 0:
+                $workshopduedate = $this->workshop->submissionend;
+            break;
+            case 1:
+                $workshopduedate = $this->workshop->assessmentend;
+            break;
+        }
+        
+        $rawdate = $workshopduedate;
 
         return $rawdate;
     }
 
     /**
      * Return a formatted date.
+     * We need to account for both the submission and assessment items.
+     * $gradeitem->itemnumber appears to denote 0 for the submission and 1 for the assessment.
      *
      * @param int $unformatteddate
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
+        $workshopphase = $this->gradeitem->itemnumber;
+        $workshopduedate = 'N/A';
+        switch($workshopphase) {
+            case 0:
+                $workshopduedate = $this->workshop->submissionend;
+            break;
+            case 1:
+                $workshopduedate = $this->workshop->assessmentend;
+            break;
+        }
+        
+        $rawdate = $workshopduedate;
+        if ($unformatteddate) {
+            $rawdate = $unformatteddate;
+        }
 
-        $duedate = '';
-        if ($unformatteddate > 0) {
-            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+        if ($rawdate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $rawdate);
             $duedate = $dateobj->format('jS F Y');
+        } else {
+            $duedate = 'N/A';
         }
 
         return $duedate;
