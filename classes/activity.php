@@ -321,7 +321,7 @@ class activity {
                 } else {
 
                     $cm = get_coursemodule_from_instance($mygradesitem->itemmodule, $mygradesitem->iteminstance,
-                    $mygradesitem->courseid, false, MUST_EXIST);
+                    $mygradesitem->courseid);
                     $modinfo = get_fast_modinfo($mygradesitem->courseid);
                     $cm = $modinfo->get_cm($cm->id);
 
@@ -648,7 +648,7 @@ class activity {
                 } else {
 
                     $cm = get_coursemodule_from_instance($defaultitem->itemmodule, $defaultitem->iteminstance,
-                    $defaultitem->courseid, false, MUST_EXIST);
+                    $defaultitem->courseid);
                     $modinfo = get_fast_modinfo($defaultitem->courseid);
                     $cm = $modinfo->get_cm($cm->id);
 
