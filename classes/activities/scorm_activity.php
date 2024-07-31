@@ -231,6 +231,7 @@ class scorm_activity extends base {
             $statusobj->raw_due_date = $this->scorm->timeclose;
 
             if (!empty($scormsubmission) && $scormsubmission != '1') {
+                $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');
                 $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
                 $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
                 $statusobj->status_link = '';
