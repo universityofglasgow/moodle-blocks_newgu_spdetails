@@ -276,57 +276,6 @@ class api extends external_api {
     }
 
     /**
-     * This method does something.
-     *
-     * @param int $courseid
-     * @return string
-     */
-    public static function nogroupusers(int $courseid): string {
-        global $DB;
-        $getgroupssql = "SELECT * FROM {groups} WHERE courseid=" . $courseid;
-        $groups = $DB->get_records_sql($getgroupssql);
-
-        $strgroupids = "0";
-        $strenrolledstudents = "0";
-
-        if (!empty($groups)) {
-            $groupoptions = [];
-            $arrgroupids = [];
-            foreach ($groups as $group) {
-                $groupid = $group->id;
-                $groupname = $group->name;
-
-                $groupoptions[''] = '--Select--';
-                $groupoptions['0'] = 'No Group';
-                $groupoptions[$groupid] = $groupname;
-
-                $arrgroupids[] = $group->id;
-            }
-            $strgroupids = implode(",", $arrgroupids);
-        }
-        $studentids = $DB->get_records_sql('SELECT userid FROM {groups_members} WHERE groupid IN (' . $strgroupids . ')');
-
-        if (!empty($studentids)) {
-            $arrayenrolledstudents = [];
-            foreach ($studentids as $studentid) {
-                $arrayenrolledstudents[] = $studentid->userid;
-            }
-
-            $strenrolledstudents = implode(",", $arrayenrolledstudents);
-        }
-
-        $sqlenrolledstudents = 'SELECT DISTINCT u.id as userid, u.firstname, u.lastname
-        FROM {course} c
-        JOIN {context} ct ON c.id = ct.instanceid
-        JOIN {role_assignments} ra ON ra.contextid = ct.id
-        JOIN {user} u ON u.id = ra.userid
-        JOIN {role} r ON r.id = ra.roleid
-        WHERE r.id=5 AND c.id = ' . $courseid . ' AND u.id NOT IN (' . $strenrolledstudents . ') ORDER BY u.firstname, u.lastname';
-
-        return $sqlenrolledstudents;
-    }
-
-    /**
      * Method to return LTI activities selected to be included on the dashboard.
      * These are selected via the MyGrades plugin Admin Settings page.
      *
