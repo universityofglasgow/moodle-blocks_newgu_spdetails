@@ -365,6 +365,7 @@ class quiz_activity extends base {
                         $statusobj->status_link = '';
                         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                         $statusobj->grade_class = false;
+                        return $statusobj;
                     }
                 }
                 if ($quizcloses != 0 && $now > ($quizcloses + $graceperiod)) {
@@ -374,6 +375,7 @@ class quiz_activity extends base {
                     $statusobj->status_link = '';
                     $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
                     $statusobj->grade_class = false;
+                    return $statusobj;
                 }
             }
 
@@ -390,6 +392,7 @@ class quiz_activity extends base {
                         $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                         $statusobj->status_class = '';
                         $statusobj->status_link = '';
+                        return $statusobj;
                     }
                 }
                 if ($finishedattempt->state == 'finished') {
@@ -438,9 +441,9 @@ class quiz_activity extends base {
                         $statusobj->status_text = get_string('status_text_graded', 'block_newgu_spdetails');
                         $statusobj->status_class = get_string('status_class_graded', 'block_newgu_spdetails');
                         $statusobj->status_link = '';
-                        $statusobj->grade_class = true;
                         // If the user is able to view the grade...
                         if ($statusobj->gradecolumn) {
+                            $statusobj->grade_class = true;
                             $statusobj->grade_to_display = $quizgrade->grade;
                         }
 
@@ -450,6 +453,7 @@ class quiz_activity extends base {
                             $statusobj->feedbackcolumn = true;
                         }
                     }
+                    return $statusobj;
                 }
             }
 
