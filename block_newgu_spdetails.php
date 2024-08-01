@@ -74,11 +74,11 @@ class block_newgu_spdetails extends block_base {
     }
 
     /**
-     * Dashes are suitable on all page types.
+     * We no longer have Student MyGrades appearing as an option in the "Add a block" menu.
      *
      * @return array
      */
     public function applicable_formats(): array {
-        return ['my' => true];
+        return [];
     }
 }
