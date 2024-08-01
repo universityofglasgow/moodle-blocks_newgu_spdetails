@@ -25,6 +25,8 @@
 
 namespace block_newgu_spdetails\activities;
 
+use cache;
+
 /**
  * Implementation for a forum activity.
  */
@@ -141,11 +143,17 @@ class forum_activity extends base {
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
+        $dateinstance = $this->forum;
+        $rawdate = $dateinstance->duedate;
+        if ($unformatteddate) {
+            $rawdate = $unformatteddate;
+        }
 
-        $duedate = '';
-        if ($unformatteddate > 0) {
-            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+        if ($rawdate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $rawdate);
             $duedate = $dateobj->format('jS F Y');
+        } else {
+            $duedate = 'N/A';
         }
 
         return $duedate;
@@ -162,36 +170,156 @@ class forum_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
+        $foruminstance = $this->forum;
         $statusobj->grade_status = '';
+        $statusobj->status_text = '';
+        $statusobj->status_class = '';
+        $statusobj->status_link = '';
         $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-        $statusobj->due_date = $this->get_formattedduedate($this->forum->duedate);
-        $statusobj->raw_due_date = $this->get_rawduedate();
-        $statusobj->grade_date = '';
         $statusobj->grade_class = false;
+        $statusobj->due_date = $foruminstance->duedate;
+        $statusobj->raw_due_date = $foruminstance->duedate;
+        $statusobj->cutoff_date = $foruminstance->cutoffdate;
 
-        $forumsubmissions = $DB->count_records('forum_discussion_subs', ['forum' => $this->cm->instance, 'userid' => $userid]);
-        if ($forumsubmissions > 0) {
+        $forumsubmissions = $DB->count_records('forum_discussions', ['forum' => $this->cm->instance, 'userid' => $userid]);
+
+        // Begin with the easy step. If the student has not made a forum post yet.
+        if (empty($forumsubmissions)) {
+            $this->set_displaystate($statusobj);
+        } else {
+            // Not sure it's as easy as this when it comes to this activity, but lets go with it for now.
+            $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');
             $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
             $statusobj->status_link = '';
+        }
+
+        // Formatting this here as the integer format for the date is no longer needed for testing against.
+        if ($statusobj->due_date != 0) {
+            $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
+            $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
-            $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
-            $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
-            $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
-            $statusobj->status_link = $statusobj->assessment_url;
-            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+            $statusobj->due_date = 'N/A';
+            $statusobj->raw_due_date = '';
         }
 
         return $statusobj;
     }
 
     /**
-     * Return the due date of the forum activity if it hasn't been submitted.
+     * This method takes the $statusobj object and sets the display values for the grade status.
+     *
+     * @param object $statusobj
+     * @return object
+     */
+    private function set_displaystate(object $statusobj): object {
+
+        // Start by saying the student is still able to make a submission.
+        $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+        $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+        $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
+        $statusobj->status_link = $statusobj->assessment_url;
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
+
+        // Cut-off date is the more 'finite' state - exceed this and you're not allowed to submit at all.
+        if ($statusobj->cutoff_date > 0) {
+            // The student can still post to the forum if they have exceeded the due date at this point.
+            if ($statusobj->due_date != 0 && time() > $statusobj->due_date) {
+                $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
+                $statusobj->status_link = $statusobj->assessment_url;
+            }
+            // If the student has exceeded the cut-off date then we can no longer post anything.
+            if (time() > $statusobj->cutoff_date) {
+                $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_link = '';
+            }
+        } else {
+            // The student can still post to the forum if they have exceeded only the due date at this point.
+            if ($statusobj->due_date != 0 && time() > $statusobj->due_date) {
+                $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
+                $statusobj->status_link = $statusobj->assessment_url;
+            }
+        }
+
+        return $statusobj;
+    }
+
+    /**
+     * Forum as an activity can have a requirement that posts are made by a due date,
+     * or a cutoff date. We therefore need to check for a forum due date and then see
+     * if any posts have been made by the due date.
      * @return array $assignmentdata
      */
     public function get_assessmentsdue(): array {
-        $assignmentdata = [];
-        return $assignmentdata;
+        global $USER, $DB;
+
+        // Cache this query as it's going to get called for each activity in the course otherwise.
+        $cache = cache::make('block_newgu_spdetails', 'forumduequery');
+        $now = mktime(date('H'), date('i'), date('s'), date('m'), date('d'), date('Y'));
+        $currenttime = time();
+        $fiveminutes = $currenttime - 300;
+        $cachekey = self::CACHE_KEY . $USER->id;
+        $cachedata = $cache->get_many([$cachekey]);
+        $forumdata = [];
+
+        if (!$cachedata[$cachekey] || $cachedata[$cachekey][0]['updated'] < $fiveminutes) {
+            $lastmonth = mktime(date('H'), date('i'), date('s'), date('m') - 1, date('d'), date('Y'));
+
+            $params = [
+                'lastmonth' => $lastmonth,
+                'now' => $now,
+                'tlastmonth' => $lastmonth,
+                'tnow' => $now,
+            ];
+
+            $forumsubmissions = $DB->get_records_sql(
+                'SELECT f.id FROM {forum_posts} AS fp INNER JOIN {forum_discussions} AS fd ON fd.id = fp.discussion INNER JOIN
+                {forum} AS f ON f.id = fd.forum WHERE ((fp.created BETWEEN :lastmonth AND :now) OR (fp.modified BETWEEN
+                :tlastmonth AND :tnow))',
+                $params);
+
+            $submissionsdata = [
+                'updated' => time(),
+                'forumsubmissions' => $forumsubmissions,
+            ];
+
+            $cachedata = [
+                $cachekey => [
+                    $submissionsdata,
+                ],
+            ];
+            $cache->set_many($cachedata);
+        } else {
+            $cachedata = $cache->get_many([$cachekey]);
+            $forumsubmissions = $cachedata[$cachekey][0]['forumsubmissions'];
+        }
+
+        $forum = $this->forum;
+
+        if (!array_key_exists($forum->id, $forumsubmissions)) {
+            if ($forum->duedate != 0 && $forum->duedate > $now) {
+                // If we don't have the optional cutoff date set.
+                if ($forum->cutoffdate == 0) {
+                    $obj = new \stdClass();
+                    $obj->name = $forum->name;
+                    $obj->duedate = $forum->duedate;
+                    $forumdata[] = $obj;
+                } elseif ($forum->cutoffdate != 0 && $forum->cutoffdate > $now) {
+                    $obj = new \stdClass();
+                    $obj->name = $forum->name;
+                    $obj->duedate = $forum->duedate;
+                    $forumdata[] = $obj;
+                }
+            }
+        }
+
+        return $forumdata;
 
     }
 
