@@ -511,12 +511,11 @@ class grade {
             // scale value.
             switch ($gradetype) {
                 case 1:
-                    $gradetodisplay = number_format((float)$finalgrade) . " / " . number_format((float)$grademax) .
-                    ' (Provisional)';
+                    $gradetodisplay = number_format((float)$finalgrade) . " / " . number_format((float)$grademax);
                     break;
 
                 case 2:
-                    $gradetodisplay = $converted22grademaxpoint . ' (Provisional)';
+                    $gradetodisplay = $converted22grademaxpoint;
                     break;
             }
 
