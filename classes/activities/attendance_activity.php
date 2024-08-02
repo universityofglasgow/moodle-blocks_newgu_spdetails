@@ -165,9 +165,11 @@ class attendance_activity extends base {
         if ($unformatteddate) {
             $rawdate = $unformatteddate;
         }
-        if ($rawdate) {
+        if ($rawdate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $rawdate);
             $duedate = $dateobj->format('jS F Y');
+        } else {
+            $duedate = 'N/A';
         }
 
         return $duedate;

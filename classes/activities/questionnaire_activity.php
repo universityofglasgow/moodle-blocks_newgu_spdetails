@@ -100,12 +100,12 @@ class questionnaire_activity extends base {
     }
 
     /**
-     * Return an empty string as this activity doesn't have any kind of due date.
+     * Return N/A as this activity doesn't have any kind of due date.
      *
      * @return string
      */
     public function get_formattedduedate(): string {
-        return '';
+        return 'N/A';
     }
 
     /**

@@ -141,7 +141,7 @@ class lti_activity extends base {
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
 
-        $duedate = '';
+        $duedate = 'N/A';
         if ($unformatteddate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
             $duedate = $dateobj->format('jS F Y');

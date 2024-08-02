@@ -177,8 +177,12 @@ class scorm_activity extends base {
             $rawdate = $unformatteddate;
         }
 
-        $dateobj = \DateTime::createFromFormat('U', $rawdate);
-        $duedate = $dateobj->format('jS F Y');
+        if ($rawdate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $rawdate);
+            $duedate = $dateobj->format('jS F Y');
+        } else {
+            $duedate = 'N/A';
+        }
 
         return $duedate;
     }

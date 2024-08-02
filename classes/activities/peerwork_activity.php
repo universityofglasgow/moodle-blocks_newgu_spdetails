@@ -143,11 +143,17 @@ class peerwork_activity extends base {
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
+        $dateinstance = $this->peerwork;
+        $rawdate = $dateinstance->duedate;
+        if ($unformatteddate) {
+            $rawdate = $unformatteddate;
+        }
 
-        $duedate = '';
-        if ($unformatteddate > 0) {
-            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+        if ($rawdate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $rawdate);
             $duedate = $dateobj->format('jS F Y');
+        } else {
+            $duedate = 'N/A';
         }
 
         return $duedate;
