@@ -41,7 +41,10 @@ $string['assessment'] = 'Assessment';
 $string['assessments'] = 'Assessments';
 $string['clicktoview'] = 'MyGrades on Moodle';
 $string['headingataglance'] = 'Your assessments at a glance';
-$string['provisionalgradeinfo'] = 'All individual or aggregated grades presented on this page are provisional. All final course grades can be viewed directly in the student records system.';
+$string['provisionalgradeinfo'] = 'All individual or aggregated grades presented on this page are provisional. All final course
+grades can be viewed directly in the <a href="https://uogstudents.mycampus.gla.ac.uk/psc/campus/EMPLOYEE/SA/c/NUI_FRAMEWORK.
+PT_AGSTARTPAGE_NUI.GBL?CONTEXTIDPARAMS=TEMPLATE_ID%3aPTPPNAVCOL&scname=UOG_ACADEMICS&PanelCollapsible=Y&PTPPB_GROUPLET_ID=
+UOG_ACADEMICS_TILE&CRefName=UOG_NAVCOLL_4&AJAXTRANSFER=Y&ptgpid=UOG_MY_RESULTS_FL_GBL" style="color:#0f6cbf;">student records system</a>.';
 $string['heading'] = 'Your assessment details';
 $string['blocktitle'] = 'MyGrades';
 $string['overview_cardheader'] = 'Assessments overview';
