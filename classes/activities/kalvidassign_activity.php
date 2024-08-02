@@ -142,11 +142,17 @@ class kalvidassign_activity extends base {
      * @return string
      */
     public function get_formattedduedate(int $unformatteddate = null): string {
+        $dateinstance = $this->kalvidassign[2];
+        $rawdate = $dateinstance->timedue;
+        if ($unformatteddate) {
+            $rawdate = $unformatteddate;
+        }
 
-        $duedate = '';
-        if ($unformatteddate > 0) {
-            $dateobj = \DateTime::createFromFormat('U', $unformatteddate);
+        if ($rawdate > 0) {
+            $dateobj = \DateTime::createFromFormat('U', $rawdate);
             $duedate = $dateobj->format('jS F Y');
+        } else {
+            $duedate = 'N/A';
         }
 
         return $duedate;
@@ -163,69 +169,40 @@ class kalvidassign_activity extends base {
 
         $statusobj = new \stdClass();
         $statusobj->assessment_url = $this->get_assessmenturl();
-        $statusobj->due_date = $this->kalvidassign[2]->timedue;
-        $statusobj->raw_due_date = $this->kalvidassign[2]->timedue;
-        $allowsubmissionsfromdate = $this->kalvidassign[2]->timeavailable;
-        $statusobj->allowlatesubmissions = $this->kalvidassign[2]->preventlate;
-        $statusobj->grade_date = '';
+        $kalvidinstance = $this->kalvidassign;
+        $allowsubmissionsfromdate = $kalvidinstance[2]->timeavailable;
+        $statusobj->grade_status = '';
+        $statusobj->status_text = '';
+        $statusobj->status_class = '';
+        $statusobj->status_link = '';
+        $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         $statusobj->grade_class = false;
+        $statusobj->due_date = $kalvidinstance[2]->timedue;
+        $statusobj->raw_due_date = $kalvidinstance[2]->timedue;
+        $statusobj->preventlatesubmissions = $kalvidinstance[2]->preventlate;
+        $statusobj->grade_date = '';
 
         if ($allowsubmissionsfromdate > time()) {
             $statusobj->grade_status = get_string('status_submissionnotopen', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_submissionnotopen', 'block_newgu_spdetails');
-            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
         }
 
         if ($statusobj->grade_status == '') {
             $kalvidassignsubmission = $DB->get_record('kalvidassign_submission', [
-                'vidassignid' => $this->kalvidassign[2]->id,
+                'vidassignid' => $kalvidinstance[2]->id,
                 'userid' => $userid,
             ]);
 
             $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
             $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
-            $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
 
             if (!empty($kalvidassignsubmission)) {
-                $statusobj->grade_status = $kalvidassignsubmission->timemarked;
-
-                if ($statusobj->grade_status == null) {
-                    $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
-                    $statusobj->status_link = '';
-                    $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                }
-
-                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
-                    $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_link = $statusobj->assessment_url;
-                    $statusobj->grade_to_display = get_string('status_text_overdue', 'block_newgu_spdetails');
-                }
-
+                $statusobj->grade_status = get_string('status_submitted', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_submitted', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_submitted', 'block_newgu_spdetails');
             } else {
-                $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
-                $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
-                $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
-                $statusobj->status_link = $statusobj->assessment_url;
-                $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-
-                if (time() > $statusobj->due_date && $statusobj->due_date != 0) {
-                    $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
-                    $statusobj->status_class = '';
-                    $statusobj->status_link = '';
-                    $statusobj->grade_to_display = get_string('status_text_tobeconfirmed', 'block_newgu_spdetails');
-                }
-
-                if (time() > $statusobj->due_date + (86400 * 30) && $statusobj->due_date != 0) {
-                    $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
-                    $statusobj->status_link = $statusobj->assessment_url;
-                }
+                $this->set_displaystate($statusobj);
             }
         }
 
@@ -234,8 +211,43 @@ class kalvidassign_activity extends base {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
             $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
-            $statusobj->due_date = '';
+            $statusobj->due_date = 'N/A';
             $statusobj->raw_due_date = '';
+        }
+
+        return $statusobj;
+    }
+
+    /**
+     * This method takes the $statusobj object and sets the display values for the grade status.
+     *
+     * @param object $statusobj
+     * @return object
+     */
+    private function set_displaystate(object $statusobj): object {
+
+        // Start by saying the student is still able to make a submission.
+        $statusobj->grade_status = get_string('status_submit', 'block_newgu_spdetails');
+        $statusobj->status_text = get_string('status_text_submit', 'block_newgu_spdetails');
+        $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
+        $statusobj->status_link = $statusobj->assessment_url;
+
+        // We don't have a 'cutoff date' per se, 'Prevent late submissions' appears to be the equivalent.
+        if ($statusobj->preventlatesubmissions > 0) {
+            // If the student has exceeded the due date (with this setting enabled) then we can no longer submit anything.
+            if ($statusobj->due_date != 0 && (time() > $statusobj->due_date)) {
+                $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
+                $statusobj->status_link = '';
+            }
+        } else {
+            // The student can still (potentially) submit if they have exceeded only the due date at this point.
+            if ($statusobj->due_date != 0 && time() > $statusobj->due_date) {
+                $statusobj->grade_status = get_string('status_overdue', 'block_newgu_spdetails');
+                $statusobj->status_text = get_string('status_text_overdue', 'block_newgu_spdetails');
+                $statusobj->status_class = get_string('status_class_overdue', 'block_newgu_spdetails');
+            }
         }
 
         return $statusobj;
@@ -293,7 +305,7 @@ class kalvidassign_activity extends base {
 
         if (!in_array($kalvidassignment->id, $kalvidsubmissions)) {
             if ($kalvidassignment->timeavailable < $now) {
-                if ($kalvidassignment->timedue == 0 || $kalvidassignment->timedue > $now) {
+                if ($kalvidassignment->timedue != 0 && $kalvidassignment->timedue > $now) {
                     $obj = new \stdClass();
                     $obj->name = $kalvidassignment->name;
                     $obj->duedate = $kalvidassignment->timedue;
