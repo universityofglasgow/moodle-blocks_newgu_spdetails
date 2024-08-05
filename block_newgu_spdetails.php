@@ -79,6 +79,8 @@ class block_newgu_spdetails extends block_base {
      * @return array
      */
     public function applicable_formats(): array {
-        return [];
+        return [
+            'admin' => true,
+        ];
     }
 }
