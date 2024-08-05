@@ -278,7 +278,7 @@ class workshop_activity extends base {
                 $statusobj->status_class = get_string('status_class_submit', 'block_newgu_spdetails');
                 $statusobj->status_link = $statusobj->assessment_url;
 
-                if (time() > $statusobj->due_date && $statusobj->due_date != 0) {
+                if ($statusobj->due_date != 0 && time() > $statusobj->due_date) {
                     $statusobj->grade_status = get_string('status_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_text = get_string('status_text_notsubmitted', 'block_newgu_spdetails');
                     $statusobj->status_class = get_string('status_class_notsubmitted', 'block_newgu_spdetails');
@@ -300,7 +300,7 @@ class workshop_activity extends base {
             $statusobj->due_date = $this->get_formattedduedate($statusobj->due_date);
             $statusobj->raw_due_date = $this->get_rawduedate();
         } else {
-            $statusobj->due_date = '';
+            $statusobj->due_date = 'N/A';
             $statusobj->raw_due_date = '';
         }
 
