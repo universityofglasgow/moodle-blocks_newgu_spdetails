@@ -181,10 +181,14 @@ class forum_activity extends base {
         $statusobj->raw_due_date = $foruminstance->duedate;
         $statusobj->cutoff_date = $foruminstance->cutoffdate;
 
-        $forumsubmissions = $DB->count_records('forum_discussions', ['forum' => $this->cm->instance, 'userid' => $userid]);
+        $forumposts = [];
+        // We need the discussionid for the forum in order to determine if any posts have been made.
+        if ($discussion = $DB->get_record('forum_discussions', ['forum' => $foruminstance->id])) {
+            $forumposts = $DB->count_records('forum_posts', ['discussion' => $discussion->id, 'userid' => $userid]);
+        }
 
         // Begin with the easy step. If the student has not made a forum post yet.
-        if (empty($forumsubmissions)) {
+        if (empty($forumposts)) {
             $this->set_displaystate($statusobj);
         } else {
             // Not sure it's as easy as this when it comes to this activity, but lets go with it for now.
