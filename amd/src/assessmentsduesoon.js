@@ -161,6 +161,25 @@ const fetchAssessmentsDueSoon = () => {
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
             "</canvas>");
 
+        // This is lame, but we have no other way to target these when using the accessibility tool.
+        let tmpFontColor = 'black';
+        if (document.querySelector('.hillhead40-night')) {
+            tmpFontColor = '#95B7E6';
+            document.querySelector('.alert.alert-warning a').style.color='#95B7E6';
+        }
+        if (document.querySelector('.hillhead40-contrast-wb')) {
+            tmpFontColor = '#eee';
+            document.querySelector('.alert.alert-warning a').style.color='#eee';
+        }
+        if (document.querySelector('.hillhead40-contrast-yb')) {
+            tmpFontColor = '#ee6';
+            document.querySelector('.alert.alert-warning a').style.color='#ee6';
+        }
+        if (document.querySelector('.hillhead40-contrast-wg')) {
+            tmpFontColor = '#eee';
+            document.querySelector('.alert.alert-warning a').style.color='#eee';
+        }
+
         const data = [
             {
                 labeltitle: `24 hours:`,
@@ -215,7 +234,7 @@ const fetchAssessmentsDueSoon = () => {
                                         borderRadius: 0,
                                         datasetIndex: i,
                                         fillStyle: datasets[0].backgroundColor[i],
-                                        fontColor: '',
+                                        fontColor: tmpFontColor,
                                         hidden: false,
                                         lineCap: '',
                                         lineDash: [],

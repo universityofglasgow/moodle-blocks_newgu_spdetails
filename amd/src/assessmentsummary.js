@@ -150,7 +150,6 @@ const returnToAssessmentsHandler = () => {
  * @method fetchAssessmentSummary
  */
 const fetchAssessmentSummary = () => {
-    Log.debug('fetchAssessmentSummary called:');
     Chart.register(DoughnutController);
     let tempPanel = document.querySelector(Selectors.SUMMARY_BLOCK);
 
@@ -165,13 +164,32 @@ const fetchAssessmentSummary = () => {
         // With the 'block' now being a link in the top nav, users can still add this,
         // either in the side drawer or to the main dashboard. Check and set the position
         // of the legend accordingly.
-        Log.debug('return:' + response);
         let legendPosition = 'right';
         if (document.querySelector('#block-region-side-pre')) {
             if (document.querySelector('#block-region-side-pre').querySelector('.block_newgu_spdetails')) {
                 legendPosition = 'bottom';
             }
         }
+
+        // This is lame, but we have no other way to target these when using the accessibility tool.
+        let tmpFontColor = 'black';
+        if (document.querySelector('.hillhead40-night')) {
+            tmpFontColor = '#95B7E6';
+            document.querySelector('.alert.alert-warning a').style.color='#95B7E6';
+        }
+        if (document.querySelector('.hillhead40-contrast-wb')) {
+            tmpFontColor = '#eee';
+            document.querySelector('.alert.alert-warning a').style.color='#eee';
+        }
+        if (document.querySelector('.hillhead40-contrast-yb')) {
+            tmpFontColor = '#ee6';
+            document.querySelector('.alert.alert-warning a').style.color='#ee6';
+        }
+        if (document.querySelector('.hillhead40-contrast-wg')) {
+            tmpFontColor = '#eee';
+            document.querySelector('.alert.alert-warning a').style.color='#eee';
+        }
+
         tempPanel.insertAdjacentHTML("afterbegin", "<canvas id='assessmentSummaryChart'\n" +
             " width='400' height='300' aria-label='Assessment Summary chart data' role='graphics-object'>\n" +
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
@@ -197,8 +215,9 @@ const fetchAssessmentSummary = () => {
         ];
 
 
+        const ctw = document.getElementById('assessmentSummaryChart');
         const chart = new Chart(
-            document.getElementById('assessmentSummaryChart'),
+            ctw,
             {
                 type: 'doughnut',
                 options: {
@@ -234,9 +253,19 @@ const fetchAssessmentSummary = () => {
                                     const datasets = chart.data.datasets;
                                     return datasets[0].data.map((data, i) => ({
                                         text: `${chart.data.labels[i]} ${data}`,
+                                        borderRadius: 0,
+                                        datasetIndex: i,
                                         fillStyle: datasets[0].backgroundColor[i],
+                                        fontColor: tmpFontColor,
+                                        hidden: false,
+                                        lineCap: '',
+                                        lineDash: [],
+                                        lineDashOffset: 0,
+                                        lineJoin: '',
+                                        lineWidth: 0,
                                         strokeStyle: datasets[0].backgroundColor[i],
                                         pointStyle: 'rectRounded',
+                                        rotation: 0,
                                         index: i
                                     }));
                                 }
@@ -247,6 +276,7 @@ const fetchAssessmentSummary = () => {
                     maintainAspectRatio: false
                 },
                 data: {
+                    labels: data.map(row => row.labeltitle),
                     datasets: [{
                         data: data.map(row => row.value),
                         backgroundColor: [
@@ -256,8 +286,7 @@ const fetchAssessmentSummary = () => {
                             'rgba(129,187,255)'
                         ],
                         hoverOffset: 4
-                    }],
-                    labels: data.map(row => row.labeltitle),
+                    }]
                 }
             }
         );
@@ -284,6 +313,5 @@ const fetchAssessmentSummary = () => {
  * @constructor
  */
 export const init = () => {
-    Log.debug('calling fetchAssessmentSummary:');
     fetchAssessmentSummary();
 };
