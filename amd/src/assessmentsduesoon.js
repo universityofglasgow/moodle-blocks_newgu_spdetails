@@ -161,23 +161,94 @@ const fetchAssessmentsDueSoon = () => {
             "<p>The &lt;canvas&gt; element appears to be unsupported in your browser.</p>\n" +
             "</canvas>");
 
-        // This is lame, but we have no other way to target these when using the accessibility tool.
-        let tmpFontColor = 'black';
+        // This is lame, but we have no other way (in Chart.js) but to target these elements when using the accessibility tool.
+        let tmpFontColour = '#000';
+        let gridColour = '#eee';
+        let gridLabelTextColour = '';
+        // Check for the contrast setting
         if (document.querySelector('.hillhead40-night')) {
-            tmpFontColor = '#95B7E6';
+            tmpFontColour = '#95B7E6';
+            gridColour = '#95B7E6';
+            gridLabelTextColour = '#95B7E6';
             document.querySelector('.alert.alert-warning a').style.color='#95B7E6';
         }
         if (document.querySelector('.hillhead40-contrast-wb')) {
-            tmpFontColor = '#eee';
+            tmpFontColour = '#eee';
+            gridLabelTextColour = '#eee';
             document.querySelector('.alert.alert-warning a').style.color='#eee';
         }
         if (document.querySelector('.hillhead40-contrast-yb')) {
-            tmpFontColor = '#ee6';
+            tmpFontColour = '#ee6';
+            gridColour = '#ee6';
+            gridLabelTextColour = '#ee6';
             document.querySelector('.alert.alert-warning a').style.color='#ee6';
         }
+        if (document.querySelector('.hillhead40-contrast-by')) {
+            gridColour = '#000';
+            document.querySelector('.alert.alert-warning a').style.color='#000';
+        }
         if (document.querySelector('.hillhead40-contrast-wg')) {
-            tmpFontColor = '#eee';
+            tmpFontColour = '#eee';
+            gridLabelTextColour = '#eee';
             document.querySelector('.alert.alert-warning a').style.color='#eee';
+        }
+        if (document.querySelector('.hillhead40-contrast-br')) {
+            gridColour = '#000';
+            document.querySelector('.alert.alert-warning a').style.color='#000';
+        }
+        if (document.querySelector('.hillhead40-contrast-bb')) {
+            gridColour = '#000';
+            document.querySelector('.alert.alert-warning a').style.color='#000';
+        }
+        if (document.querySelector('.hillhead40-contrast-bw')) {
+            gridColour = '#000';
+            document.querySelector('.alert.alert-warning a').style.color='#000';
+        }
+        // Check for the font setting
+        let tmpFontFamily = "'Hillhead', 'Ubuntu', 'Trebuchet MS', 'Arial', sans-serif";
+        let tmpFontSize = 12;
+        let tmpLegendSize = 20;
+        if (document.querySelector('.hillhead40-font-modern')) {
+            tmpFontFamily = "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";
+        }
+        if (document.querySelector('.hillhead40-font-classic')) {
+            tmpFontFamily = "'Palatino', 'Times New Roman', serif";
+        }
+        if (document.querySelector('.hillhead40-font-comic')) {
+            tmpFontFamily = "'Hillhead Comic', 'Chalkboard', 'Comic Sans', 'Comic Sans MS', sans-serif";
+        }
+        if (document.querySelector('.hillhead40-font-mono')) {
+            tmpFontFamily = "'Hillhead Mono', 'Menlo', 'Courier New', monospace";
+        }
+        if (document.querySelector('.hillhead40-font-dyslexic')) {
+            tmpFontFamily = "'OpenDyslexic', 'Helvetica', 'Arial', sans-serif";
+        }
+        // Check for the size setting
+        if (document.querySelector('.hillhead40-size-120')) {
+            tmpFontSize = '20%';
+            tmpLegendSize = '25%';
+        }
+        if (document.querySelector('.hillhead40-size-140')) {
+            tmpFontSize = '25%';
+            tmpLegendSize = '30%';
+        }
+        if (document.querySelector('.hillhead40-size-160')) {
+            tmpFontSize = '30%';
+            tmpLegendSize = '35%';
+        }
+        if (document.querySelector('.hillhead40-size-180')) {
+            tmpFontSize = '35%';
+            tmpLegendSize = '40%';
+        }
+        // Check for the bold setting
+        let tmpFontWeight = 'normal';
+        if (document.querySelector('.hillhead40-bold')) {
+            tmpFontWeight = 'bolder';
+        }
+        // Check for the spacing setting
+        let tmpLineHeight = '';
+        if (document.querySelector('.hillhead40-spacing')) {
+            tmpLineHeight = '2rem';
         }
 
         const data = [
@@ -208,8 +279,34 @@ const fetchAssessmentsDueSoon = () => {
                     scales: {
                         x: {
                             suggestedMin: 1,
-                            suggestedMax: 10
-                        }
+                            suggestedMax: 10,
+                            grid: {
+                                color: gridColour,
+                            },
+                            ticks: {
+                                color: gridLabelTextColour,
+                                font: {
+                                    size: tmpFontSize,
+                                    family: tmpFontFamily,
+                                    weight: tmpFontWeight,
+                                    lineHeight: tmpLineHeight,
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: gridColour,
+                            },
+                            ticks: {
+                                color: gridLabelTextColour,
+                                font: {
+                                    size: tmpFontSize,
+                                    family: tmpFontFamily,
+                                    weight: tmpFontWeight,
+                                    lineHeight: tmpLineHeight,
+                                }
+                            }
+                        },
                     },
                     plugins: {
                         legend: {
@@ -225,7 +322,10 @@ const fetchAssessmentsDueSoon = () => {
                             labels: {
                                 usePointStyle: true,
                                 font: {
-                                    size: 20
+                                    size: tmpLegendSize,
+                                    family: tmpFontFamily,
+                                    weight: tmpFontWeight,
+                                    lineHeight: tmpLineHeight,
                                 },
                                 generateLabels: (chart) => {
                                     const datasets = chart.data.datasets;
@@ -234,7 +334,7 @@ const fetchAssessmentsDueSoon = () => {
                                         borderRadius: 0,
                                         datasetIndex: i,
                                         fillStyle: datasets[0].backgroundColor[i],
-                                        fontColor: tmpFontColor,
+                                        fontColor: tmpFontColour,
                                         hidden: false,
                                         lineCap: '',
                                         lineDash: [],
