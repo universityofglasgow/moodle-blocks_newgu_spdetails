@@ -112,9 +112,9 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
         Templates.renderForPromise('block_newgu_spdetails/' + whichTemplate, {data: coursedata})
         .then(({html, js}) => {
             Templates.appendNodeContents(containerBlock, html, js);
-            if (isPageClicked == true) {
-                containerBlock.scrollIntoView({behavior: "smooth"});
-            }
+            //if (isPageClicked == true) {
+            //    containerBlock.scrollIntoView({behavior: "smooth"});
+            //}
             showPastCourseNotification(activetab);
             hideStatusColumn(activetab);
             let subCategories = document.querySelectorAll('.subcategory-row');
