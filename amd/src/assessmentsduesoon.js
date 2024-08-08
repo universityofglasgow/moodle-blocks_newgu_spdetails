@@ -170,39 +170,39 @@ const fetchAssessmentsDueSoon = () => {
             tmpFontColour = '#95B7E6';
             gridColour = '#95B7E6';
             gridLabelTextColour = '#95B7E6';
-            document.querySelector('.alert.alert-warning a').style.color='#95B7E6';
+            document.querySelector('.alert.alert-info a').style.color='#95B7E6';
         }
         if (document.querySelector('.hillhead40-contrast-wb')) {
             tmpFontColour = '#eee';
             gridLabelTextColour = '#eee';
-            document.querySelector('.alert.alert-warning a').style.color='#eee';
+            document.querySelector('.alert.alert-info a').style.color='#eee';
         }
         if (document.querySelector('.hillhead40-contrast-yb')) {
             tmpFontColour = '#ee6';
             gridColour = '#ee6';
             gridLabelTextColour = '#ee6';
-            document.querySelector('.alert.alert-warning a').style.color='#ee6';
+            document.querySelector('.alert.alert-info a').style.color='#ee6';
         }
         if (document.querySelector('.hillhead40-contrast-by')) {
             gridColour = '#000';
-            document.querySelector('.alert.alert-warning a').style.color='#000';
+            document.querySelector('.alert.alert-info a').style.color='#000';
         }
         if (document.querySelector('.hillhead40-contrast-wg')) {
             tmpFontColour = '#eee';
             gridLabelTextColour = '#eee';
-            document.querySelector('.alert.alert-warning a').style.color='#eee';
+            document.querySelector('.alert.alert-info a').style.color='#eee';
         }
         if (document.querySelector('.hillhead40-contrast-br')) {
             gridColour = '#000';
-            document.querySelector('.alert.alert-warning a').style.color='#000';
+            document.querySelector('.alert.alert-info a').style.color='#000';
         }
         if (document.querySelector('.hillhead40-contrast-bb')) {
             gridColour = '#000';
-            document.querySelector('.alert.alert-warning a').style.color='#000';
+            document.querySelector('.alert.alert-info a').style.color='#000';
         }
         if (document.querySelector('.hillhead40-contrast-bw')) {
             gridColour = '#000';
-            document.querySelector('.alert.alert-warning a').style.color='#000';
+            document.querySelector('.alert.alert-info a').style.color='#000';
         }
         // Check for the font setting
         let tmpFontFamily = "'Hillhead', 'Ubuntu', 'Trebuchet MS', 'Arial', sans-serif";
