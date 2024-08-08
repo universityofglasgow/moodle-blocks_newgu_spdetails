@@ -242,11 +242,11 @@ class quiz_activity extends base {
         if ($rawdate > 0) {
             $dateobj = \DateTime::createFromFormat('U', $rawdate);
             $duedate = $dateobj->format('jS F Y');
-
-            return $duedate;
+        } else {
+            $duedate = 'N/A';
         }
 
-        return false;
+        return $duedate;
     }
 
     /**
