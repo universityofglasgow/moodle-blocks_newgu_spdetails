@@ -36,7 +36,6 @@ const initCourseTabs = () => {
     let page = 0;
     let sortby = 'shortname';
     let sortorder = 'asc';
-    let isPageClicked = false;
     let subcatId = null;
     let activeTab = sessionStorage.getItem('activeTab');
     let activeCategoryId = sessionStorage.getItem('activeCategoryId');
@@ -63,11 +62,10 @@ const initCourseTabs = () => {
 
     if (activeCategoryId) {
         subcatId = activeCategoryId;
-        isPageClicked = true;
     }
 
     // Load the assessments for the "current" tab to begin with...
-    loadAssessments(activetab, page, sortby, sortorder, isPageClicked, subcatId);
+    loadAssessments(activetab, page, sortby, sortorder, subcatId);
 
     const triggerTabList = document.querySelectorAll('#courses-Tab button');
 
@@ -84,7 +82,7 @@ const initCourseTabs = () => {
     });
 };
 
-const loadAssessments = function(activetab, page, sortby, sortorder, isPageClicked, subcategory = null) {
+const loadAssessments = function(activetab, page, sortby, sortorder, subcategory = null) {
     let containerBlock = document.querySelector('#course_contents_container');
 
     let whichTemplate = subcategory === null ? 'coursecategory' : 'coursesubcategory';
@@ -112,9 +110,6 @@ const loadAssessments = function(activetab, page, sortby, sortorder, isPageClick
         Templates.renderForPromise('block_newgu_spdetails/' + whichTemplate, {data: coursedata})
         .then(({html, js}) => {
             Templates.appendNodeContents(containerBlock, html, js);
-            //if (isPageClicked == true) {
-            //    containerBlock.scrollIntoView({behavior: "smooth"});
-            //}
             showPastCourseNotification(activetab);
             hideStatusColumn(activetab);
             let subCategories = document.querySelectorAll('.subcategory-row');
@@ -209,7 +204,7 @@ const showSubcategoryDetails = (object) => {
             activetab = 'past';
         }
         // Ordering by DueDate by default....
-        loadAssessments(activetab, 0, 'duedate', 'asc', true, id);
+        loadAssessments(activetab, 0, 'duedate', 'asc', id);
     }
 };
 
@@ -230,7 +225,7 @@ const subCategoryReturnHandler = (id) => {
             } else {
                 activetab = 'past';
             }
-            loadAssessments(activetab, 0, 'shortname', 'asc', true, id);
+            loadAssessments(activetab, 0, 'shortname', 'asc', id);
         });
 
         document.querySelector('#subcategory-return-assessment').addEventListener('keyup', function(event) {
@@ -270,7 +265,6 @@ const handleTabChange = function(event) {
     let page = 0;
     let sortby = 'shortname';
     let sortorder = 'asc';
-    let isPageClicked = false;
 
     switch (event.target) {
         case currentTab:
@@ -287,7 +281,7 @@ const handleTabChange = function(event) {
             break;
     }
 
-    loadAssessments(activetab, page, sortby, sortorder, isPageClicked);
+    loadAssessments(activetab, page, sortby, sortorder);
 };
 
 
