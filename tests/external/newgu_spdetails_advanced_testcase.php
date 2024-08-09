@@ -72,26 +72,6 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
     protected $activityapi;
 
     /**
-     * @var object $gcatcourse
-     */
-    protected $gcatcourse;
-
-    /**
-     * @var object $gcat_summativecategory
-     */
-    protected $gcat_summativecategory;
-
-    /**
-     * @var object $gcat_summative_subcategory
-     */
-    protected $gcat_summative_subcategory;
-
-    /**
-     * @var object $gcat_formativecategory
-     */
-    protected $gcat_formativecategory;
-
-    /**
      * @var object $assignment1
      */
     protected $assignment1;
@@ -415,258 +395,9 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
         // Schedule B scale.
         $scaleitemsb = 'H, G0, F0, E0, D0, C0, B0, A0';
 
-        // Create a "current" course. This will be a GCAT style course to start.
+        // Some dates for our mock courses.
         $lastmonth = mktime(0, 0, 0, date("m") - 1, date("d"), date("Y"));
         $nextyear  = mktime(0, 0, 0, date("m"), date("d"), date("Y") + 1);
-        $gcatcourse = $this->getDataGenerator()->create_course([
-            'fullname' => 'GCAT 2023 TW - Existing GCAT',
-            'shortname' => 'GCAT2023TWEX',
-            'startdate' => $lastmonth,
-            'enddate' => $nextyear,
-        ]);
-
-        // Add some grading categories.
-        $gcatsummativecategory = $this->getDataGenerator()->create_grade_category([
-            'fullname' => 'Summative - Converting Points to 22 point Scale - 25% Course Weighting',
-            'courseid' => $gcatcourse->id,
-            'aggregation' => 10,
-        ]);
-
-        $gcatsummativesubcategory = $this->getDataGenerator()->create_grade_category([
-            'fullname' => 'Average of assignments - Sub components - Simple Weighted Mean',
-            'courseid' => $gcatcourse->id,
-            'parent' => $gcatsummativecategory->id,
-        ]);
-
-        $gcatformativecategory = $this->getDataGenerator()->create_grade_category([
-            'fullname' => 'Formative activities',
-            'courseid' => $gcatcourse->id,
-            'parent' => $gcatsummativecategory->parent,
-        ]);
-
-        // Howard's API adds some additional field members...
-        $gcatcourse->firstlevel[] = [
-            'id' => $gcatsummativecategory->id,
-            'fullname' => $gcatsummativecategory->fullname,
-        ];
-
-        $gcatcourse->firstlevel[] = [
-            'id' => $gcatformativecategory->id,
-            'fullname' => $gcatformativecategory->fullname,
-        ];
-        $gcatcourse->mygradesenabled = false;
-        $gcatcourse->gcatenabled = true;
-        $gcatcontext = \context_course::instance($gcatcourse->id);
-
-        // But we also need to mock the "gcat enabled" state in the
-        // customfield_x tables for GCAT type courses.
-        $cfcparams = [
-            'name' => 'GCAT Options',
-            'component' => 'core_course',
-            'area' => 'course',
-        ];
-        $this->getDataGenerator()->create_custom_field_category($cfcparams);
-        $configdata = '{"required":"0","uniquevalues":"0","checkbydefault":"0","locked":"0","visibility":"0"}';
-        $cfparams = [
-            'name' => 'Show assessments on Student Dashboard',
-            'shortname' => 'show_on_studentdashboard',
-            'type' => 'checkbox',
-            'category' => 'GCAT Options',
-            'configdata' => $configdata,
-        ];
-        $this->getDataGenerator()->create_custom_field($cfparams);
-
-        $sqlshortname = $DB->sql_compare_text('shortname');
-        $cfid = $DB->get_field('customfield_field', 'id', ["$sqlshortname" => 'show_on_studentdashboard']);
-
-        // There's no method for creating customfield_data entries so...
-        $now  = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
-        $cfdparams = [
-            'fieldid' => $cfid,
-            'instanceid' => $gcatcourse->id,
-            'intvalue' => 1,
-            'value' => 1,
-            'valueformat' => 0,
-            'contextid' => $gcatcontext->id,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ];
-        $DB->insert_record('customfield_data', $cfdparams);
-
-        // Add the grading scales...
-        $gcatscale1 = $this->getDataGenerator()->create_scale([
-            'name' => 'UofG 22 point scale',
-            'scale' => $scaleitems,
-            'courseid' => $gcatcourse->id,
-        ]);
-        $gcatscale2 = $this->getDataGenerator()->create_scale([
-            'name' => 'UofG Schedule B',
-            'scale' => $scaleitemsb,
-            'courseid' => $gcatcourse->id,
-        ]);
-
-        // Set up, enrol and assign role for a teacher...
-        $teacher = $this->getDataGenerator()->create_user(['email' => 'teacher1@example.co.uk', 'username' => 'teacher1']);
-        $this->getDataGenerator()->enrol_user($teacher->id, $gcatcourse->id, $this->get_roleid('editingteacher'));
-        $this->getDataGenerator()->role_assign('editingteacher', $teacher->id, $gcatcontext);
-
-        // Set up, enrol and assign role for a student...
-        $student1 = $this->getDataGenerator()->create_user(['email' => 'student1@example.co.uk', 'username' => 'student1']);
-        $this->getDataGenerator()->enrol_user($student1->id, $gcatcourse->id, $this->get_roleid());
-        $this->getDataGenerator()->role_assign('student', $student1->id, $gcatcontext);
-
-        // This will be the logged in user to begin with.
-        $this->setUser($student1);
-
-        // Create some "gradable" activities...
-        $duedate1 = mktime(date("H"), date("i"), date("s"), date("m") + 1, date("d") + 1, date("Y"));
-        $duedate2 = mktime(date("H"), date("i"), date("s"), date("m") + 1, date("d") + 2, date("Y"));
-        $duedate3 = mktime(date("H"), date("i"), date("s"), date("m") + 1, date("d") + 3, date("Y"));
-        $assignment1 = $this->getDataGenerator()->create_module('assign', [
-            'name' => 'Assessment 1',
-            'itemtype' => 'mod',
-            'itemmodule' => 'assign',
-            'course' => $gcatcourse->id,
-            'duedate' => $duedate1,
-            'gradetype' => 2,
-            'grademax' => 50.0,
-            'scaleid' => $gcatscale1->id,
-        ]);
-        // Create_module gives us stuff for free, however, it doesn't set the categoryid correctly.
-        $params = [
-            'Provisional Grade',
-            $gcatsummativecategory->id,
-            $gcatscale1->id,
-            $gcatscale1->id,
-            2,
-            $assignment1->id,
-        ];
-        $DB->execute("UPDATE {grade_items} SET itemname = ?, categoryid = ?, idnumber = ?, scaleid = ?, gradetype = ?
-        WHERE iteminstance = ?", $params);
-
-        $gradeditem1 = $this->add_assignment_grade($assignment1->id, $student1->id, $teacher->id, 35,
-        ASSIGN_SUBMISSION_STATUS_SUBMITTED);
-
-        $gradeitemid1 = $this->get_grade_item('', 'assign', $assignment1->id);
-
-        // No idea if this is the correct way to do this.
-        // Create a "provisional" grade for the first assignment.
-        $DB->insert_record('grade_grades', [
-            'itemid' => $gradeitemid1,
-            'userid' => $student1->id,
-            'rawgrade' => 18,
-            'finalgrade' => 18,
-        ]);
-
-        // This is our Provisional grade assignment.
-        $assignment2 = $this->getDataGenerator()->create_module('assign', [
-            'name' => 'Assessment 2(i)',
-            'itemtype' => 'mod',
-            'itemmodule' => 'assign',
-            'course' => $gcatcourse->id,
-            'duedate' => $duedate2,
-            'gradetype' => 2,
-            'grademax' => 20.0,
-            'scaleid' => $gcatscale1->id,
-        ]);
-
-        // Create_module gives us stuff for free, however, it doesn't set the categoryid correctly.
-        $params = [
-            'Provisional Grade',
-            $gcatsummativesubcategory->id,
-            $gcatscale1->id,
-            $gcatscale1->id,
-            2,
-            $assignment2->id,
-        ];
-        $DB->execute("UPDATE {grade_items} SET itemname = ?, categoryid = ?, idnumber = ?, scaleid = ?, gradetype = ?
-        WHERE iteminstance = ?", $params);
-
-        $gradeditem2 = $this->add_assignment_grade($assignment2->id, $student1->id, $teacher->id, 18,
-        ASSIGN_SUBMISSION_STATUS_SUBMITTED);
-
-        // No idea why, but the last call to create_module has just created a number of
-        // grade_grade entries, when it didn't previously, meaning this now flakes out
-        // with a DUPLICATE KEY error.
-        $gradeitemid2 = $this->get_grade_item('', 'assign', $assignment2->id);
-        // This assignment has been given a final grade...
-        // DB->insert_record('grade_grades', [
-        // 'itemid' => gradeitemid2,
-        // 'userid' => student1->id,
-        // 'finalgrade' => 22,
-        // 'information' => 'This is a GCAT assessed final grade',
-        // 'feedback' => 'You have attained the required level according to the GCAT formula.'
-        // ]).
-        // Set another Provisional Grade as this item is 1 of 2 in a subcategory.
-        $params = [
-            18,
-            18,
-            $gradeitemid2,
-        ];
-        $DB->execute("UPDATE {grade_grades} SET rawgrade = ?, finalgrade = ? WHERE itemid = ?", $params);
-
-        // This is our Final grade assignment.
-        $assignment3 = $this->getDataGenerator()->create_module('assign', [
-            'name' => 'Assessment 3',
-            'itemtype' => 'mod',
-            'itemmodule' => 'assign',
-            'course' => $gcatcourse->id,
-            'duedate' => $duedate3,
-            'gradetype' => 2,
-            'grademax' => 30.0,
-            'scaleid' => $gcatscale1->id,
-        ]);
-        // Create_module gives us stuff for free, however, it doesn't set the categoryid correctly.
-        $params = [
-            $gcatsummativesubcategory->id,
-            $gcatscale1->id,
-            $assignment3->id,
-        ];
-        $DB->execute("UPDATE {grade_items} SET categoryid = ?, scaleid = ? WHERE iteminstance = ?", $params);
-
-        $gradeditem3 = $this->add_assignment_grade($assignment3->id, $student1->id, $teacher->id, 12.5,
-        ASSIGN_SUBMISSION_STATUS_NEW);
-        $gradeitemid3 = $this->get_grade_item('', 'assign', $assignment3->id);
-
-        // This assignment has an overridden grade...
-        // DB->insert_record('grade_grades', [
-        // 'itemid' => gradeitemid3,
-        // 'userid' => student1->id,
-        // 'overridden' => 1,
-        // 'rawgrade' => 22,
-        // 'finalgrade' => 21,
-        // 'information' => 'The grade for Assessment 3 was overridden',
-        // 'feedback' => 'There were some issues with the final submission.',
-        // 'usermodified' => teacher->id
-        // ]).
-        $params = [
-            1,
-            22,
-            21,
-            'This is a GCAT assessed final grade',
-            'You have attained the required level according to the GCAT formula.',
-            $teacher->id,
-            $gradeitemid3,
-        ];
-        $DB->execute("UPDATE {grade_grades} SET overridden = ?, rawgrade = ?, finalgrade = ?, information = ?, feedback = ?,
-        usermodified = ? WHERE itemid = ?", $params);
-
-        $groupassignment1 = $this->getDataGenerator()->create_module('assign', [
-            'name' => 'Group Assessment 1',
-            'itemtype' => 'mod',
-            'itemmodule' => 'assign',
-            'course' => $gcatcourse->id,
-            'gradetype' => 2,
-            'grademax' => 23.0,
-            'aggregationcoef' => 0.20000,
-        ]);
-        // Create_module gives us stuff for free, however, it doesn't set the categoryid correctly.
-        $params = [
-            $gcatsummativesubcategory->id,
-            $gcatscale1->id,
-            $groupassignment1->id,
-        ];
-        $DB->execute("UPDATE {grade_items} SET categoryid = ?, scaleid = ? WHERE iteminstance = ?", $params);
 
          // Create a MyGrades type course.
          // We are loosely creating gradable items in local_gugrade_grades
@@ -726,6 +457,16 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
 
         // Create some context.
         $mygradescontext = \context_course::instance($mygradescourse->id);
+
+        // Set up, enrol and assign role for a teacher...
+        $teacher = $this->getDataGenerator()->create_user(['email' => 'teacher1@example.co.uk', 'username' => 'teacher1']);
+        $this->getDataGenerator()->enrol_user($teacher->id, $mygradescourse->id, $this->get_roleid('editingteacher'));
+        $this->getDataGenerator()->role_assign('editingteacher', $teacher->id, $mygradescontext);
+
+        // Set up, enrol and assign role for a student...
+        $student1 = $this->getDataGenerator()->create_user(['email' => 'student1@example.co.uk', 'username' => 'student1']);
+        $this->getDataGenerator()->enrol_user($student1->id, $mygradescourse->id, $this->get_roleid());
+        $this->getDataGenerator()->role_assign('student', $student1->id, $mygradescontext);
 
         // Enrol the teacher...
         $this->getDataGenerator()->enrol_user($teacher->id, $mygradescourse->id, $this->get_roleid('editingteacher'));
@@ -800,6 +541,7 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
 
         // This could be completely wrong of course.
         // Create a "provisional" grade for the first assignment.
+        $now  = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
         $DB->insert_record('local_gugrades_grade', [
             'courseid' => $mygradescourse->id,
             'gradeitemid' => $gradeitemid5,
@@ -870,7 +612,6 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'fullname' => $mygradessummativecategory->fullname,
         ];
         $mygradescourse->mygradesenabled = true;
-        $mygradescourse->gcatenabled = false;
 
         // Regular Gradebook type course.
         $gradebookcourse = $this->getDataGenerator()->create_course([
@@ -892,7 +633,6 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'fullname' => $gradebookcategory->fullname,
         ];
         $gradebookcourse->mygradesenabled = false;
-        $gradebookcourse->gcatenabled = false;
 
         // Add the grading scales...
         $gradebookscale1 = $this->getDataGenerator()->create_scale([
@@ -1014,7 +754,6 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
             'fullname' => $summativecategorypast->fullname,
         ];
         $coursepast->mygradesenabled = false;
-        $coursepast->gcatenabled = false;
 
         $assignmentpast = $this->getDataGenerator()->create_module('assign', [
             'name' => 'Past Assessment 1',
@@ -1047,14 +786,6 @@ class newgu_spdetails_advanced_testcase extends externallib_advanced_testcase {
 
         $this->student1 = $student1;
         $this->teacher = $teacher;
-
-        $this->gcatcourse = $gcatcourse;
-        $this->gcat_summativecategory = $gcatsummativecategory;
-        $this->gcat_summative_subcategory = $gcatsummativesubcategory;
-        $this->gcat_formativecategory = $gcatformativecategory;
-        $this->assignment1 = $assignment1;
-        $this->assignment2 = $assignment2;
-        $this->assignment3 = $assignment3;
 
         $this->mygradescourse = $mygradescourse;
         $this->mygrades_summativecategory = $mygradessummativecategory;

@@ -39,16 +39,16 @@ class get_course_structure_test extends \block_newgu_spdetails\external\newgu_sp
      * Test of the components of the course that get returned.
      */
     public function test_get_course_structure() {
-        $returned = $this->courseapi->get_course_structure([$this->gcatcourse], true);
+        $returned = $this->courseapi->get_course_structure([$this->mygradescourse], true);
 
         $this->assertIsArray($returned);
         $this->assertArrayHasKey('coursedata', $returned);
         $this->assertIsString($returned['coursedata'][0]['coursename']);
-        $this->assertEquals($this->gcatcourse->shortname, $returned['coursedata'][0]['coursename']);
+        $this->assertEquals($this->mygradescourse->shortname, $returned['coursedata'][0]['coursename']);
 
         $this->assertIsArray($returned['coursedata'][0]['subcategories']);
         $this->assertArrayHasKey('subcategories', $returned['coursedata'][0]);
-        $this->assertEquals($this->gcat_summativecategory->fullname, $returned['coursedata'][0]['subcategories'][0]['name']);
+        $this->assertEquals($this->mygrades_summativecategory->fullname, $returned['coursedata'][0]['subcategories'][0]['name']);
         $this->assertEquals('Summative', $returned['coursedata'][0]['subcategories'][0]['assessmenttype']);
         $this->assertEquals('0%', $returned['coursedata'][0]['subcategories'][0]['subcatweight']);
     }

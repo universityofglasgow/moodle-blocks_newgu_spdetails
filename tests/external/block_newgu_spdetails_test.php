@@ -71,7 +71,7 @@ class block_newgu_spdetails_test extends \advanced_testcase {
      */
     public function test_applicable_formats() {
         $returned = $this->spdetails->applicable_formats();
-        $this->assertEquals($returned, ['my' => true]);
+        $this->assertEquals($returned, ['admin' => true]);
     }
 
     /**

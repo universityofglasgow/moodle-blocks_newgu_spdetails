@@ -87,7 +87,6 @@ if ($coursestype) {
         if (\block_newgu_spdetails\api::return_isstudent($course->id, $USER->id)) {
 
             $mygradesenabled = \block_newgu_spdetails\course::is_type_mygrades($course->id);
-            $gcatenabled = \block_newgu_spdetails\course::is_type_gcat($course->id);
             $activitydata = [];
 
             if ($course->startdate) {
@@ -100,44 +99,17 @@ if ($coursestype) {
                 $enddate = $dateobj->format('jS F Y');
             }
 
-            if ($gcatenabled) {
-                $tmp = [];
-                // Yes, we get all the activities for this course, but we need to run them via GCAT's API.
-                // We're only interested in the category id from these results essentially.
-                $activities = \block_newgu_spdetails\course::get_activities($course->id);
-                $categoryids = [];
-                foreach ($activities as $category) {
-                    if (!in_array($category->categoryid, $categoryids)) {
-                        $categoryids[] = $category->categoryid;
-                    }
-                }
+            // This returns an array of objects - process_[x]_items() is expecting an ordinary array. It seems to work still.
+            $activities = \block_newgu_spdetails\course::get_activities($course->id);
 
-                if ($categoryids) {
-                    foreach ($categoryids as $idx => $category) {
-                        $gcatactivities = \block_newgu_spdetails\activity::process_gcat_items($category, $ltiactivities, $USER->id,
-                        $coursestype, 'shortname', 'ASC');
-                        foreach ($gcatactivities as $gcatactivity) {
-                            $gcatactivity['status_text'] = ucfirst($gcatactivity['status_text']);
-                            if ($gcatactivity['grade_provisional']) {
-                                $gcatactivity['grade'] = $gcatactivity['grade'] . '<br />(Provisional)';
-                            }
-                            $activitydata[] = $gcatactivity;
-                        }
-                    }
-                }
-            } else {
-                // This returns an array of objects - process_[x]_items() is expecting an ordinary array. It seems to work still.
-                $activities = \block_newgu_spdetails\course::get_activities($course->id);
+            if ($mygradesenabled) {
+                $activitydata = \block_newgu_spdetails\activity::process_mygrades_items($activities, $coursestype,
+                $ltiactivities, '', 'shortname', 'ASC');
+            }
 
-                if ($mygradesenabled) {
-                    $activitydata = \block_newgu_spdetails\activity::process_mygrades_items($activities, $coursestype,
-                    $ltiactivities, '', 'shortname', 'ASC');
-                }
-
-                if (!$mygradesenabled && !$gcatenabled) {
-                    $activitydata = \block_newgu_spdetails\activity::process_default_items($activities, $coursestype,
-                    $ltiactivities, '', 'shortname', 'ASC');
-                }
+            if (!$mygradesenabled) {
+                $activitydata = \block_newgu_spdetails\activity::process_default_items($activities, $coursestype,
+                $ltiactivities, '', 'shortname', 'ASC');
             }
 
             if ($activitydata) {

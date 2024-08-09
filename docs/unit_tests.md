@@ -20,7 +20,7 @@ Currently tests can be run individually, using (for example)
 Web service tests, extend the class *newgu_spdetails_advanced_testcase*. This creates some basic structure for
 the tests to use. Including...
 
-* Courses - MyGrades, GCAT and regular Gradebook types
+* Courses - MyGrades and regular Gradebook types
 * The 22-point scale - both Schedule A and Schedule B
 * A teacher
 * Some students

@@ -160,62 +160,6 @@ class course {
     }
 
     /**
-     * Process and prepare for display GCAT specific sub categories.
-     *
-     * There doesn't appear to be anything API wise we can use, so we're
-     * having to do some manual legwork to get what we need here.
-     * @param int $courseid
-     * @param array $gcatcategories
-     * @param string $assessmenttype
-     * @param string $sortorder
-     * @return array
-     */
-    public static function process_gcat_subcategories(int $courseid, array $gcatcategories, string $assessmenttype,
-    string $sortorder): array {
-        global $CFG, $USER;
-        $gcatsubcatdata = [];
-        $tmp = [];
-        require_once($CFG->dirroot. '/blocks/gu_spdetails/lib.php');
-
-        foreach ($gcatcategories as $gcatcategory) {
-            $item = \grade_item::fetch([
-                'courseid' => $courseid,
-                'iteminstance' => $gcatcategory->category->id,
-                'itemtype' => 'category',
-            ]);
-            $subcatweight = self::return_weight($item->aggregationcoef);
-            // We need to work out the grade aggregate for any graded items w/in this sub category...
-            // Is there an API call for this?
-            $subcat = new \stdClass();
-            $subcat->id = $gcatcategory->category->id;
-            $subcat->name = $gcatcategory->category->fullname;
-            $subcat->assessment_type = $assessmenttype;
-            $subcat->subcatweight = $subcatweight . '%';
-            $subcat->raw_category_weight = $subcatweight;
-
-            // We have an array of 'items' at this point - which we can use to work out the overall grade
-            // for each (sub)category - which should then give us an overall grade for all sub categories
-            // of our parent - I think...
-            // if ($gcatcategory->items) {}.
-
-            $tmp[] = $subcat;
-        }
-
-        // This needs redone. $gcatcategories comes in as an array of
-        // objects, whose category property is also an object - making
-        // sorting a tad awkward. The items property that comes in also,
-        // is an array of objects containing the necessary property/key
-        // which ^can^ get sorted and returned in the correct order needed
-        // by the mustache engine. @todo!
-        $tmp2 = self::sort_items($tmp, $sortorder);
-        foreach ($tmp2 as $sortedarray) {
-            $gcatsubcatdata[] = $sortedarray;
-        }
-
-        return $gcatsubcatdata;
-    }
-
-    /**
      * Process and prepare for display Gradebook specific sub categories.
      *
      * @param int $courseid
@@ -296,32 +240,6 @@ class course {
         $mygradesenabled = \local_gugrades\api::is_mygrades_enabled_for_course($courseid);
 
         return $mygradesenabled;
-    }
-
-    /**
-     * Reusing the code from local_gugrades/api::get_dashboard_get_courses.
-     *
-     * @param int $courseid
-     * @return bool
-     */
-    public static function is_type_gcat(int $courseid): bool {
-        global $DB;
-
-        $gcatenabled = false;
-        $sqlshortname = $DB->sql_compare_text('shortname');
-        $sql = "SELECT * FROM {customfield_data} cd
-            JOIN {customfield_field} cf ON cf.id = cd.fieldid
-            WHERE cd.instanceid = :courseid
-            AND cd.intvalue = 1
-            AND $sqlshortname = 'show_on_studentdashboard'";
-        $params = [
-            'courseid' => $courseid,
-        ];
-        if ($DB->record_exists_sql($sql, $params)) {
-            $gcatenabled = true;
-        }
-
-        return $gcatenabled;
     }
 
     /**

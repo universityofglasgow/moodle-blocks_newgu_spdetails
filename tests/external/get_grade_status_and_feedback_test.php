@@ -38,49 +38,6 @@ require_once($CFG->dirroot . '/blocks/newgu_spdetails/tests/external/newgu_spdet
 class get_grade_status_and_feedback_test extends \block_newgu_spdetails\external\newgu_spdetails_advanced_testcase {
 
     /**
-     * Test that for a given assessment, the correct grade, status and
-     * feedback is returned.
-     *
-     * For a GCAT type course, the API is called and it should deal
-     * with the return values.
-     */
-    public function test_get_grade_status_and_feedback_gcat() {
-        $userid = $this->student1->id;
-        $sortorder = 'asc';
-
-        $gcatsummativesubcategory = $this->gcat_summative_subcategory->id;
-        $gcatgradeditems = $this->lib->retrieve_gradable_activities('current', $userid, 'duedate', $sortorder,
-        $gcatsummativesubcategory);
-
-        $this->assertIsArray($gcatgradeditems);
-        $this->assertCount(3, $gcatgradeditems['coursedata']['assessmentitems']);
-
-        // Check for the raw grade/provisional on the first assignment.
-        $this->assertArrayHasKey('grade_provisional', $gcatgradeditems['coursedata']['assessmentitems'][0]);
-        // Check that this item hasn't been graded yet.
-        $this->assertFalse($gcatgradeditems['coursedata']['assessmentitems'][0]['grade_class']);
-        $this->assertFalse($gcatgradeditems['coursedata']['assessmentitems'][0]['grade_provisional']);
-        // Check for the feedback.
-        $this->assertStringContainsString(get_string('status_text_tobeconfirmed', 'block_newgu_spdetails'),
-        $gcatgradeditems['coursedata']['assessmentitems'][0]['grade_feedback']);
-
-        // The second item should have a Provisional grade
-        $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][1]['grade_class']);
-        $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][1]['grade_provisional']);
-
-        // Check for an overridden grade.
-        // Check for the feedback.
-
-        // Check for the final grade.
-        $this->assertArrayHasKey('grade_class', $gcatgradeditems['coursedata']['assessmentitems'][1]);
-        $this->assertTrue($gcatgradeditems['coursedata']['assessmentitems'][2]['grade_class']);
-        $this->assertFalse($gcatgradeditems['coursedata']['assessmentitems'][2]['grade_provisional']);
-        // Check for the feedback.
-        $this->assertStringContainsString(get_string('readfeedback', 'block_gu_spdetails'),
-        $gcatgradeditems['coursedata']['assessmentitems'][2]['grade_feedback']);
-    }
-
-    /**
      * For a MyGrades course - we have the situation where if grades
      * haven't been imported/released, then it defaults to retrieving
      * them from gradebook. These tests should account for this, i.e.

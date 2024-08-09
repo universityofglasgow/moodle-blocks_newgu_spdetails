@@ -42,7 +42,7 @@ define('ITEM_URL', $CFG->wwwroot . '/');
 define('ITEM_SCRIPT', '/view.php?id=');
 
 /**
- * This class processes activities for MyGrades, GCAT and Gradebook course types.
+ * This class processes activities for MyGrades, and Gradebook course types.
  *
  * It provides a factory method for instantiating the relevant activity which can
  * then be used to provide further functionality.
@@ -133,7 +133,6 @@ class activity {
 
         // We've lost all knowledge at this point of the course type - fetch it again.
         $mygradesenabled = course::is_type_mygrades($courseid);
-        $gcatenabled = course::is_type_gcat($courseid);
 
         if ($activityitems->categories) {
             $categorydata = [];
@@ -143,12 +142,7 @@ class activity {
                 $assessmenttype, $sortorder);
             }
 
-            if ($gcatenabled) {
-                $categorydata = course::process_gcat_subcategories($courseid, $activityitems->categories,
-                $assessmenttype, $sortorder);
-            }
-
-            if (!$mygradesenabled && !$gcatenabled) {
+            if (!$mygradesenabled) {
                 $categorydata = course::process_default_subcategories($courseid, $activityitems->categories,
                 $assessmenttype, $sortorder);
             }
@@ -165,12 +159,7 @@ class activity {
                 $assessmenttype, $sortby, $sortorder);
             }
 
-            if ($gcatenabled) {
-                // We need to disregard the items we have and use the GCAT API instead...
-                $activitydata = self::process_gcat_items($subcategory, $ltiactivities, $userid, $activetab, $sortby, $sortorder);
-            }
-
-            if (!$mygradesenabled && !$gcatenabled) {
+            if (!$mygradesenabled) {
                 $activitydata = self::process_default_items($activityitems->items, $activetab, $ltiactivities,
                 $assessmenttype, $sortby, $sortorder);
             }
@@ -456,105 +445,6 @@ class activity {
         }
 
         return $mygradesdata;
-    }
-
-    /**
-     * Process and prepare for display GCAT specific gradable items.
-     *
-     * Agreement between HM/TW/GP that we're only displaying items that
-     * are visible - so if an assessment has been graded and then the item
-     * hidden - this will not display. No further checks for hidden grades
-     * are being done - based on how Moodle currenly does things.
-     *
-     * @param int $subcategory
-     * @param array $ltiactivities
-     * @param int $userid
-     * @param string $activetab
-     * @param string $sortby
-     * @param string $sortorder
-     * @return array
-     */
-    public static function process_gcat_items(int $subcategory, array $ltiactivities, int $userid,
-    string $activetab, string $sortby, string $sortorder): array {
-        global $DB, $CFG;
-
-        // Here we are simply deferring to GCAT's API to return assignments and their status and grade.
-        require_once($CFG->dirroot. '/blocks/gu_spdetails/lib.php');
-        // Course fullname isn't referenced in the query, it's known as coursetitle - find and replace for now.
-        $sortby = preg_replace('/(full|short)name/', 'coursetitle, activityname', $sortby);
-        $gcatitems = \assessments_details::retrieve_gradable_activities($activetab, $userid, $sortby, $sortorder, $subcategory);
-        $gcatdata = [];
-
-        if ($gcatitems && count($gcatitems) > 0) {
-
-            foreach ($gcatitems as $gcatitem) {
-
-                // MGU-631 - GCAT seems to take care of checking if the activity item and grade is
-                // visible to the user in the API call above. The only issue is whether, for grade
-                // items that were hidden, should the rest of the activity information be displayed.
-                // The above call currently will not return records where gi.hidden = 1.
-
-                // We have no knowledge of the itemmodule here - how do we get that for this check?
-                if (property_exists($gcatitem, 'itemmodule') && $gcatitem->itemmodule == 'lti') {
-                    // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
-                    // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
-                    if (is_array($ltiactivities) && in_array($gcatitem->iteminstance, $ltiactivities)) {
-                        continue;
-                    }
-                }
-
-                // With no knowledge of the itemmodule, we can't set an icon, yet.
-                $itemicon = '';
-                $iconalt = '';
-                $assessmentweight = (($gcatitem->weight != get_string('emptyvalue', 'block_newgu_spdetails')) ? $gcatitem->weight :
-                '0%');
-                $duedate = \DateTime::createFromFormat('U', $gcatitem->duedate);
-                $class = (isset($gcatitem->status->class) ? $gcatitem->status->statustext : 'unavailable');
-                $assessmenturl = $gcatitem->assessmenturl->out(true);
-                $statuslink = (($gcatitem->status->hasstatusurl) ? $gcatitem->assessmenturl->out(true) : '');
-                $grade = $gcatitem->grading->gradetext;
-                $gradeclass = false;
-                $gradeprovisional = false;
-                if ($gcatitem->grading->hasgrade) {
-                    $gradeclass = true;
-                    if ($gcatitem->grading->isprovisional) {
-                        $gradeprovisional = true;
-                    }
-                }
-
-                $tmp = [
-                    'id' => $gcatitem->id,
-                    'assessment_url' => $assessmenturl,
-                    'item_icon' => $itemicon,
-                    'icon_alt' => $iconalt,
-                    'item_name' => $gcatitem->assessmentname,
-                    'assessment_type' => $gcatitem->assessmenttype,
-                    'assessment_weight' => $assessmentweight,
-                    'raw_assessment_weight' => $assessmentweight,
-                    'due_date' => $duedate->format('jS F Y'),
-                    'raw_due_date' => $gcatitem->duedate,
-                    'grade_status' => get_string("status_" . $class, "block_newgu_spdetails"),
-                    'status_link' => $statuslink,
-                    'status_class' => $gcatitem->status->class,
-                    'status_text' => $gcatitem->status->statustext,
-                    'grade' => $grade,
-                    'grade_class' => $gradeclass,
-                    'grade_provisional' => $gradeprovisional,
-                    'grade_feedback' => $gcatitem->feedback->feedbacktext,
-                    'grade_feedback_link' => (property_exists($gcatitem->feedback, 'feedbackurl') ?
-                    $gcatitem->feedback->feedbackurl : ''),
-                    'gcatenabled' => 'true',
-                ];
-
-                if ($activetab == 'past') {
-                    unset($tmp['grade_status']);
-                }
-
-                $gcatdata[] = $tmp;
-            }
-        }
-
-        return $gcatdata;
     }
 
     /**
