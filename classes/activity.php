@@ -323,7 +323,9 @@ class activity {
                     $cm = get_coursemodule_from_instance($mygradesitem->itemmodule, $mygradesitem->iteminstance,
                     $mygradesitem->courseid);
                     $modinfo = get_fast_modinfo($mygradesitem->courseid);
-                    $cm = $modinfo->get_cm($cm->id);
+                    if (!empty($cm->id)) {
+                        $cm = $modinfo->get_cm($cm->id);
+                    }
 
                     // MGU-631 - Honour hidden grades and hidden activities. Having discussed with HM, if the activity
                     // is hidden, don't show it full stop. This code may not be correct -if- it should only hide the
@@ -650,7 +652,9 @@ class activity {
                     $cm = get_coursemodule_from_instance($defaultitem->itemmodule, $defaultitem->iteminstance,
                     $defaultitem->courseid);
                     $modinfo = get_fast_modinfo($defaultitem->courseid);
-                    $cm = $modinfo->get_cm($cm->id);
+                    if (!empty($cm->id)) {
+                        $cm = $modinfo->get_cm($cm->id);
+                    }
 
                     // MGU-631 - Honour hidden grades and hidden activities.
                     // Having discussed with HM, if the activity is hidden,

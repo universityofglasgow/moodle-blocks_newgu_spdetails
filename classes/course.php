@@ -518,7 +518,9 @@ class course {
                         $cm = get_coursemodule_from_instance($activityitem->itemmodule, $activityitem->iteminstance,
                         $activityitem->courseid);
                         $modinfo = get_fast_modinfo($activityitem->courseid);
-                        $cm = $modinfo->get_cm($cm->id);
+                        if (!empty($cm->id)) {
+                            $cm = $modinfo->get_cm($cm->id);
+                        }
                         if ($cm->uservisible) {
                             // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
                             // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
@@ -625,7 +627,9 @@ class course {
                     foreach ($activities as $item) {
                         $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance, $item->courseid);
                         $modinfo = get_fast_modinfo($item->courseid);
-                        $cm = $modinfo->get_cm($cm->id);
+                        if (!empty($cm->id)) {
+                            $cm = $modinfo->get_cm($cm->id);
+                        }
                         if ($cm->uservisible) {
                             // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
                             // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
@@ -740,7 +744,9 @@ class course {
                         $cm = get_coursemodule_from_instance($activityitem->itemmodule, $activityitem->iteminstance,
                         $activityitem->courseid);
                         $modinfo = get_fast_modinfo($activityitem->courseid);
-                        $cm = $modinfo->get_cm($cm->id);
+                        if (!empty($cm->id)) {
+                            $cm = $modinfo->get_cm($cm->id);
+                        }
                         if ($cm->uservisible) {
                             // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
                             // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
@@ -858,7 +864,9 @@ class course {
                         $cm = get_coursemodule_from_instance($activityitem->itemmodule, $activityitem->iteminstance,
                         $activityitem->courseid);
                         $modinfo = get_fast_modinfo($activityitem->courseid);
-                        $cm = $modinfo->get_cm($cm->id);
+                        if (!empty($cm->id)) {
+                            $cm = $modinfo->get_cm($cm->id);
+                        }
                         if ($cm->uservisible) {
                             // MGU-576/MGU-802 - Only include LTI activities if they have been selected.
                             // Note that LTI activities only become a "gradable" activity when they have been set to accept grades!
