@@ -176,7 +176,7 @@ const showPastCourseNotification = (activetab) => {
         let div = document.createElement('div');
         let strong = document.createElement('strong');
         div.classList.add('alert', 'alert-info', 'm-0', 'text-center');
-        strong.append('Past Courses will be available from the end of Academic Year 2024/25.' +
+        strong.append('Past courses will be displayed only for Academic Year 2024/25 onwards.' +
             ' Any past courses/grades before this can be accessed from Moodle / My Courses.');
         div.appendChild(strong);
         containerDiv.appendChild(div);
