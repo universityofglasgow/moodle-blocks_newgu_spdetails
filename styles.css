@@ -10,7 +10,7 @@
 .assessments-details-container .nav-tabs .nav-link {
     border: none;
     border-bottom: 2px solid #eee;
-    color: #99a;
+    color: rgb(100, 100, 100);
     cursor: pointer;
 }
 
